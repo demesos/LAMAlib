@@ -1,0 +1,210 @@
+<html>
+<body>
+<h1>LAMAlib - Lightweight Assembler MAcro library for cc65</h1>
+Version: 0.1<br>
+Date: 2019-10-26<br>
+Author: Wil Elmenreich (wilfried at gmx dot at)<br>
+License: The Unlicense (public domain)<br>
+<br>
+<h2>Installation and Usage</h2>
+To use LAMAlib you need to have cc65 installed. Get it at https://cc65.github.io<br>
+<br>
+<h3>Possibility 1: Install in cc65</h3>
+Copy all LAMAlib*.inc files into directory <tt>asminc</tt> of your cc65 installation.<br>
+Copy the file LAMAlib.lib into directory <tt>lib</tt> of your cc65 installation.<br>
+Move LAMAlibdoc.html (the file you are currently viewing) either to the html directory of cc65 or to some other place where you want to conveniently keep the documentation.<br>
+You don't need to keep the original folder of LAMAlib<br>
+<br>
+In your programs,<br>
+add a line <tt>.include "LAMAlib.inc"</tt> at the top of your assembler file<br>
+assemble with command <tt>cl65 yourprog.s -lib LAMAlib.lib -C c64-asm.cfg -u __EXEHDR__ -o yourprog.prg</tt>
+<br>
+<h3>Possibility 2: Keep LAMAlib separately</h3>
+Keep a copy of the LAMAlib folder in a sister directory of your project.<br>
+<br>
+In your programs,<br>
+add a line <tt>.include "../LAMAlib/LAMAlib.inc"</tt> at the top of your assembler file (the forward slash works on Linux as well as on Linux systems)<br>
+assemble with command <tt>cl65 yourprog.s -lib ../LAMAlib/LAMAlib.lib -C c64-asm.cfg -u __EXEHDR__ -o yourprog.prg</tt>
+When you publish code of your project you may add LAMAlib to the package. The License has been chosen to be maximum permissive, so whatever project you have, there should be not problems adding the code.<br>
+<br>
+<h2>Points to remember</h2>
+Please note that the zero flag for 16/24/32 bit operations is not properly set for most macros except CMPxx, therefore a CMPxx #00 might be necessary to test for zero.<br>
+Some of the more complex functions like division and multiplication use zero page addresses $22-$2a as temporary memory. This area is also by BASIC for temporary ptrs and results, but borrowing these addresses seem not to interfere severely with the system. Using $22-2A further plays well with cc65 parts written in C and leaves the well-known free ZP addresses at $FB to $FE to the user.<br>
+<br>
+<h1>Command documentation</h1>
+<h2>16-bit Emulation Macros</h2>
+
+<h3>ldax <i>addr,</i> ldax <i>#arg</i></h3>
+Loads a 16-bit value into A/X, either from an address or as immediate value<br>
+Note that the zero flag is not indicating 0 but indicating a value <256<br>
+Supports zero page addressing mode<br>
+Registers modified: A,X<br>
+
+<h3>stax <i>addr</i></h3>
+Stores the value in registers A and X to addr and addr+1<br>
+Supports zero page addressing mode<br>
+Registers modified: none<br>
+
+<h3>adcax <i>addr,</i> adcax <i>#arg</i></h3>
+Adds a 16 bit value at an addr or as immediate value to 16 bit value in registers A/X<br>
+Supports zero page addressing mode<br>
+Result is returned in A/X<br>
+Registers modified: A,X<br>
+
+<h3>sbcax <i>addr,</i> sbcax <i>#addr</i></h3>
+Subtracts the 16 bit value at an addr or as immediate value from  16 bit value in registers A/X<br>
+Supports zero page addressing mode<br>
+Result is returned in A/X<br>
+Registers modified: A,X<br>
+
+<h3>cmpax <i>addr,</i> cmpax <i>#arg</i></h3>
+Compares the value in A/X with the 16 bit value in addr or the immediate value<br>
+Supports zero page addressing mode<br>
+Result is returned in A/X<br>
+Registers modified: A,X<br>
+
+<h3>orax <i>addr,</i> orax <i>#arg</i></h3>
+Calculates the bitwise OR operation between A/X and a 16 bit value at an addr or as immediate value<br>
+Supports zero page addressing mode<br>
+Result is returned in A/X<br>
+Registers modified: A,X<br>
+
+<h3>andax <i>addr,</i> andax <i>#arg</i></h3>
+Calculates the bitwise AND operation between A/X and a 16 bit value at an addr or as immediate value<br>
+Supports zero page addressing mode<br>
+Result is returned in A/X<br>
+Registers modified: A,X<br>
+
+<h3>eorax <i>addr,</i> eorax <i>#arg</i></h3>
+Calculates the bitwise exclusive-or operation between A/X and a 16 bit value at addr or as immediate value<br>
+Supports zero page addressing mode<br>
+Result is returned in A/X<br>
+Registers modified: A,X<br>
+
+<h3>aslax</h3>
+Performs an arithmetic shift left of A/X (essentially a multiplication with 2, MSB goes into carry)<br>
+Result is returned in A/X<br>
+Registers modified: A,X<br>
+
+<h3>asl16 <i>addr</i></h3>
+Performs an arithmetic shift left of a 16 bit number at addr<br>
+Result at addr, addr+1<br>
+Registers modified: none<br>
+
+<h3>lsrax</h3>
+Performs a logic shift right of A/X (essentially a division by 2, LSB goes into carry)<br>
+Result is returned in A/X<br>
+Registers modified: A,X<br>
+
+<h3>lsr16 <i>addr</i></h3>
+Performs a logic shift right of a 16 bit number at addr<br>
+Result at addr, addr+1<br>
+Registers modified: none<br>
+
+<h3>rolax</h3>
+Performs a rotate left of A/X (essentially a multiplication with 2, carry goes into LSB, MSB goes into carry)<br>
+Result is returned in A/X<br>
+Registers modified: A,X<br>
+
+<h3>rol16 <i>addr</i></h3>
+Performs a rotate left of a 16 bit number at addr<br>
+Result at addr, addr+1<br>
+Registers modified: none<br>
+
+<h3>rorax</h3>
+Performs a rotate right of A/X (essentially a division by 2, carry goes into MSB, LSB goes into carry)<br>
+Result is returned in A/X<br>
+Registers modified: A,X<br>
+
+<h3>ror16 <i>addr</i></h3>
+Performs a rotate right of a 16 bit number at addr<br>
+Result at addr, addr+1<br>
+Registers modified: none<br>
+
+<h3>negax</h3>
+Negates the value in A/X<br>
+Result is returned in A/X<br>
+Registers modified: A,X<br>
+
+<h3>absax</h3>
+Makes the signed 16 bit value in A/X an absolute value<br>
+Result is returned in A/X<br>
+Registers modified: A,X<br>
+
+<h3>incax</h3>
+Increments 16 bit value in registers A/X<br>
+Registers modified: A,X<br>
+
+<h3>inc16 <i>addr</i></h3>
+Increments the value stored at addr (lo-byte) and addr+1 (hi-byte) as a 16 bit value<br>
+Registers modified: none<br>
+
+<h3>decax</h3>
+Decrements 16 bit value in registers A/X<br>
+Registers modified: A,X<br>
+
+<h3>dec16 <i>addr</i></h3>
+Decrements the value stored at addr (lo-byte) and addr+1 (hi-byte) as a 16 bit value<br>
+Registers modified: A<br>
+
+<h3>pushax</h3>
+Pushes AX to the stack and preserves AX<br>
+
+<h3>pullax</h3>
+Pulls AX from the stack<br>
+mul16 addr<br>
+Multiplies the unsigned 16 bit value in A/X with the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
+Implemented as a subroutinge, link with -lib lamalib.lib<br>
+This function is not reentrant, don't use in interrupt and main program simultaneously<br>
+Result is returned in A/X<br>
+Registers modified: all<br>
+
+<h3>div16 <i>arg</i></h3>
+Multiplies the unsigned 16 bit value in A/X with an imediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
+Implemented as a subroutinge, link with -lib lamalib.lib<br>
+This function is not reentrant, don't use in interrupt and main program simultaneously<br>
+Result is returned in A/X<br>
+Registers modified: all<br>
+
+<h3>rand8 <i>arg,</i> <i>rand8_setseed</i> <i>arg</i></h3>
+based on the 8-bit pseudo-random number generator from White Flame<br>
+https://codebase64.org/doku.php?id=base:small_fast_8-bit_prng<br>
+Simple but very fast random generator with a period of 256<br>
+Seed is an 8 bit value<br>
+Result is returned in A<br>
+Registers modified: A<br>
+
+<h3>rand16 <i>arg,</i> <i>rand16_setseed</i> <i>arg</i></h3>
+fast 16-bit pseudo-random number generator with period of 65535<br>
+seed must never be 32755, so setseed modifies this value it this is the case<br>
+Seed is a 16 bit value<br>
+Result is returned in A/X<br>
+Registers modified: A,X<br>
+<h2>ROM library calls</h2>
+
+<h3>printax</h3>
+Prints the number in A/X as a 16 bit unsigned decimal number<br>
+BASIC and KERNAL ROM need to be enabled when using this function<br>
+Registers modified: A,Y,X<br>
+
+<h3>printax_signed</h3>
+Prints the number in A/X as a 16 bit signed decimal number<br>
+BASIC and KERNAL ROM need to be enabled when using this function<br>
+Registers modified: A,Y,X<br>
+
+<h3>printstr <i>addr</i></h3>
+Prints the null-terminated string at addr using the STROUT function<br>
+BASIC and KERNAL ROM need to be enabled when using this function<br>
+Registers modified: A,Y,X<br>
+
+<h3>newline</h3>
+Prints a newline character<br>
+KERNAL ROM needs to be enabled when using this function<br>
+Registers modified: A,Y,X<br>
+
+<h3>clrscr</h3>
+Clears the screen<br>
+KERNAL ROM needs to be enabled when using this function<br>
+Registers modified: A,Y,X<br>
+</body>
+</html>
