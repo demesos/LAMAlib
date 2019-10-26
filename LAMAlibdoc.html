@@ -1,7 +1,7 @@
 <html>
 <body>
 <h1>LAMAlib - Lightweight Assembler MAcro library for cc65</h1>
-Version: 0.1<br>
+Version: 0.11<br>
 Date: 2019-10-26<br>
 Author: Wil Elmenreich (wilfried at gmx dot at)<br>
 License: The Unlicense (public domain)<br>
@@ -181,5 +181,41 @@ seed must never be 32755, so setseed modifies this value it this is the case<br>
 Seed is a 16 bit value<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
+
+<h3>print <i>arg1</i> <i>[arg2</i> <i>...]</i></h3>
+Prints the arguments as strings or numbers<br>
+An argument in parenthesis will print the 16bit value stored at this address<br>
+uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
+Registers modified: A,Y,X<br>
+
+<h3>primm <i>str</i></h3>
+Prints the given string, string is inlined in program code<br>
+uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
+Registers modified: A,Y,X<br>
+
+<h3>printax</h3>
+Prints the number in A/X as a 16 bit unsigned decimal number<br>
+BASIC and KERNAL ROM need to be enabled when using this function<br>
+Registers modified: A,Y,X<br>
+
+<h3>printax_signed</h3>
+Prints the number in A/X as a 16 bit signed decimal number<br>
+BASIC and KERNAL ROM need to be enabled when using this function<br>
+Registers modified: A,Y,X<br>
+
+<h3>printstr <i>addr</i></h3>
+Prints the null-terminated string at addr using the STROUT function<br>
+BASIC and KERNAL ROM need to be enabled when using this function<br>
+Registers modified: A,Y,X<br>
+
+<h3>newline</h3>
+Prints a newline character<br>
+KERNAL ROM needs to be enabled when using this function<br>
+Registers modified: A,Y,X<br>
+
+<h3>clrscr</h3>
+Clears the screen<br>
+KERNAL ROM needs to be enabled when using this function<br>
+Registers modified: A,Y,X<br>
 </body>
 </html>
