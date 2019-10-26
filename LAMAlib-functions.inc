@@ -122,3 +122,105 @@
 	stx rand16seed+1
 .endscope
 .endmacro
+
+;; print arg1 [arg2 ...]
+;; Prints the arguments as strings or numbers
+;; An argument in parenthesis will print the 16bit value stored at this address
+;; uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro
+;; Registers modified: A,Y,X
+.macro print arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+  .ifblank arg1
+      ; First parameter is empty
+      .exitmacro
+  .endif
+.scope
+       .if (.match (.left (1, {arg1}), {(}))
+	    ldax .mid (1, .tcount ({arg1})-2, {arg1})
+	    printax
+       .else
+            primm arg1
+       .endif
+.endscope
+.if .paramcount > 1
+	;macro calls itself recursely to process remaining arguments
+        print arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+.endif
+.endmacro
+
+;; primm str
+;; Prints the given string, string is inlined in program code
+;; uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro
+;; Registers modified: A,Y,X
+.macro  primm str
+.import primmsr
+.scope
+       jsr primmsr
+       .asciiz str
+.endscope
+.endmacro
+
+;; printax
+;; Prints the number in A/X as a 16 bit unsigned decimal number
+;; BASIC and KERNAL ROM need to be enabled when using this function
+;; Registers modified: A,Y,X
+.macro  printax
+.scope
+		sta @setx +1	;we need to switch A and X
+		txa
+@setx:		ldx #00
+                jsr LINPRT
+.endscope
+.endmacro
+
+;; printax_signed
+;; Prints the number in A/X as a 16 bit signed decimal number
+;; BASIC and KERNAL ROM need to be enabled when using this function
+;; Registers modified: A,Y,X
+.macro  printax_signed
+.scope
+		cpx #$80	;is it a negative number?
+		bcc @positive
+		negax		;negate number
+		pha
+		lda #'-'	;write out minus sign
+		jsr CHROUT
+		pla
+@positive:	sta @setx +1	;we need to switch A and X
+		txa
+@setx:		ldx #00
+                jsr LINPRT
+.endscope
+.endmacro
+
+;; printstr addr
+;; Prints the null-terminated string at addr using the STROUT function
+;; BASIC and KERNAL ROM need to be enabled when using this function
+;; Registers modified: A,Y,X
+.macro  printstr   addr
+.scope
+                lda #<addr
+                ldy #>addr
+                jsr STROUT
+.endscope
+.endmacro
+
+;; newline
+;; Prints a newline character
+;; KERNAL ROM needs to be enabled when using this function
+;; Registers modified: A,Y,X
+.macro  newline
+.scope
+		lda #$0d
+                jsr CHROUT
+.endscope
+.endmacro
+
+;; clrscr
+;; Clears the screen
+;; KERNAL ROM needs to be enabled when using this function
+;; Registers modified: A,Y,X
+.macro  clrscr
+.scope
+                jsr CLRSCR
+.endscope
+.endmacro

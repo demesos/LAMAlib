@@ -5,49 +5,38 @@
 ;
 
 .include "LAMAlib.inc"
+.FEATURE STRING_ESCAPES
 
 	clrscr
-	lda #$0e ; white
+	lda #$01  ; white
 	sta $286  ; set textcolor
-	printstr hellostr
-	newline
 
-	lda #$0e ; light blue
+	; used PETSCII codes:
+	; \x05 white
+	; \x9a light blue
+	; \x9f cyan
+	; \x0e switch to lower/uppercase mode
+
+	print "\x0e\x9fHello everybody! \nThis is a test program for the\n\x05LAMAlib library\x9f.\n\n"
+	print "The library mostly contains assembler macros, but also some functions for multiplication and division and wrappers to some rom functions.\n\n"
+
+	lda #$0e  ; light blue
 	sta $286  ; set textcolor
-	printstr didyouknow1
-	newline
-
-	rand8   ;fill A with random number
+	rand8     ; fill A with random number
 	ldx #00
 	stax number1
 	
-	rand8   ;fill A with random number
+	rand8     ; fill A with random number
 	ldx #00
 	stax number2
 
 	mul16 number1 ;multiply A/X with number1
 	stax number3
 
-	ldax number1
-	printax
-
-	printstr didyouknow2
-
-	ldax number2
-	printax
-
-	printstr didyouknow3
-
-	ldax number3
-	printax
-
+	print "\x9aDid you know that\n\x05",(number1),"\x9a times \x05",(number2),"\x9a equals \x05",(number3),"\x9a"
 
 	rts
 
-hellostr:   .asciiz "hello everybody! this is a test program for the lamalib library. the library mostly contains assembler macros, but also some functions for multiplication and division and a wrapper to some rom functions."
-didyouknow1: .asciiz "did you know that:"
-didyouknow2: .asciiz " times "
-didyouknow3: .asciiz " equals "
 number1: .byte 00,00
 number2: .byte 00,00
 number3: .byte 00,00

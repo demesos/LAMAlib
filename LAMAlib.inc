@@ -1,5 +1,5 @@
 ; <h1>LAMAlib - Lightweight Assembler MAcro library for cc65</h1>
-; Version: 0.1 
+; Version: 0.11
 ; Date: 2019-10-26
 ; Author: Wil Elmenreich (wilfried at gmx dot at)
 ; License: The Unlicense (public domain)
@@ -32,8 +32,9 @@
 ; <h1>Command documentation</h1>
 
 .include "LAMAlib-macros16.inc"
-.include "LAMAlib-functions.inc"
 .include "LAMAlib-ROMfunctions.inc"
+.include "LAMAlib-functions.inc"
+
 
 
 

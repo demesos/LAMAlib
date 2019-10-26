@@ -152,7 +152,8 @@ Pushes AX to the stack and preserves AX<br>
 
 <h3>pullax</h3>
 Pulls AX from the stack<br>
-mul16 addr<br>
+
+<h3>mul16 <i>addr</i></h3>
 Multiplies the unsigned 16 bit value in A/X with the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
 Implemented as a subroutinge, link with -lib lamalib.lib<br>
 This function is not reentrant, don't use in interrupt and main program simultaneously<br>
@@ -180,31 +181,5 @@ seed must never be 32755, so setseed modifies this value it this is the case<br>
 Seed is a 16 bit value<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
-<h2>ROM library calls</h2>
-
-<h3>printax</h3>
-Prints the number in A/X as a 16 bit unsigned decimal number<br>
-BASIC and KERNAL ROM need to be enabled when using this function<br>
-Registers modified: A,Y,X<br>
-
-<h3>printax_signed</h3>
-Prints the number in A/X as a 16 bit signed decimal number<br>
-BASIC and KERNAL ROM need to be enabled when using this function<br>
-Registers modified: A,Y,X<br>
-
-<h3>printstr <i>addr</i></h3>
-Prints the null-terminated string at addr using the STROUT function<br>
-BASIC and KERNAL ROM need to be enabled when using this function<br>
-Registers modified: A,Y,X<br>
-
-<h3>newline</h3>
-Prints a newline character<br>
-KERNAL ROM needs to be enabled when using this function<br>
-Registers modified: A,Y,X<br>
-
-<h3>clrscr</h3>
-Clears the screen<br>
-KERNAL ROM needs to be enabled when using this function<br>
-Registers modified: A,Y,X<br>
 </body>
 </html>
