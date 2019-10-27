@@ -9,17 +9,21 @@
 # License: The Unlicense (public domain)
 
 def printformatmacroname(m):
-   w=m.split(" ")
-   if len(w)<=1:
-       print( m, end='')
-   else:
-       sep=''
-       for c in w:
-           if c==w[0]:
-               print(sep+c, end='')
-           else:
-               print(sep+"<i>"+c+"</i>", end='')
-           sep=' '
+   cmds=m.split(";")
+   sep=''
+   for cmd in cmds:
+      w=cmd.lstrip(' ').split(' ')
+      if len(w)<=1:
+          print( m, end='')
+      else:
+          for c in w:
+              if c==w[0]:
+                  print(sep+c, end='')
+              else:
+                  print(sep+"<i>"+c+"</i>", end='')
+              sep=' '
+      sep=' ; '
+
 
 lines=[]
 for l in open("LAMAlib.inc"):

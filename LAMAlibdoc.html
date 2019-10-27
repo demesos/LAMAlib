@@ -167,18 +167,18 @@ This function is not reentrant, don't use in interrupt and main program simultan
 Result is returned in A/X<br>
 Registers modified: all<br>
 
-<h3>rand8 <i>arg,</i> <i>rand8_setseed</i> <i>arg</i></h3>
+<h3>rand8 <i>arg</i> ; rand8_setseed <i>[arg]</i></h3>
 based on the 8-bit pseudo-random number generator from White Flame<br>
 https://codebase64.org/doku.php?id=base:small_fast_8-bit_prng<br>
 Simple but very fast random generator with a period of 256<br>
-Seed is an 8 bit value<br>
+Seed is an 8 bit value, setting seed is optional. When no argument is given, the current value in the Accumulator is used as the seed<br>
 Result is returned in A<br>
 Registers modified: A<br>
 
-<h3>rand16 <i>arg,</i> <i>rand16_setseed</i> <i>arg</i></h3>
+<h3>rand16 <i>arg</i> ; rand16_setseed <i>arg</i></h3>
 fast 16-bit pseudo-random number generator with period of 65535<br>
 seed must never be 32755, so setseed modifies this value it this is the case<br>
-Seed is a 16 bit value<br>
+Seed is a 16 bit value, setting seed is optional. When no argument is given, the current value in A/X is used as the seed<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
 
