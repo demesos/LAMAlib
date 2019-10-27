@@ -17,7 +17,7 @@ CLRSCR= $C142 ;clear screen
 .elseif .def(__VIC20__)
 
 CHROUT= $FFD2 ;outputs the character in A
-STROUT= $9B1E ;outputs a string at addr A/Y
+STROUT= $CB1E ;outputs a string at addr A/Y
 LINPRT= $DDCD ;outputs number in A/X
 CLRSCR= $E55F ;clear screen
 
