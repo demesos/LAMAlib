@@ -1,0 +1,62 @@
+Modules list:
+-------------
+testgfx.o:
+    CODE              Offs=000000  Size=00004F  Align=00001  Fill=0000
+LAMAlib.lib(gfx_clrscr.o):
+    CODE              Offs=00004F  Size=000075  Align=00001  Fill=0000
+LAMAlib.lib(gfx_plot.o):
+    CODE              Offs=0000C4  Size=00000B  Align=00001  Fill=0000
+LAMAlib.lib(primm.o):
+    CODE              Offs=0000CF  Size=000024  Align=00001  Fill=0000
+LAMAlib.lib(waitkey.o):
+    CODE              Offs=0000F3  Size=00000D  Align=00001  Fill=0000
+LAMAlib.lib(waitkeyreleased.o):
+    CODE              Offs=000100  Size=00000D  Align=00001  Fill=0000
+C:\Users\Wilfried\Documents\software\c64\cc65\lib/c64.lib(exehdr.o):
+    EXEHDR            Offs=000000  Size=00000C  Align=00001  Fill=0000
+C:\Users\Wilfried\Documents\software\c64\cc65\lib/c64.lib(loadaddr.o):
+    LOADADDR          Offs=000000  Size=000002  Align=00001  Fill=0000
+
+
+Segment list:
+-------------
+Name                   Start     End    Size  Align
+----------------------------------------------------
+LOADADDR              0007FF  000800  000002  00001
+EXEHDR                000801  00080C  00000C  00001
+CODE                  00080D  000919  00010D  00001
+
+
+Exports list by name:
+---------------------
+__EXEHDR__                000001 REA    __LOADADDR__              000001 REA    
+gfx_clrscr_sr             00085C RLA    gfx_plot_sr               0008D1 RLA    
+primmsr                   0008DC RLA    waitkey_sr                000900 RLA    
+waitkeyreleased_sr        00090D RLA    
+
+
+Exports list by value:
+----------------------
+__EXEHDR__                000001 REA    __LOADADDR__              000001 REA    
+gfx_clrscr_sr             00085C RLA    gfx_plot_sr               0008D1 RLA    
+primmsr                   0008DC RLA    waitkey_sr                000900 RLA    
+waitkeyreleased_sr        00090D RLA    
+
+
+Imports list:
+-------------
+__EXEHDR__ (exehdr.o):
+    [linker generated]       
+__LOADADDR__ (loadaddr.o):
+    [linker generated]        C:\Users\Wilfried\Documents\software\c64\cc65\cfg/c64-asm.cfg(5)
+gfx_clrscr_sr (gfx_clrscr.o):
+    testgfx.o                 LAMAlib-gfx.inc(17)
+gfx_plot_sr (gfx_plot.o):
+    testgfx.o                 LAMAlib-gfx.inc(29)
+primmsr (primm.o):
+    testgfx.o                 testgfx.s(19)
+waitkey_sr (waitkey.o):
+    testgfx.o                 LAMAlib-functions.inc(280)
+waitkeyreleased_sr (waitkeyreleased.o):
+    testgfx.o                 LAMAlib-functions.inc(290)
+

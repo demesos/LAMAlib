@@ -10,12 +10,12 @@
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
 	    iarg=(.right (.tcount ({arg})-1, {arg}))
-	    .if (<iarg = >iarg)
-                lda     #<iarg
-                tax
-	    .else
-                lda     #<iarg
-                ldx     #>iarg
+            .if .const(iarg) .and (<iarg = >iarg)
+               lda     #<iarg
+               tax
+            .else
+               lda     #<iarg
+               ldx     #>iarg
             .endif
         .else
             ; absolute or zero page

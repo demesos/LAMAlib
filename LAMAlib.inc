@@ -34,7 +34,7 @@
 .include "LAMAlib-macros16.inc"
 .include "LAMAlib-ROMfunctions.inc"
 .include "LAMAlib-functions.inc"
-
+.include "LAMAlib-gfx.inc"
 
 
 
