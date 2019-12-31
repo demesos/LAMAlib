@@ -10,6 +10,8 @@ INITVIC = $E5A0
 INITVEC = $FD15   
 BASICSTART=$0801
 PTRSCRHI=$288 ;high byte of pointer to screen memory for screen input/output
+CURSORX=$D3
+CURSORY=$D6
 
 .elseif .def(__C128__)
 
@@ -20,6 +22,9 @@ CLRSCR= $C142 ;clear screen
 INITVIC = $E170
 INITVEC = $E056 
 BASICSTART=$1C01
+PTRSCRHI=$a3b ;high byte of pointer to screen memory for screen input/output
+CURSORX=$EC
+CURSORY=$EB
 
 .elseif .def(__VIC20__)
 
