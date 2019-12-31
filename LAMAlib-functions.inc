@@ -138,18 +138,34 @@
       .exitmacro
   .endif
 .scope
-       .if (.match (.left (1, {arg1}), {(}))
+	.if (.match ({arg1}, {AX}))			;print AX as number
+           printax
+       .elseif (.match ({arg1}, {A}))			;print akku as number
+	   ldx #00
+           printax
+       .elseif (.match (.left (1, {arg1}), #))		;immediate number
+	    iarg=(.right (.tcount ({arg1})-1, {arg1}))
+            .if .const(iarg) .and (<iarg = >iarg)
+               lda     #<iarg
+               tax
+            .else
+               lda     #<iarg
+               ldx     #>iarg
+            .endif
+	    printax
+	.elseif (.match (.left (1, {arg1}), {(})) 	;argument in brackets
 	    ldax .mid (1, .tcount ({arg1})-2, {arg1})
 	    printax
-       .else
-            primm arg1
+	.else
+	    primm arg1
        .endif
 .endscope
-.if .paramcount > 1
-	;macro calls itself recursely to process remaining arguments
-        print arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
-.endif
+	.if .paramcount > 1
+		;macro calls itself recursely to process remaining arguments
+	        print arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+	.endif
 .endmacro
+
 
 ;; primm str
 ;; Prints the given string, string is inlined in program code
@@ -227,4 +243,80 @@
 .scope
                 jsr CLRSCR
 .endscope
+.endmacro
+
+;; wait arg
+;; Waits for arg milliseconds using a busy waiting loop
+;; When AX is given as argument it waits as many ms as the 16 bit value in A/X
+;; When a number (1-65536) is given as argument it waits this long
+;; Registers modified: A,X
+.macro  wait   arg
+.import waitsr
+.scope
+       .if (.xmatch ({arg1}, AX))
+	    jsr waitsr
+       .else
+	    ldax #arg
+            jsr waitsr
+       .endif
+.endscope
+.endmacro
+
+;; disableNMI
+;; Executes a short routine to disable the NMI
+;; the trick is to cause an NMI but don't ackowledge it
+;; Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)
+;; Registers modified: A
+.macro  disableNMI
+.import disableNMIsr
+       jsr disableNMIsr
+.endmacro
+
+
+;; waitkey
+;; Waits until a key is pressed
+;; Function works independly of IRQ
+;; Registers modified: A
+.import waitkey_sr
+.macro waitkey
+	jsr waitkey_sr
+.endmacro
+
+
+;; waitkeyreleased
+;; Waits until all keys are released
+;; Function works independly of IRQ
+;; Registers modified: A
+.import waitkeyreleased_sr
+.macro waitkeyreleased
+	jsr waitkeyreleased_sr
+.endmacro
+
+
+;; makesys [linenumber[,text]]
+;; Generates the code for a BASIC line with a SYS command and an optional text behind the sys command
+;; This is similar to the command line option  -u __EXEHDR__
+;; Difference is that with this function the code segment starts at $801, so .align is off only by 1
+;; Default line number is 2019
+.macro  makesys linenumber,text
+       .byte $0b,$08
+       .if .paramcount > 0
+	    .byte <linenumber,>linenumber
+       .else
+	    .byte <2019,>2019
+       .endif
+       .byte $9e   ;SYS token
+       ;.byte $30+2 ;systarget/1000
+       ;.byte $30+systarget .mod 1000/100
+       ;.byte $30+systarget .mod 100/10
+       ;.byte $30+(systarget .mod 10)
+       .if .paramcount = 2
+            systarget=BASICSTART+$0d+.strlen(text)
+            .byte .sprintf ("%d", systarget)
+	    .asciiz text
+       .else
+            systarget=BASICSTART+$0d
+            .asciiz .sprintf ("%d", systarget)
+       .endif
+       .byte $00,$00
 .endmacro
