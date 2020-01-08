@@ -172,9 +172,9 @@
 ;; uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro
 ;; Registers modified: A,Y,X
 .macro  primm str
-.import primm_sr
+.import _primm_sr
 .scope
-       jsr primm_sr
+       jsr _primm_sr
        .asciiz str
 .endscope
 .endmacro
