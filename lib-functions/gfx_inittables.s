@@ -2,7 +2,7 @@
 
 .include "gfx_include.inc"
 
-.export gfx_init_sr := gfx_init
+.export _gfx_init_sr := gfx_init
 
 gfx_init:
 	ldx #00

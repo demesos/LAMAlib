@@ -3,7 +3,7 @@
 ; clear the hires screen quick and dirty
 ; Y register is expected to hold bg/fg color
 
-.export gfx_clrscr_sr:=gfx_clrscr
+.export _gfx_clrscr_sr:=gfx_clrscr
 
 .include "gfx_include.inc"
 

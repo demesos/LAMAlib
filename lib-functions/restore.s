@@ -2,7 +2,7 @@
 
 .include "../LAMAlib-ROMfunctions.inc"
 
-.export restore_sr:=restore
+.export _restore_sr:=restore
 
 restore:
 	sei

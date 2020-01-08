@@ -1,6 +1,6 @@
 ; waits for any key to be pressed
 
-.export waitkey_sr := keychk
+.export _waitkey_sr := keychk
 
 keychk:
 	lda #00

@@ -1,6 +1,6 @@
 ; waits until all keys are released
 
-.export waitkeyreleased_sr := keychk
+.export _waitkeyreleased_sr := keychk
 
 keychk:
 	lda #00

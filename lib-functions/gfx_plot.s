@@ -4,7 +4,7 @@
 
 .include "gfx_include.inc"
 
-.export gfx_plot_sr:=plot
+.export _gfx_plot_sr:=plot
 
 plot:
 	lda #<bitmap

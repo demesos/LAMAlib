@@ -4,8 +4,8 @@ multiplicand = zpbase+2
 
 .include "../LAMAlib-macros16.inc"
 
-.export fastmul16sr:=multiply16
-.exportzp fastmul16arg:=multiplicand
+.export _fastmul16_sr:=multiply16
+.exportzp _fastmul16_arg:=multiplicand
 
 multiply16:
 	eor #$ff

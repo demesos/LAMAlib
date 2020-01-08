@@ -5,7 +5,7 @@
 ; works with strings up to 254 chars
 ; based on an idea from http://www.6502.org/source/io/primm.htm
 
-.export primmsr := primm
+.export _primm_sr := primm
 
 primm:	pla		;get the low byte from return address
 	sta @loopstart+1 ;self-modification

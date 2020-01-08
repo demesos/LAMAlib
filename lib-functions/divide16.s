@@ -6,8 +6,8 @@ result = dividend ;given back in A/X
 
 .include "../LAMAlib-macros16.inc"
 
-.export div16sr:=divide16
-.exportzp div16arg:=divisor, div16rem:=remainder
+.export _div16_sr:=divide16
+.exportzp _div16_arg:=divisor, _div16_rem:=remainder
 
 divide16:
 	sta dividend

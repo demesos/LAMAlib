@@ -3,13 +3,13 @@
 
 .include "../LAMAlib-macros16.inc"
 
-.export rand16sr, rand16seed:=seed
+.export _rand16_sr=rand16, _rand16_seed:=seed
 
 ;one out of 2048 possible magic EOR numbers that give a 16-bit PRNG with full period
 
 magic=$8015
 
-rand16sr:	
+rand16:	
 	asl seed
 	rol seed+1
 	bcs :+

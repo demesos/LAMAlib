@@ -4,47 +4,47 @@
 ;; This function is not reentrant, don't use in interrupt and main program simultaneously
 ;; Result is returned in A/X
 ;; Registers modified: all
-.import mul16sr
-.importzp mul16arg
+.import _mul16_sr
+.importzp _mul16_arg
 
 .macro mul16 arg
 .scope
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
             ldy     #<(.right (.tcount ({arg})-1, {arg}))
-	    sty	mul16arg
+	    sty	_mul16_arg
             ldy     #>(.right (.tcount ({arg})-1, {arg}))
-            sty mul16arg+1
+            sty _mul16_arg+1
         .else
             ; assume absolute or zero page
             ldy     arg
-	    sty	mul16arg
+	    sty	_mul16_arg
             ldy     1+(arg)
-            sty mul16arg+1
+            sty _mul16_arg+1
         .endif	
-        jsr mul16sr ;mul16 subroutine
+        jsr _mul16_sr ;mul16 subroutine
 .endscope
 .endmacro
 
-.import fastmul16sr
-.importzp fastmul16arg
+.import _fastmul16_sr
+.importzp _fastmul16_arg
 
 .macro fastmul16 arg
 .scope
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
             ldy     #<(.right (.tcount ({arg})-1, {arg}))
-	    sty	fastmul16arg
+	    sty	_fastmul16_arg
             ldy     #>(.right (.tcount ({arg})-1, {arg}))
-            sty fastmul16arg+1
+            sty _fastmul16_arg+1
         .else
             ; assume absolute or zero page
             ldy     arg
-	    sty	fastmul16arg
+	    sty	_fastmul16_arg
             ldy     1+(arg)
-            sty fastmul16arg+1
+            sty _fastmul16_arg+1
         .endif	
-        jsr fastmul16sr ;fastmul16 subroutine
+        jsr _fastmul16_sr ;fastmul16 subroutine
 .endscope
 .endmacro
 
@@ -54,25 +54,25 @@
 ;; This function is not reentrant, don't use in interrupt and main program simultaneously
 ;; Result is returned in A/X
 ;; Registers modified: all
-.import div16sr
-.importzp div16arg,div16rem
+.import _div16_sr
+.importzp _div16_arg,_div16_rem
 
 .macro div16 arg
 .scope
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
             ldy     #<(.right (.tcount ({arg})-1, {arg}))
-	    sty	div16arg
+	    sty	_div16_arg
             ldy     #>(.right (.tcount ({arg})-1, {arg}))
-            sty div16arg+1
+            sty _div16_arg+1
         .else
             ; assume absolute or zero page
             ldy     arg
-	    sty	div16arg
+	    sty	_div16_arg
             ldy     1+(arg)
-            sty div16arg+1
+            sty _div16_arg+1
         .endif	
-         jsr div16sr ;div16 subroutine
+         jsr _div16_sr ;div16 subroutine
 .endscope
 .endmacro
 
@@ -83,11 +83,11 @@
 ;; Seed is an 8 bit value, setting seed is optional. When no argument is given, the current value in the Accumulator is used as the seed
 ;; Result is returned in A
 ;; Registers modified: A
-.import rand8sr, rand8seed
+.import _rand8_sr, _rand8_seed
 
 .macro rand8
 .scope
-         jsr rand8sr
+         jsr _rand8_sr
 .endscope
 .endmacro
 
@@ -96,7 +96,7 @@
 	.if .paramcount = 1
 	   lda #arg
 	.endif 
-	sta rand8seed
+	sta _rand8_seed
 .endscope
 .endmacro
 
@@ -106,11 +106,11 @@
 ;; Seed is a 16 bit value, setting seed is optional. When no argument is given, the current value in A/X is used as the seed
 ;; Result is returned in A/X
 ;; Registers modified: A,X
-.import rand16sr, rand16seed
+.import _rand16_sr, _rand16_seed
 
 .macro rand16
 .scope
-         jsr rand16sr
+         jsr _rand16_sr
 .endscope
 .endmacro
 
@@ -122,8 +122,8 @@
 	cmpax #32755	;this is the one seed we need to avoid
 	bne @ok
 	and #$FE ;make it 32754
-@ok:	sta rand16seed
-	stx rand16seed+1
+@ok:	sta _rand16_seed
+	stx _rand16_seed+1
 .endscope
 .endmacro
 
@@ -172,9 +172,9 @@
 ;; uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro
 ;; Registers modified: A,Y,X
 .macro  primm str
-.import primmsr
+.import primm_sr
 .scope
-       jsr primmsr
+       jsr primm_sr
        .asciiz str
 .endscope
 .endmacro
@@ -251,13 +251,13 @@
 ;; When a number (1-65536) is given as argument it waits this long
 ;; Registers modified: A,X
 .macro  wait   arg
-.import waitsr
+.import _wait_sr
 .scope
        .if (.xmatch ({arg1}, AX))
-	    jsr waitsr
+	    jsr _wait_sr
        .else
 	    ldax #arg
-            jsr waitsr
+            jsr _wait_sr
        .endif
 .endscope
 .endmacro
@@ -268,8 +268,8 @@
 ;; Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)
 ;; Registers modified: A
 .macro  disableNMI
-.import disableNMIsr
-       jsr disableNMIsr
+.import _disableNMI_sr
+       jsr _disableNMI_sr
 .endmacro
 
 
@@ -277,9 +277,9 @@
 ;; Waits until a key is pressed
 ;; Function works independly of IRQ
 ;; Registers modified: A
-.import waitkey_sr
+.import _waitkey_sr
 .macro waitkey
-	jsr waitkey_sr
+	jsr _waitkey_sr
 .endmacro
 
 
@@ -287,9 +287,20 @@
 ;; Waits until all keys are released
 ;; Function works independly of IRQ
 ;; Registers modified: A
-.import waitkeyreleased_sr
+.import _waitkeyreleased_sr
 .macro waitkeyreleased
-	jsr waitkeyreleased_sr
+	jsr _waitkeyreleased_sr
+.endmacro
+
+
+;; readWASDspace
+;; Checks the keyboard for keypresses of W, A ,S, D and Space
+;; Output is a byte in A in the same format as a joystick value
+;; Function works independly of IRQ or ROM
+;; Registers modified: A,X
+.import _readWASDspace_sr
+.macro readWASDspace
+	jsr _readWASDspace_sr
 .endmacro
 
 

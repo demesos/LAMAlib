@@ -1,6 +1,6 @@
 .include "../LAMAlib-macros16.inc"
 
-.export waitsr
+.export _wait_sr := waitsr
 
 waitsr:	inx
 	stx counter1

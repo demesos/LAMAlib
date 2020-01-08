@@ -13,6 +13,16 @@ PTRSCRHI=$288 ;high byte of pointer to screen memory for screen input/output
 CURSORX=$D3
 CURSORY=$D6
 
+CIABASE=$DD00
+
+TIMERA= CIABASE+4
+TIMERB= CIABASE+6
+
+ICR= CIABASE+$D ;Interrupt control reg
+
+CRA= CIABASE+$E ;Control Timer A
+CRB= CIABASE+$F ;Control Timer B
+
 .elseif .def(__C128__)
 
 CHROUT= $FFD2 ;outputs the character in A
@@ -26,6 +36,16 @@ PTRSCRHI=$a3b ;high byte of pointer to screen memory for screen input/output
 CURSORX=$EC
 CURSORY=$EB
 
+CIABASE=$DD00
+
+TIMERA= CIABASE+4
+TIMERB= CIABASE+6
+
+ICR= CIABASE+$D ;Interrupt control reg
+
+CRA= CIABASE+$E ;Control Timer A
+CRB= CIABASE+$F ;Control Timer B
+
 .elseif .def(__VIC20__)
 
 CHROUT= $FFD2 ;outputs the character in A
@@ -33,6 +53,17 @@ STROUT= $CB1E ;outputs a string at addr A/Y
 LINPRT= $DDCD ;outputs number in A/X
 CLRSCR= $E55F ;clear screen
 BASICSTART=$1001
+
+VIABASE=$9110
+
+TIMERAlatch= VIABASE+4
+TIMERAcounter = VIABASE+6
+TIMERBlatch= VIABASE+8
+
+ICR= CIABASE+$D ;Interrupt control reg
+
+CRA= CIABASE+$E ;Control Timer A
+CRB= CIABASE+$F ;Control Timer B
 
 .endif
 

@@ -1,13 +1,39 @@
 ; checks the keyboard for keypresses of W, A ,S, D and Space
+; output is a byte in A in the same format as a joystick value 
 
-.export readWASDspace_sr := readWASDspace
+.include "../LAMAlib-macros16.inc"
+
+.export _readWASDspace_sr := readWASDspace
+
+result=sm+1
 
 readWASDspace:
-  poke (0xDC00, 0xFD);
-  key_w = 0x02 - (peek(0xDC01)&0x02);
-  key_s = 0x20 - (peek(0xDC01)&0x20);
-  key_a = 0x04 - (peek(0xDC01)&0x04);
-  poke (0xDC00, 0xFB);
-  key_d = 0x04 - (peek(0xDC01)&0x04);
-  poke (0xDC00, 0x7F);
-  key_space = 0x10 - (peek(0xDC01)&0x10);	
+  poke $DC00, $FB
+  lda $DC01
+  and #$04		;test for key "d"
+  asl			;shift it to 8
+  sta result
+  poke $DC00, $FD
+  lda $DC01
+  tax
+  and #$20		;test for key "s"
+  lsr
+  lsr
+  lsr
+  lsr			;shift it to 2
+  ora result
+  sta result 
+  txa			;restore value
+  and #$02		;test for key "w"
+  lsr			;shift it to 1
+  ora result
+  sta result
+  txa			;restore value
+  and #$04		;test for key "a"
+  ora result
+  sta result
+  poke $DC00, $7F
+  lda $DC01
+  and #$10		;test for space
+sm:  ora #00
+  rts 
