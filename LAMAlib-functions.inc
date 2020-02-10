@@ -331,3 +331,35 @@
        .endif
        .byte $00,$00
 .endmacro
+
+
+;; identifySID [baseaddress]
+;; Detects the SID soundchip model
+;; SID detection routine from codebase64 by SounDemon and a tip from Dag Lem
+;; If no base address is given, the standard base address $d400 is used
+;; Overwrites register A
+;; Result is returned in carry
+;; Carry flag is set for 6581, and clear for 8580
+
+.macro identifySID address
+.scope
+       .if .paramcount > 0
+	    SIDbaseaddress=address
+       .else
+	    SIDbaseaddress=$d400
+       .endif
+       sei
+       lda #$ff
+waitraster:
+       cmp $D012    ;wait until screen is in border
+       bne waitraster
+
+       sta SIDbaseaddress+$12  ;control register voice 3 
+       sta SIDbaseaddress+$0e
+       sta SIDbaseaddress+$0f  ;set frequency in voice 3 to $ffff
+       lda #$20                ;sawtooth wave and gatebit off to start oscillator again
+       sta SIDbaseaddress+$12
+       lda SIDbaseaddress+$1b
+       lsr
+.endscope
+.endmacro
