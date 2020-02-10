@@ -322,11 +322,11 @@
        ;.byte $30+systarget .mod 100/10
        ;.byte $30+(systarget .mod 10)
        .if .paramcount = 2
-            systarget=BASICSTART+$0d+.strlen(text)
+            systarget=BASICSTART+$0c+.strlen(text)
             .byte .sprintf ("%d", systarget)
 	    .asciiz text
        .else
-            systarget=BASICSTART+$0d
+            systarget=BASICSTART+$0c
             .asciiz .sprintf ("%d", systarget)
        .endif
        .byte $00,$00
