@@ -308,13 +308,13 @@
 ;; Generates the code for a BASIC line with a SYS command and an optional text behind the sys command
 ;; This is similar to the command line option  -u __EXEHDR__
 ;; Difference is that with this function the code segment starts at $801, so .align is off only by 1
-;; Default line number is 2019
+;; Default line number is 2020
 .macro  makesys linenumber,text
        .byte $0b,$08
        .if .paramcount > 0
 	    .byte <linenumber,>linenumber
        .else
-	    .byte <2019,>2019
+	    .byte <2020,>2020
        .endif
        .byte $9e   ;SYS token
        ;.byte $30+2 ;systarget/1000
