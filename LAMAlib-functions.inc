@@ -245,19 +245,19 @@
 .endscope
 .endmacro
 
-;; wait arg
+;; delay_ms arg
 ;; Waits for arg milliseconds using a busy waiting loop
 ;; When AX is given as argument it waits as many ms as the 16 bit value in A/X
 ;; When a number (1-65536) is given as argument it waits this long
 ;; Registers modified: A,X
-.macro  wait   arg
-.import _wait_sr
+.macro  delay_ms arg
+.import _delay_ms_sr
 .scope
        .if (.xmatch ({arg1}, AX))
-	    jsr _wait_sr
+	    jsr _delay_ms_sr
        .else
 	    ldax #arg
-            jsr _wait_sr
+            jsr _delay_ms_sr
        .endif
 .endscope
 .endmacro
