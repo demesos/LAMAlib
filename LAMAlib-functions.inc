@@ -138,9 +138,9 @@
       .exitmacro
   .endif
 .scope
-	.if (.match ({arg1}, {AX}))			;print AX as number
+	.if (.xmatch ({arg1}, {AX}))			;print AX as number
            printax
-       .elseif (.match ({arg1}, {A}))			;print akku as number
+       .elseif (.xmatch ({arg1}, {A}))			;print akku as number
 	   ldx #00
            printax
        .elseif (.match (.left (1, {arg1}), #))		;immediate number

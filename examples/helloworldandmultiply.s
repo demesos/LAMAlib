@@ -31,7 +31,7 @@
 	rts
 
 hellostr:    .BYTE $0e,$9a,"Hello from ",0
-lamastr:     .asciiz "\x9aLAMA\x96lib!"
+lamastr:     .asciiz "\x05LAMA\x96lib!"
 didyouknow:  .asciiz "\x9aDid you know that "
 eqals:       .asciiz " equals "
 valuea:	     .byte 00,00
