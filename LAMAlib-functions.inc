@@ -76,7 +76,7 @@
 .endscope
 .endmacro
 
-;; rand8 arg; rand8_setseed [arg]
+;; rand8; rand8_setseed [arg]
 ;; based on the 8-bit pseudo-random number generator from White Flame 
 ;; https://codebase64.org/doku.php?id=base:small_fast_8-bit_prng
 ;; Simple but very fast random generator with a period of 256
@@ -100,7 +100,7 @@
 .endscope
 .endmacro
 
-;; rand16 arg; rand16_setseed arg
+;; rand16; rand16_setseed arg
 ;; fast 16-bit pseudo-random number generator with period of 65535
 ;; seed must never be 32755, so setseed modifies this value it this is the case
 ;; Seed is a 16 bit value, setting seed is optional. When no argument is given, the current value in A/X is used as the seed
@@ -329,7 +329,7 @@
             systarget=BASICSTART+$0c
             .asciiz .sprintf ("%d", systarget)
        .endif
-       .byte $00,$00
+       .byte $00,$00,$00
 .endmacro
 
 
