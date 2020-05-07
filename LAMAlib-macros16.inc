@@ -427,21 +427,21 @@
 ;; Copies arg2 into the address of arg1
 .macro  poke arg1,arg2
 .scope
-        .if (.match ({arg1}, {AX}))          ;AX is used as address
+        .if (.xmatch ({arg1}, {AX}))          ;AX is used as address
           sta @targetsm+1
           stx @targetsm+2
-          .if (.match ({arg2}, {Y}))         ;value in Y register is to be poked
+          .if (.xmatch ({arg2}, {Y}))         ;value in Y register is to be poked
             @targetsm: sty $ffff
           .else                              ;value to be poked is a given constant
                       lda #arg2
             @targetsm: sta $ffff
           .endif
         .else                                ;assuming address is a given constant
-          .if (.match ({arg2}, {A}))         ;value in Accu is to be poked
+          .if (.xmatch ({arg2}, {A}))         ;value in Accu is to be poked
             sta arg1
-          .elseif (.match ({arg2}, {X}))      ;value in X register is to be poked
+          .elseif (.xmatch ({arg2}, {X}))      ;value in X register is to be poked
             stx arg1
-          .elseif (.match ({arg2}, {Y}))      ;value in y register is to be poked
+          .elseif (.xmatch ({arg2}, {Y}))      ;value in y register is to be poked
             sty arg1
           .else                              ;value to be poked is a given constant
             lda #arg2

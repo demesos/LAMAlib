@@ -76,7 +76,7 @@
 .endscope
 .endmacro
 
-;; rand8 arg; rand8_setseed [arg]
+;; rand8; rand8_setseed [arg]
 ;; based on the 8-bit pseudo-random number generator from White Flame 
 ;; https://codebase64.org/doku.php?id=base:small_fast_8-bit_prng
 ;; Simple but very fast random generator with a period of 256
@@ -100,7 +100,7 @@
 .endscope
 .endmacro
 
-;; rand16 arg; rand16_setseed arg
+;; rand16; rand16_setseed arg
 ;; fast 16-bit pseudo-random number generator with period of 65535
 ;; seed must never be 32755, so setseed modifies this value it this is the case
 ;; Seed is a 16 bit value, setting seed is optional. When no argument is given, the current value in A/X is used as the seed
@@ -138,9 +138,9 @@
       .exitmacro
   .endif
 .scope
-	.if (.match ({arg1}, {AX}))			;print AX as number
+	.if (.xmatch ({arg1}, {AX}))			;print AX as number
            printax
-       .elseif (.match ({arg1}, {A}))			;print akku as number
+       .elseif (.xmatch ({arg1}, {A}))			;print akku as number
 	   ldx #00
            printax
        .elseif (.match (.left (1, {arg1}), #))		;immediate number
@@ -245,19 +245,19 @@
 .endscope
 .endmacro
 
-;; wait arg
+;; delay_ms arg
 ;; Waits for arg milliseconds using a busy waiting loop
 ;; When AX is given as argument it waits as many ms as the 16 bit value in A/X
 ;; When a number (1-65536) is given as argument it waits this long
 ;; Registers modified: A,X
-.macro  wait   arg
-.import _wait_sr
+.macro  delay_ms arg
+.import _delay_ms_sr
 .scope
        .if (.xmatch ({arg1}, AX))
-	    jsr _wait_sr
+	    jsr _delay_ms_sr
        .else
 	    ldax #arg
-            jsr _wait_sr
+            jsr _delay_ms_sr
        .endif
 .endscope
 .endmacro
@@ -308,13 +308,13 @@
 ;; Generates the code for a BASIC line with a SYS command and an optional text behind the sys command
 ;; This is similar to the command line option  -u __EXEHDR__
 ;; Difference is that with this function the code segment starts at $801, so .align is off only by 1
-;; Default line number is 2019
+;; Default line number is 2020
 .macro  makesys linenumber,text
        .byte $0b,$08
        .if .paramcount > 0
 	    .byte <linenumber,>linenumber
        .else
-	    .byte <2019,>2019
+	    .byte <2020,>2020
        .endif
        .byte $9e   ;SYS token
        ;.byte $30+2 ;systarget/1000
@@ -322,12 +322,44 @@
        ;.byte $30+systarget .mod 100/10
        ;.byte $30+(systarget .mod 10)
        .if .paramcount = 2
-            systarget=BASICSTART+$0d+.strlen(text)
+            systarget=BASICSTART+$0c+.strlen(text)
             .byte .sprintf ("%d", systarget)
 	    .asciiz text
        .else
-            systarget=BASICSTART+$0d
+            systarget=BASICSTART+$0c
             .asciiz .sprintf ("%d", systarget)
        .endif
-       .byte $00,$00
+       .byte $00,$00,$00
+.endmacro
+
+
+;; identifySID [baseaddress]
+;; Detects the SID soundchip model
+;; SID detection routine from codebase64 by SounDemon and a tip from Dag Lem
+;; If no base address is given, the standard base address $d400 is used
+;; Overwrites register A
+;; Result is returned in carry
+;; Carry flag is set for 6581, and clear for 8580
+
+.macro identifySID address
+.scope
+       .if .paramcount > 0
+	    SIDbaseaddress=address
+       .else
+	    SIDbaseaddress=$d400
+       .endif
+       sei
+       lda #$ff
+waitraster:
+       cmp $D012    ;wait until screen is in border
+       bne waitraster
+
+       sta SIDbaseaddress+$12  ;control register voice 3 
+       sta SIDbaseaddress+$0e
+       sta SIDbaseaddress+$0f  ;set frequency in voice 3 to $ffff
+       lda #$20                ;sawtooth wave and gatebit off to start oscillator again
+       sta SIDbaseaddress+$12
+       lda SIDbaseaddress+$1b
+       lsr
+.endscope
 .endmacro

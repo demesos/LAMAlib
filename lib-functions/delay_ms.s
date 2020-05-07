@@ -1,8 +1,9 @@
 .include "../LAMAlib-macros16.inc"
 
-.export _wait_sr := waitsr
+.export _delay_ms_sr := delay_ms
 
-waitsr:	inx
+delay_ms:
+	inx
 	stx counter1
 loop1:
 	ldx #100
