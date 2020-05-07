@@ -63,7 +63,7 @@
 .endscope
 .endmacro
 
-;; sbcax addr, sbcax #addr
+;; sbcax addr, sbcax #arg
 ;; Subtracts the 16 bit value at an addr or as immediate value from  16 bit value in registers A/X
 ;; Supports zero page addressing mode
 ;; Result is returned in A/X
