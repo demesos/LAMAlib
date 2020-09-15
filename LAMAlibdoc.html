@@ -1,8 +1,8 @@
 <html>
 <body>
 <h1>LAMAlib - Lightweight Assembler MAcro library for cc65</h1>
-Version: 0.12<br>
-Date: 2019-10-26<br>
+Version: 0.13<br>
+Date: 2020-09-16<br>
 Author: Wil Elmenreich (wilfried at gmx dot at)<br>
 License: The Unlicense (public domain)<br>
 <br>
@@ -10,276 +10,393 @@ License: The Unlicense (public domain)<br>
 To use LAMAlib you need to have cc65 installed. Get it at https://cc65.github.io<br>
 <br>
 <h3>Possibility 1: Install in cc65</h3>
-Copy all LAMAlib*.inc files into directory <tt>asminc</tt> of your cc65 installation.<br>
-Copy the file LAMAlib.lib into directory <tt>lib</tt> of your cc65 installation.<br>
-Move LAMAlibdoc.html (the file you are currently viewing) either to the html directory of cc65 or to some other place where you want to conveniently keep the documentation.<br>
-You don't need to keep the original folder of LAMAlib<br>
+<ul><li>Copy all LAMAlib*.inc files into directory <tt>asminc</tt> of your cc65 installation.<br>
+<li>Copy the file LAMAlib.lib into directory <tt>lib</tt> of your cc65 installation.<br>
+<li>Move LAMAlibdoc.html (the file you are currently viewing) either to the html directory of cc65 or to some other place where you want to conveniently keep the documentation.<br>
+</ul>You don't need to keep the original folder of LAMAlib<br>
+<br>
 <br>
 In your programs,<br>
-add a line <tt>.include "LAMAlib.inc"</tt> at the top of your assembler file<br>
-assemble with command <tt>cl65 yourprog.s -lib LAMAlib.lib -C c64-asm.cfg -u __EXEHDR__ -o yourprog.prg</tt>
+<ul><li>add a line <tt>.include "LAMAlib.inc"</tt> at the top of your assembler file<br>
+<li>assemble with command <tt>cl65 yourprog.s -lib LAMAlib.lib -C c64-asm.cfg -u __EXEHDR__ -o yourprog.prg</tt>
+</ul>
 <br>
 <h3>Possibility 2: Keep LAMAlib separately</h3>
 Keep a copy of the LAMAlib folder in a sister directory of your project.<br>
 <br>
 In your programs,<br>
-add a line <tt>.include "../LAMAlib/LAMAlib.inc"</tt> at the top of your assembler file (the forward slash works on Linux as well as on Linux systems)<br>
-assemble with command <tt>cl65 yourprog.s -lib ../LAMAlib/LAMAlib.lib -C c64-asm.cfg -u __EXEHDR__ -o yourprog.prg</tt>
-When you publish code of your project you may add LAMAlib to the package. The License has been chosen to be maximum permissive, so whatever project you have, there should be not problems adding the code.<br>
+<ul><li>add a line <tt>.include "../LAMAlib/LAMAlib.inc"</tt> at the top of your assembler file (the forward slash works on Linux as well as on Linux systems)<br>
+<li>assemble with command <tt>cl65 yourprog.s -lib ../LAMAlib/LAMAlib.lib -C c64-asm.cfg -u __EXEHDR__ -o yourprog.prg</tt>
+<li>when you publish source code of your project you can add LAMAlib to the package. The license of LAMAlib has been chosen to be maximum permissive, so whatever project you have, there should be no problems adding the code.<br>
+</ul>
 <br>
 <h2>Points to remember</h2>
-Please note that the zero flag for 16/24/32 bit operations is not properly set for most macros except CMPxx, therefore a CMPxx #00 might be necessary to test for zero.<br>
-Some of the more complex functions like division and multiplication use zero page addresses $22-$2a as temporary memory. This area is also by BASIC for temporary ptrs and results, but borrowing these addresses seem not to interfere severely with the system. Using $22-2A further plays well with cc65 parts written in C and leaves the well-known free ZP addresses at $FB to $FE to the user.<br>
+Please note that the zero flag for 16/24/32 bit operations is not properly set for most macros except CMP. For example after a 16 bit calculation, a CMPAX #00 is be necessary to test for zero.<br>
+Some of the more complex functions like division and multiplication use zero page addresses $22-$2a as temporary memory. This area is also used by BASIC for temporary ptrs and results, but borrowing these addresses seem not to interfere severely with the system. Using $22-2A further plays well with cc65 parts written in C and leaves the well-known free ZP addresses at $FB to $FE to the user.<br>
 <br>
 <h1>Command documentation</h1>
 <h2>16-bit Emulation Macros</h2>
-
-<h3>ldax <i>addr,</i> ldax <i>#arg</i></h3>
+<br>
+<b>ldax <i>addr,</i> ldax <i>#arg</i></b><br>
 Loads a 16-bit value into A/X, either from an address or as immediate value<br>
 Note that the zero flag is not indicating 0 but indicating a value <256<br>
 Supports zero page addressing mode<br>
 Registers modified: A,X<br>
-
-<h3>stax <i>addr</i></h3>
+<br>
+<b>stax <i>addr</i></b><br>
 Stores the value in registers A and X to addr and addr+1<br>
 Supports zero page addressing mode<br>
 Registers modified: none<br>
-
-<h3>adcax <i>addr,</i> adcax <i>#arg</i></h3>
+<br>
+<b>adcax <i>addr,</i> adcax <i>#arg</i></b><br>
 Adds a 16 bit value at an addr or as immediate value to 16 bit value in registers A/X<br>
 Supports zero page addressing mode<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
-
-<h3>sbcax <i>addr,</i> sbcax <i>#addr</i></h3>
+<br>
+<b>sbcax <i>addr,</i> sbcax <i>#arg</i></b><br>
 Subtracts the 16 bit value at an addr or as immediate value from  16 bit value in registers A/X<br>
 Supports zero page addressing mode<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
-
-<h3>cmpax <i>addr,</i> cmpax <i>#arg</i></h3>
+<br>
+<b>cmpax <i>addr,</i> cmpax <i>#arg</i></b><br>
 Compares the value in A/X with the 16 bit value in addr or the immediate value<br>
 Supports zero page addressing mode<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
-
-<h3>orax <i>addr,</i> orax <i>#arg</i></h3>
+<br>
+<b>orax <i>addr,</i> orax <i>#arg</i></b><br>
 Calculates the bitwise OR operation between A/X and a 16 bit value at an addr or as immediate value<br>
 Supports zero page addressing mode<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
-
-<h3>andax <i>addr,</i> andax <i>#arg</i></h3>
+<br>
+<b>andax <i>addr,</i> andax <i>#arg</i></b><br>
 Calculates the bitwise AND operation between A/X and a 16 bit value at an addr or as immediate value<br>
 Supports zero page addressing mode<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
-
-<h3>eorax <i>addr,</i> eorax <i>#arg</i></h3>
+<br>
+<b>eorax <i>addr,</i> eorax <i>#arg</i></b><br>
 Calculates the bitwise exclusive-or operation between A/X and a 16 bit value at addr or as immediate value<br>
 Supports zero page addressing mode<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
-
-<h3>aslax</h3>
+<br>
+<b>aslax</b><br>
 Performs an arithmetic shift left of A/X (essentially a multiplication with 2, MSB goes into carry)<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
-
-<h3>asl16 <i>addr</i></h3>
+<br>
+<b>asl16 <i>addr</i></b><br>
 Performs an arithmetic shift left of a 16 bit number at addr<br>
 Result at addr, addr+1<br>
 Registers modified: none<br>
-
-<h3>lsrax</h3>
+<br>
+<b>lsrax</b><br>
 Performs a logic shift right of A/X (essentially a division by 2, LSB goes into carry)<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
-
-<h3>lsr16 <i>addr</i></h3>
+<br>
+<b>lsr16 <i>addr</i></b><br>
 Performs a logic shift right of a 16 bit number at addr<br>
 Result at addr, addr+1<br>
 Registers modified: none<br>
-
-<h3>rolax</h3>
+<br>
+<b>rolax</b><br>
 Performs a rotate left of A/X (essentially a multiplication with 2, carry goes into LSB, MSB goes into carry)<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
-
-<h3>rol16 <i>addr</i></h3>
+<br>
+<b>rol16 <i>addr</i></b><br>
 Performs a rotate left of a 16 bit number at addr<br>
 Result at addr, addr+1<br>
 Registers modified: none<br>
-
-<h3>rorax</h3>
+<br>
+<b>rorax</b><br>
 Performs a rotate right of A/X (essentially a division by 2, carry goes into MSB, LSB goes into carry)<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
-
-<h3>ror16 <i>addr</i></h3>
+<br>
+<b>ror16 <i>addr</i></b><br>
 Performs a rotate right of a 16 bit number at addr<br>
 Result at addr, addr+1<br>
 Registers modified: none<br>
-
-<h3>negax</h3>
+<br>
+<b>negax</b><br>
 Negates the value in A/X<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
-
-<h3>absax</h3>
+<br>
+<b>absax</b><br>
 Makes the signed 16 bit value in A/X an absolute value<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
-
-<h3>incax</h3>
+<br>
+<b>incax</b><br>
 Increments 16 bit value in registers A/X<br>
 Registers modified: A,X<br>
-
-<h3>inc16 <i>addr</i></h3>
+<br>
+<b>inc16 <i>addr</i></b><br>
 Increments the value stored at addr (lo-byte) and addr+1 (hi-byte) as a 16 bit value<br>
 Registers modified: none<br>
-
-<h3>decax</h3>
+<br>
+<b>decax</b><br>
 Decrements 16 bit value in registers A/X<br>
 Registers modified: A,X<br>
-
-<h3>dec16 <i>addr</i></h3>
+<br>
+<b>dec16 <i>addr</i></b><br>
 Decrements the value stored at addr (lo-byte) and addr+1 (hi-byte) as a 16 bit value<br>
 Registers modified: A<br>
-
-<h3>pushax</h3>
+<br>
+<b>incx <i>n</i></b><br>
+Increments the X register by a value of n<br>
+Registers modified: X<br>
+Flags affected: N,Z,C<br>
+<br>
+<b>decx <i>n</i></b><br>
+Decrements the X register by a value of n<br>
+Registers modified: X<br>
+Flags affected: N,Z,C<br>
+<br>
+<b>incy <i>n</i></b><br>
+Increments the Y register by a value of n<br>
+Registers modified: Y<br>
+Flags affected: N,Z,C<br>
+<br>
+<b>decy <i>n</i></b><br>
+Decrements the Y register by a value of n<br>
+Registers modified: Y<br>
+Flags affected: N,Z,C<br>
+<br>
+<b>pushax</b><br>
 Pushes AX to the stack and preserves AX<br>
-
-<h3>pullax</h3>
+<br>
+<b>pullax</b><br>
 Pulls AX from the stack<br>
-
-<h3>poke <i>arg1,arg2</i></h3>
+<br>
+<b>poke <i>arg1,arg2</i></b><br>
 Copies arg2 into the address of arg1<br>
-
-<h3>mul16 <i>addr</i></h3>
-Multiplies the unsigned 16 bit value in A/X with the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
-Implemented as a subroutinge, link with -lib lamalib.lib<br>
-This function is not reentrant, don't use in interrupt and main program simultaneously<br>
-Result is returned in A/X<br>
-Registers modified: all<br>
-
-<h3>div16 <i>arg</i></h3>
-Multiplies the unsigned 16 bit value in A/X with an imediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
-Implemented as a subroutinge, link with -lib lamalib.lib<br>
-This function is not reentrant, don't use in interrupt and main program simultaneously<br>
-Result is returned in A/X<br>
-Registers modified: all<br>
-
-<h3>rand8 <i>arg</i> ; rand8_setseed <i>[arg]</i></h3>
+<h2>Hires Graphics Functions</h2>
+<br>
+<b>blank_screen</b><br>
+Blanks the screen and shows only the border color<br>
+<br>
+<b>unblank_screen</b><br>
+Blanks the screen and shows only the border color<br>
+<br>
+<b>bitmap_on</b><br>
+Turn bitmap mode on and initialize tables in case the project uses plotting commands (plot, line, circle, ...)<br>
+<br>
+<b>bitmap_off</b><br>
+Turn bitmap mode off<br>
+<br>
+<b>gfx_clrscr <i>bgcolor,fgcolor</i></b><br>
+Clear graphics screen and set background and foreground colors<br>
+<br>
+<b>gfx_init</b><br>
+Initializes the look up tables used by the gfx_plot function<br>
+This macro needs to be called once before using gfx_plot or any function that uses gfx_plot (e.g. gfx_line)<br>
+Uses all registers and overwrites memory area $9000 - $92C7<br>
+<br>
+<b>gfx_plot</b><br>
+Sets pixel at position x=AX, y=Y<br>
+where AX is the 16 bit value in registers A and X and Y is the Y register<br>
+<h2>Structured Programming</h2>
+These commands allow you to use constructs like <i>if .. else .. endif</i>, <i>do...loop</i>, <i>for...next</i>, and <i>switch...case</i> in assembly language! The structures can even be nested. The implementation of these structures is basically as efficient as a a handcoded composure of branches, jumps as labels, while it is much easier to write and read.<br>
+All macros can be nested.<br>
+<br>
+<b>store <i>reg</i></b><br>
+Generates self-modifying code for store/recall of a register<br>
+Registers can be A,X,Y, or AX (that is A and X)<br>
+An example application for <i>store</i>/<i>recall</i> is for saving a register to be able use it in between. An alternative to <i>store</i>/<i>recall</i> are stack push/pull, which is more compact, but 1 cycle slower.<br>
+Each store must match with exactly one <i>recall</i> macro using the same register, recall has to be placed later in your code<br>
+Registers modified: none<br>
+<br>
+<b>recall <i>reg</i></b><br>
+Generates the code for recalling a stored register<br>
+Registers can be A,X,Y, or AX (that is A and X)<br>
+Each recall must match with exactly one preceding <i>store</i> macro using the same register<br>
+Registers modified: the recalled register<br>
+<br>
+<b>if <i>cond</i></b><br>
+...<br>
+[<b>else</b>]<br>
+...<br>
+<b>endif</b><br>
+Structure for conditionals.<br>
+<i>cond</i> can be <i>eq</i>, <i>neq</i>, <i>minus</i>, <i>plus</i>, <i>c_clr</i>, <i>c_set</i>, <i>v_clr</i>, <i>v_set</i>, <i>lt</i>, <i>ge</i><br>
+This corresponds to assembler commands BEQ, BNE, BMI, BPL, BCC, BCS, BVC, BVS<br>
+<i>lt</i> (less than) is equal to <i>c_clr</i> (BCC), <i>ge</i> (greater or equal) is equal to <i>c_set</i> (BCS)<br>
+using else is optional<br>
+Registers modified: none<br>
+<br>
+<b>for <i>X|Y|A|AX|addr,start,to|downto,end,step</i></b><br>
+...<br>
+<b>next</b><br>
+For loop structure<br>
+Counting variable can be an 8-bit register (A,X,Y), a 16 bit register (AX) or a 16 bit memory address (in parentheses)<br>
+<i>start</i> can be a constant or a memory address pointing to the value<br>
+<i>end</i> can be a constant or a memory address pointing to the value. The loop is continued including an iteration reaching the <i>end</i> value<br>
+<i>start</i> can be a constant or a memory address pointing to the value<br>
+<b>to</b> indicates a loop that counts up, <b>downto</b> indicates a loop that counts down<br>
+<i>end</i> can be a constant or a memory address pointing to the value<br>
+<b>step</b> is optional and defines the increment/decrement (default=1). This value is alway positive, counting down is indicated with <b>downto</b><br>
+<br>
+When the loop variable is an 8 bit register, <i>start</i>, <i>end</i>, and <i>step</i> are a single byte (or a memory reference to a single byte)<br>
+When the loop variable is a 16 bit register (AX) or a 16 bit memory address, <i>start</i>, <i>end</i>, and <i>step</i> are a 16 bit value (or a memory reference to a 16 bit value)<br>
+If memory references can also go to zero page the zero page addressing mode is used which speeds up the code a bit<br>
+When <i>step</i> is larger than 1 or no constant, loops that count down can are limited to a 7 bit (for single register loops) or a 15 bit range<br>
+It is possible to nest multiple for loops but each <b>for</b> must be followed by exactly one corresponding <i>next</i> later in the code.<br>
+<br>
+Within a for loop, the macros <i>break</i> and <i>continue</i> can be used to exit the loop or go to next iteration.<br>
+<br>
+Registers modified: the loop register, or the accu otherwise<br>
+<br>
+Code example that outputs '9876543210':<br>
+<code><br>
+for A,$39,downto,$30<br>
+&nbsp;  jsr $ffd2<br>
+next<br>
+</code><br>
+<br>
+<b>do</b><br>
+...<br>
+<b>until</b>|<b>while</b> <i>cond</i><br>
+...<br>
+<b>loop</b> [<b>until</b>|<b>while</b> <i>cond</i>]<br>
+Defines a loop that is exit based on a while or until condition<br>
+<i>cond</i> can be <i>eq</i>, <i>neq</i>, <i>minus</i>, <i>plus</i>, <i>c_clr</i>, <i>c_set</i>, <i>v_clr</i>, <i>v_set</i>, <i>lt</i>, <i>ge</i><br>
+This corresponds to assembler commands BEQ, BNE, BMI, BPL, BCC, BCS, BVC, BVS<br>
+<i>lt</i> (less than) is equal to <i>c_clr</i> (BCC), <i>ge</i> (greater or equal) is equal to <i>c_set</i> (BCS)<br>
+<b>until</b> and <b>while</b> can be used on a seperate line or after <b>loop</b><br>
+There can be any number of <b>until</b> or <b>while</b> conditions, also none, which defines an endless loop<br>
+Within a do...loop, the macros <i>break</i> and <i>continue</i> can be used to exit the loop or go to next iteration.<br>
+<br>
+Registers modified: none<br>
+<br>
+Code example that waits for joystick 2 button pressed:<br>
+<code><br>
+lda #$10<br>
+do<br>
+&nbsp;  and $dc00<br>
+loop until eq<br>
+</code><br>
+<h2>Useful Routines</h2>
+<br>
+<b>rand8</b><br>
+<b>rand8_setseed</b> [<i>arg</i>]<br><br>
 based on the 8-bit pseudo-random number generator from White Flame<br>
 https://codebase64.org/doku.php?id=base:small_fast_8-bit_prng<br>
 Simple but very fast random generator with a period of 256<br>
 Seed is an 8 bit value, setting seed is optional. When no argument is given, the current value in the Accumulator is used as the seed<br>
 Result is returned in A<br>
 Registers modified: A<br>
-
-<h3>rand16 <i>arg</i> ; rand16_setseed <i>arg</i></h3>
-fast 16-bit pseudo-random number generator with period of 65535<br>
+<br>
+<b>rand16</b><br>
+<b>rand16_setseed</b> <i>arg</i><br><br>
+Fast 16-bit pseudo-random number generator with period of 65535<br>
 seed must never be 32755, so setseed modifies this value it this is the case<br>
 Seed is a 16 bit value, setting seed is optional. When no argument is given, the current value in A/X is used as the seed<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
-
-<h3>print <i>arg1</i> <i>[arg2</i> <i>...]</i></h3>
+<br>
+<b>mul16 <i>addr</i></b><br>
+Multiplies the unsigned 16 bit value in A/X with the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
+Implemented as a subroutinge, link with -lib lamalib.lib<br>
+This function is not reentrant, don't use in interrupt and main program simultaneously<br>
+Result is returned in A/X<br>
+Registers modified: A,X,Y<br>
+<br>
+<b>div16 <i>arg</i></b><br>
+Multiplies the unsigned 16 bit value in A/X with an imediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
+Implemented as a subroutinge, link with -lib lamalib.lib<br>
+This function is not reentrant, don't use in interrupt and main program simultaneously<br>
+Result is returned in A/X<br>
+Registers modified: all<br>
+<br>
+<b>print <i>arg1</i> <i>[arg2</i> <i>...]</i></b><br>
 Prints the arguments as strings or numbers<br>
 An argument in parenthesis will print the 16bit value stored at this address<br>
 uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
 Registers modified: A,Y,X<br>
-
-<h3>primm <i>str</i></h3>
+<br>
+<b>primm <i>str</i></b><br>
 Prints the given string, string is inlined in program code<br>
 uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
 Registers modified: A,Y,X<br>
-
-<h3>printax</h3>
+<br>
+<b>printax</b><br>
 Prints the number in A/X as a 16 bit unsigned decimal number<br>
 BASIC and KERNAL ROM need to be enabled when using this function<br>
 Registers modified: A,Y,X<br>
-
-<h3>printax_signed</h3>
+<br>
+<b>printax_signed</b><br>
 Prints the number in A/X as a 16 bit signed decimal number<br>
 BASIC and KERNAL ROM need to be enabled when using this function<br>
 Registers modified: A,Y,X<br>
-
-<h3>printstr <i>addr</i></h3>
+<br>
+<b>printstr <i>addr</i></b><br>
 Prints the null-terminated string at addr using the STROUT function<br>
 BASIC and KERNAL ROM need to be enabled when using this function<br>
 Registers modified: A,Y,X<br>
-
-<h3>newline</h3>
+<br>
+<b>newline</b><br>
 Prints a newline character<br>
 KERNAL ROM needs to be enabled when using this function<br>
 Registers modified: A,Y,X<br>
-
-<h3>clrscr</h3>
+<br>
+<b>clrscr</b><br>
 Clears the screen<br>
 KERNAL ROM needs to be enabled when using this function<br>
 Registers modified: A,Y,X<br>
-
-<h3>delay_ms <i>arg</i></h3>
+<br>
+<b>delay_ms <i>arg</i></b><br>
 Waits for arg milliseconds using a busy waiting loop<br>
 When AX is given as argument it waits as many ms as the 16 bit value in A/X<br>
 When a number (1-65536) is given as argument it waits this long<br>
 Registers modified: A,X<br>
-
-<h3>disableNMI</h3>
-Executes a short routine to disable the NMI<br>
-the trick is to cause an NMI but don't ackowledge it<br>
-Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)<br>
-Registers modified: A<br>
-
-<h3>waitkey</h3>
+<br>
+<b>waitkey</b><br>
 Waits until a key is pressed<br>
 Function works independly of IRQ<br>
 Registers modified: A<br>
-
-<h3>waitkeyreleased</h3>
+<br>
+<b>waitkeyreleased</b><br>
 Waits until all keys are released<br>
 Function works independly of IRQ<br>
 Registers modified: A<br>
-
-<h3>readWASDspace</h3>
+<br>
+<b>readWASDspace</b><br>
 Checks the keyboard for keypresses of W, A ,S, D and Space<br>
 Output is a byte in A in the same format as a joystick value<br>
 Function works independly of IRQ or ROM<br>
 Registers modified: A,X<br>
-
-<h3>makesys <i>[linenumber[,text]]</i></h3>
+<br>
+<b>makesys <i>[linenumber[,text]]</i></b><br>
 Generates the code for a BASIC line with a SYS command and an optional text behind the sys command<br>
 This is similar to the command line option  -u __EXEHDR__<br>
 Difference is that with this function the code segment starts at $801, so .align is off only by 1<br>
 Default line number is 2020<br>
-
-<h3>identifySID <i>[baseaddress]</i></h3>
+<br>
+<b>identifySID <i>[baseaddress]</i></b><br>
 Detects the SID soundchip model<br>
 SID detection routine from codebase64 by SounDemon and a tip from Dag Lem<br>
 If no base address is given, the standard base address $d400 is used<br>
 Overwrites register A<br>
 Result is returned in carry<br>
 Carry flag is set for 6581, and clear for 8580<br>
-<h2>Hires Graphics Functions</h2>
-
-<h3>bitmap_on</h3>
-Turn bitmap mode on and initialize tables in case the project uses plotting commands (plot, line, circle, ...)<br>
-
-<h3>bitmap_off</h3>
-Turn bitmap mode off<br>
-
-<h3>gfx_clrscr <i>bgcolor,fgcolor</i></h3>
-Clear graphics screen and set background and foreground colors<br>
-
-<h3>gfx_init</h3>
-Initializes the look up tables used by the gfx_plot function<br>
-This macro needs to be called once before using gfx_plot or any function that uses gfx_plot (e.g. gfx_line)<br>
-Uses all registers and overwrites memory area $9000 - $92C7<br>
-
-<h3>gfx_plot</h3>
-Sets pixel at position x=AX, y=Y<br>
-where AX is the 16 bit value in registers A and X and Y is the Y register<br>
+<br>
+<b>disableNMI</b><br>
+Executes a short routine to disable the NMI<br>
+the trick is to cause an NMI but don't ackowledge it<br>
+Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)<br>
+Registers modified: A<br>
+<br>
+<b>set_raster_irq</b><br>
+Changes the IRQ source to VIC raster interrupt<br>
+Turns off the CIA IRQ source<br>
+IRQ routine must acknowledge the IRQ source<br>
 </body>
 </html>

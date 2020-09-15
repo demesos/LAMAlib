@@ -1,9 +1,64 @@
+;; <h2>Useful Routines</h2>
+
+;; rand8
+;; <b>rand8_setseed</b> [<i>arg</i>]<br>
+;; based on the 8-bit pseudo-random number generator from White Flame 
+;; https://codebase64.org/doku.php?id=base:small_fast_8-bit_prng
+;; Simple but very fast random generator with a period of 256
+;; Seed is an 8 bit value, setting seed is optional. When no argument is given, the current value in the Accumulator is used as the seed
+;; Result is returned in A
+;; Registers modified: A
+.import _rand8_sr, _rand8_seed
+
+.macro rand8
+.scope
+         jsr _rand8_sr
+.endscope
+.endmacro
+
+.macro rand8_setseed arg
+.scope
+	.if .paramcount = 1
+	   lda #arg
+	.endif 
+	sta _rand8_seed
+.endscope
+.endmacro
+
+;; rand16
+;; <b>rand16_setseed</b> <i>arg</i><br>
+;; Fast 16-bit pseudo-random number generator with period of 65535
+;; seed must never be 32755, so setseed modifies this value it this is the case
+;; Seed is a 16 bit value, setting seed is optional. When no argument is given, the current value in A/X is used as the seed
+;; Result is returned in A/X
+;; Registers modified: A,X
+.import _rand16_sr, _rand16_seed
+
+.macro rand16
+.scope
+         jsr _rand16_sr
+.endscope
+.endmacro
+
+.macro rand16_setseed arg
+.scope
+	.if .paramcount = 1
+	   ldax #arg
+	.endif 
+	cmpax #32755	;this is the one seed we need to avoid
+	bne @ok
+	and #$FE ;make it 32754
+@ok:	sta _rand16_seed
+	stx _rand16_seed+1
+.endscope
+.endmacro
+
 ;; mul16 addr
 ;; Multiplies the unsigned 16 bit value in A/X with the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)
 ;; Implemented as a subroutinge, link with -lib lamalib.lib
 ;; This function is not reentrant, don't use in interrupt and main program simultaneously
 ;; Result is returned in A/X
-;; Registers modified: all
+;; Registers modified: A,X,Y
 .import _mul16_sr
 .importzp _mul16_arg
 
@@ -76,57 +131,6 @@
 .endscope
 .endmacro
 
-;; rand8; rand8_setseed [arg]
-;; based on the 8-bit pseudo-random number generator from White Flame 
-;; https://codebase64.org/doku.php?id=base:small_fast_8-bit_prng
-;; Simple but very fast random generator with a period of 256
-;; Seed is an 8 bit value, setting seed is optional. When no argument is given, the current value in the Accumulator is used as the seed
-;; Result is returned in A
-;; Registers modified: A
-.import _rand8_sr, _rand8_seed
-
-.macro rand8
-.scope
-         jsr _rand8_sr
-.endscope
-.endmacro
-
-.macro rand8_setseed arg
-.scope
-	.if .paramcount = 1
-	   lda #arg
-	.endif 
-	sta _rand8_seed
-.endscope
-.endmacro
-
-;; rand16; rand16_setseed arg
-;; fast 16-bit pseudo-random number generator with period of 65535
-;; seed must never be 32755, so setseed modifies this value it this is the case
-;; Seed is a 16 bit value, setting seed is optional. When no argument is given, the current value in A/X is used as the seed
-;; Result is returned in A/X
-;; Registers modified: A,X
-.import _rand16_sr, _rand16_seed
-
-.macro rand16
-.scope
-         jsr _rand16_sr
-.endscope
-.endmacro
-
-.macro rand16_setseed arg
-.scope
-	.if .paramcount = 1
-	   ldax #arg
-	.endif 
-	cmpax #32755	;this is the one seed we need to avoid
-	bne @ok
-	and #$FE ;make it 32754
-@ok:	sta _rand16_seed
-	stx _rand16_seed+1
-.endscope
-.endmacro
-
 ;; print arg1 [arg2 ...]
 ;; Prints the arguments as strings or numbers
 ;; An argument in parenthesis will print the 16bit value stored at this address
@@ -153,7 +157,7 @@
                ldx     #>iarg
             .endif
 	    printax
-	.elseif (.match (.left (1, {arg1}), {(})) 	;argument in brackets
+	.elseif (.match (.left (1, {arg1}), {(})) .and (.match (.right (1, {arg1}), {)}))	;argument in brackets
 	    ldax .mid (1, .tcount ({arg1})-2, {arg1})
 	    printax
 	.else
@@ -262,17 +266,6 @@
 .endscope
 .endmacro
 
-;; disableNMI
-;; Executes a short routine to disable the NMI
-;; the trick is to cause an NMI but don't ackowledge it
-;; Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)
-;; Registers modified: A
-.macro  disableNMI
-.import _disableNMI_sr
-       jsr _disableNMI_sr
-.endmacro
-
-
 ;; waitkey
 ;; Waits until a key is pressed
 ;; Function works independly of IRQ
@@ -362,4 +355,38 @@ waitraster:
        lda SIDbaseaddress+$1b
        lsr
 .endscope
+.endmacro
+
+;; disableNMI
+;; Executes a short routine to disable the NMI
+;; the trick is to cause an NMI but don't ackowledge it
+;; Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)
+;; Registers modified: A
+.macro  disableNMI
+.import _disableNMI_sr
+       jsr _disableNMI_sr
+.endmacro
+
+;; set_raster_irq
+;; Changes the IRQ source to VIC raster interrupt
+;; Turns off the CIA IRQ source
+;; IRQ routine must acknowledge the IRQ source
+.macro set_raster_irq rasterline
+	lda #$7f
+	sta $dc0d	; disable timer interrupts
+	sta $dd0d
+
+	and $D011	; accu is still $7f
+	.if rasterline>255
+	ora #$80
+	.endif
+	sta $D011 	; Clear most significant bit in VIC's raster register
+
+	lda $dc0d	; acknowledge CIA interrupts
+
+	lda #<rasterline
+	sta $D012 	; Set the raster line number where interrupt should occur 
+
+	lda #01
+	sta $D01A 	; set raster interrupt
 .endmacro

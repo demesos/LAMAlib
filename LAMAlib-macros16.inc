@@ -401,6 +401,93 @@
 .endscope
 .endmacro
 
+;; incx n
+;; Increments the X register by a value of n
+;; Registers modified: X
+;; Flags affected: N,Z,C
+.macro  incx n
+.scope
+	.if .const(n) .and n<8
+            .repeat n
+              inx
+            .endrep
+        .else
+          sta @recva+1
+          clc
+          txa
+          adc #n
+          tax
+  @recva: lda #00
+	.endif
+.endscope
+.endmacro
+
+;; decx n
+;; Decrements the X register by a value of n
+;; Registers modified: X
+;; Flags affected: N,Z,C
+.macro  decx n
+.scope
+	.if n<8
+            .repeat n
+              dex
+            .endrep
+        .else
+.warning "not const"
+          sta @recva+1
+          sec
+          txa
+          sbc #n
+          tax
+  @recva: lda #00
+	.endif
+
+.endscope
+.endmacro
+
+;; incy n
+;; Increments the Y register by a value of n
+;; Registers modified: Y
+;; Flags affected: N,Z,C
+.macro  incy n
+.scope
+	.if .const(n) .and n<8
+            .repeat n
+              iny
+            .endrep
+        .else
+          sta @recva+1
+          clc
+          tya
+          adc #n
+          tay
+  @recva: lda #00
+	.endif
+.endscope
+.endmacro
+
+;; decy n
+;; Decrements the Y register by a value of n
+;; Registers modified: Y
+;; Flags affected: N,Z,C
+.macro  decy n
+.scope
+	.if .const(n) .and n<8
+            .repeat n
+              dey
+            .endrep
+        .else
+          sta @recva+1
+          sec
+          tya
+          sbc #n
+          tay
+  @recva: lda #00
+	.endif
+
+.endscope
+.endmacro
+
 ;; pushax 
 ;; Pushes AX to the stack and preserves AX
 .macro  pushax

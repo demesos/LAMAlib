@@ -3,8 +3,8 @@
 #
 # Usage: python parsedoc.py filetoparse > outfile.html
 #
-# Version: 0.1 
-# Date: 2019-10-26
+# Version: 0.2
+# Date: 2020-09-16
 # Author: Wil Elmenreich (wilfried at gmx dot at)
 # License: The Unlicense (public domain)
 
@@ -65,15 +65,16 @@ for l in lines[lc:]:
         lastline=l
         continue
     l2=l.lstrip(';').lstrip(' ')
-    if l2[0:1]=="<":
+    if l2[0:2]=="<h":
         print(l2)
+        lastline=l
         continue
     if l[0:2]==";;":
         if lastline=='':
-            print ()
-            print ("<h3>", end = '')
+            print ("<br>")
+            print ("<b>", end = '')
             printformatmacroname(l2)
-            print ("</h3>")
+            print ("</b><br>")
         else:
             print (l2+"<br>")
     lastline=l
