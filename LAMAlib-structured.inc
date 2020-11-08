@@ -1,3 +1,52 @@
+; auxiliary functions for generating labels for nested function
+.macro inc_nesting_level
+  .if .defined(::nesting_level)
+    ::nesting_level .set ::nesting_level+1
+  .else
+    ::nesting_level .set 1
+  .endif
+.endmacro
+
+.macro dec_nesting_level
+  ::nesting_level .set ::nesting_level-1
+.endmacro
+
+.macro inc_nesting_levelA
+  .if .defined(::nesting_levelA)
+    ::nesting_levelA .set ::nesting_levelA+1
+  .else
+    ::nesting_levelA .set 1
+  .endif
+.endmacro
+
+.macro dec_nesting_levelA
+  ::nesting_levelA .set ::nesting_levelA-1
+.endmacro
+
+.macro inc_nesting_levelX
+  .if .defined(::nesting_levelX)
+    ::nesting_levelX .set ::nesting_levelX+1
+  .else
+    ::nesting_levelX .set 1
+  .endif
+.endmacro
+
+.macro dec_nesting_levelX
+  ::nesting_levelX .set ::nesting_levelX-1
+.endmacro
+
+.macro inc_nesting_levelY
+  .if .defined(::nesting_levelY)
+    ::nesting_levelY .set ::nesting_levelY+1
+  .else
+    ::nesting_levelY .set 1
+  .endif
+.endmacro
+
+.macro dec_nesting_levelY
+  ::nesting_levelY .set ::nesting_levelY-1
+.endmacro
+
 ;; <h2>Structured Programming</h2>
 ;; These commands allow you to use constructs like <i>if .. else .. endif</i>, <i>do...loop</i>, <i>for...next</i>, and <i>switch...case</i> in assembly language! The structures can even be nested. The implementation of these structures is basically as efficient as a a handcoded composure of branches, jumps as labels, while it is much easier to write and read.
 ;; All macros can be nested.
@@ -9,21 +58,18 @@
 ;; Each store must match with exactly one <i>recall</i> macro using the same register, recall has to be placed later in your code
 ;; Registers modified: none
 .macro store reg
-  .scope
   .if .xmatch ({reg}, {A}) 
-    stored_A=selfmodA+1
-    sta stored_A
+    inc_nesting_levelA
+    sta .ident(.sprintf("selfmod_A%d", ::nesting_levelA))+1
   .elseif .xmatch ({reg}, {X}) 
-    stored_X=selfmodX+1
-    stx stored_X
+    inc_nesting_levelX
+    stx .ident(.sprintf("selfmod_X%d", ::nesting_levelX))+1
   .elseif .xmatch ({reg}, {Y}) 
-    stored_Y=selfmodY+1
-    sty stored_Y
+    inc_nesting_levelY
+    sty .ident(.sprintf("selfmod_Y%d", ::nesting_levelY))+1
   .elseif .xmatch ({reg}, {AX}) 
-    stored_A=selfmodA+1
-    sta stored_A
-    stored_X=selfmodX+1
-    stx stored_X
+    store A
+    store X
   .endif
 .endmacro
 
@@ -35,16 +81,21 @@
 
 .macro recall reg
   .if .xmatch ({reg}, {A}) 
-    selfmodA: lda #00
+.ident(.sprintf("selfmod_A%d", ::nesting_levelA)):
+    lda #00
+    dec_nesting_levelA
   .elseif .xmatch ({reg}, {X}) 
-    selfmodX: ldx #00
+.ident(.sprintf("selfmod_X%d", ::nesting_levelX)):
+    ldx #00
+    dec_nesting_levelX
   .elseif .xmatch ({reg}, {Y}) 
-    selfmodY: ldy #00
+.ident(.sprintf("selfmod_Y%d", ::nesting_levelY)):
+    ldy #00
+    dec_nesting_levelY
   .elseif .xmatch ({reg}, {AX}) 
-    selfmodA: lda #00
-    selfmodX: ldx #00
+    recall A
+    recall X
   .endif
-  .endscope
 .endmacro
 
 ;; if cond
@@ -767,28 +818,28 @@ end_loop:
 ;; </code>
 
 .macro do
-  .scope
-  begin_loop:
-  continue_point:
+  inc_nesting_level
+  .ident(.sprintf("begin_loop%d", ::nesting_level)):
+  .ident(.sprintf("continue_point%d", ::nesting_level)):
 .endmacro
 
 .macro until cond
   .if ((.xmatch ({cond}, {eq})) || (.xmatch ({cond}, {zero})))
-    beq end_loop
+    beq .ident(.sprintf("end_loop%d", ::nesting_level))
   .elseif (.xmatch ({cond}, {neq}))
-    bne end_loop
+    bne .ident(.sprintf("end_loop%d", ::nesting_level))
   .elseif (.xmatch ({cond}, {minus}))
-    bmi end_loop
+    bmi .ident(.sprintf("end_loop%d", ::nesting_level))
   .elseif (.xmatch ({cond}, {plus}))
-    bpl end_loop
+    bpl .ident(.sprintf("end_loop%d", ::nesting_level))
   .elseif ((.xmatch ({cond}, {c_clr})) || (.xmatch ({cond}, {lt})))
-    bcc end_loop
+    bcc .ident(.sprintf("end_loop%d", ::nesting_level))
   .elseif ((.xmatch ({cond}, {c_set})) || (.xmatch ({cond}, {ge})))
-    bcs end_loop
+    bcs .ident(.sprintf("end_loop%d", ::nesting_level))
   .elseif (.xmatch ({cond}, {v_clr}))
-    bvc end_loop
+    bvc .ident(.sprintf("end_loop%d", ::nesting_level))
   .elseif (.xmatch ({cond}, {v_set}))
-    bvs end_loop
+    bvs .ident(.sprintf("end_loop%d", ::nesting_level))
   .else
     .error  "Syntax error in until condition"
   .endif
@@ -796,78 +847,78 @@ end_loop:
 
 .macro while cond
   .if ((.xmatch ({cond}, {eq})) || (.xmatch ({cond}, {zero})))
-    bne end_loop
+    bne .ident(.sprintf("end_loop%d", ::nesting_level))
   .elseif (.xmatch ({cond}, {neq}))
-    beq end_loop
+    beq .ident(.sprintf("end_loop%d", ::nesting_level))
   .elseif (.xmatch ({cond}, {minus}))
-    bpl end_loop
+    bpl .ident(.sprintf("end_loop%d", ::nesting_level))
   .elseif (.xmatch ({cond}, {plus}))
-    bmi end_loop
+    bmi .ident(.sprintf("end_loop%d", ::nesting_level))
   .elseif ((.xmatch ({cond}, {c_clr})) || (.xmatch ({cond}, {lt})))
-    bcs end_loop
+    bcs .ident(.sprintf("end_loop%d", ::nesting_level))
   .elseif ((.xmatch ({cond}, {c_set})) || (.xmatch ({cond}, {ge})))
-    bcc end_loop
+    bcc .ident(.sprintf("end_loop%d", ::nesting_level))
   .elseif (.xmatch ({cond}, {v_clr}))
-    bvs end_loop
+    bvs .ident(.sprintf("end_loop%d", ::nesting_level))
   .elseif (.xmatch ({cond}, {v_set}))
-    bvc end_loop
+    bvc .ident(.sprintf("end_loop%d", ::nesting_level))
   .else
     .error  "Syntax error in while condition"
   .endif
 .endmacro
 
 .macro break
-  jmp end_loop
+  jmp .ident(.sprintf("end_loop%d", ::nesting_level))
 .endmacro
 
 .macro continue
-  jmp continue_point
+  jmp .ident(.sprintf("continue_point%d", ::nesting_level))
 .endmacro
 
 .macro loop cond
   .if .paramcount = 0
-    jmp begin_loop
+    jmp .ident(.sprintf("begin_loop%d", ::nesting_level))
   .elseif .paramcount = 1
     .if ((.xmatch ({cond}, {until eq})) || (.xmatch ({cond}, {until zero})))
-      bne begin_loop
+      bne .ident(.sprintf("begin_loop%d", ::nesting_level))
     .elseif (.xmatch ({cond}, {until neq}))
-      beq begin_loop
+      beq .ident(.sprintf("begin_loop%d", ::nesting_level))
     .elseif (.xmatch ({cond}, {until minus}))
-      bpl begin_loop
+      bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
     .elseif (.xmatch ({cond}, {until plus}))
-      bmi begin_loop
+      bmi .ident(.sprintf("begin_loop%d", ::nesting_level))
     .elseif ((.xmatch ({cond}, {until c_clr})) || (.xmatch ({cond}, {lt})))
-      bcs begin_loop
+      bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
     .elseif ((.xmatch ({cond}, {until c_set})) || (.xmatch ({cond}, {ge})))
-      bcc begin_loop
+      bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
     .elseif (.xmatch ({cond}, {until v_clr}))
-      bvs begin_loop
+      bvs .ident(.sprintf("begin_loop%d", ::nesting_level))
     .elseif (.xmatch ({cond}, {until v_set}))
-      bvc begin_loop
+      bvc .ident(.sprintf("begin_loop%d", ::nesting_level))
     .elseif ((.xmatch ({cond}, {while eq})) || (.xmatch ({cond}, {while zero})))
-      beq begin_loop
+      beq .ident(.sprintf("begin_loop%d", ::nesting_level))
     .elseif (.xmatch ({cond}, {while neq}))
-      bne begin_loop
+      bne .ident(.sprintf("begin_loop%d", ::nesting_level))
     .elseif (.xmatch ({cond}, {while minus}))
-      bmi begin_loop
+      bmi .ident(.sprintf("begin_loop%d", ::nesting_level))
     .elseif (.xmatch ({cond}, {while plus}))
-      bpl begin_loop
+      bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
     .elseif ((.xmatch ({cond}, {while c_clr})) || (.xmatch ({cond}, {while lt})))
-      bcc begin_loop
+      bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
     .elseif ((.xmatch ({cond}, {while c_set})) || (.xmatch ({cond}, {while ge})))
-      bcs begin_loop
+      bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
     .elseif (.xmatch ({cond}, {while v_clr}))
-      bvc begin_loop
+      bvc .ident(.sprintf("begin_loop%d", ::nesting_level))
     .elseif (.xmatch ({cond}, {while v_set}))
-      bvs begin_loop
+      bvs .ident(.sprintf("begin_loop%d", ::nesting_level))
     .else
       .error "Syntax error in loop condition"
     .endif
   .elseif 
     .error  "Too many parameters in loop condition"
   .endif
-end_loop:  
-  .endscope
+.ident(.sprintf("end_loop%d", ::nesting_level)):
+  dec_nesting_level
 .endmacro
 
 ;; switch A|X|Y|AX
