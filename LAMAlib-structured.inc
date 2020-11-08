@@ -111,39 +111,39 @@
 ;; Registers modified: none
 
 .macro if cond
-  .scope
+  inc_nesting_level
   .if ((.xmatch ({cond}, {eq})) || (.xmatch ({cond}, {zero})))
-    bne else_or_end
+    bne .ident(.sprintf("else_or_end%d", ::nesting_level))
   .elseif (.xmatch ({cond}, {neq}))
-    beq else_or_end
+    beq .ident(.sprintf("else_or_end%d", ::nesting_level))
   .elseif (.xmatch ({cond}, {minus}))
-    bpl else_or_end
+    bpl .ident(.sprintf("else_or_end%d", ::nesting_level))
   .elseif (.xmatch ({cond}, {plus}))
-    bmi else_or_end
+    bmi .ident(.sprintf("else_or_end%d", ::nesting_level))
   .elseif ((.xmatch ({cond}, {c_clr})) || (.xmatch ({cond}, {lt})))
-    bcs else_or_end
+    bcs .ident(.sprintf("else_or_end%d", ::nesting_level))
   .elseif ((.xmatch ({cond}, {c_set})) || (.xmatch ({cond}, {ge})))
-    bcc else_or_end
+    bcc .ident(.sprintf("else_or_end%d", ::nesting_level))
   .elseif (.xmatch ({cond}, {v_clr}))
-    bvs else_or_end
+    bvs .ident(.sprintf("else_or_end%d", ::nesting_level))
   .elseif (.xmatch ({cond}, {v_set}))
-    bvc else_or_end
+    bvc .ident(.sprintf("else_or_end%d", ::nesting_level))
   .else
     .error  "Condition for if undefined!"
   .endif
 .endmacro
 
 .macro else
-  jmp end_of_if
-  else_or_end:
+  jmp .ident(.sprintf("end_of_if%d", ::nesting_level))
+  .ident(.sprintf("else_or_end%d", ::nesting_level)):
 .endmacro
 
 .macro endif
-  .ifndef else_or_end
-    else_or_end:
+  .ifndef .ident(.sprintf("else_or_end%d", ::nesting_level))
+    .ident(.sprintf("else_or_end%d", ::nesting_level)):
   .endif
-  end_of_if:
-  .endscope
+  .ident(.sprintf("end_of_if%d", ::nesting_level)):
+  dec_nesting_level
 .endmacro
 
 ;; for X|Y|A|AX|addr,start,to|downto,end,step
