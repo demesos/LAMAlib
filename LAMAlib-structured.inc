@@ -870,3 +870,29 @@ end_loop:
   .endscope
 .endmacro
 
+;; switch A|X|Y|AX
+;; case|case_eq|case_lt|case_ge num1
+;;   ...
+;; [break]
+;; case num2
+;;   ...
+;; [break]
+;; case num3
+;;   ...
+;; [break]
+;; default
+;; endswitch
+;;   ...
+;; Defines a selection mechanism to allow the value of a register to change the control flow
+;; <b>case</b> and <b>case_eq</b> are the same function, they trigger if the register value and the comparison value are identical
+;; <b>case_lt</b> ("less than") triggers if the register value is smaller than the comparison value 
+;; <b>case_ge</b> ("greater or equal") triggers if the register value is greater or equal than the comparison value 
+;; <b>break</b> jumps out of the structure. If break is omitted, the next comparison is done
+;; <b>default</b> performs no comparison but triggers always
+;;
+;; Registers modified: none
+;;
+
+.macro switch reg
+
+.endmacro
