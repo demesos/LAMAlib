@@ -5,7 +5,7 @@
 ; the trick is to cause an NMI but don't ackowledge it
 ; based on an idea from https://codebase64.org/doku.php?id=base:nmi_lock
 
-.export _disableNMI_sr := disableNMI
+.export _disable_NMI_sr := disableNMI
   
 disableNMI:
         sei             ; disable IRQ

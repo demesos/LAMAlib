@@ -46,7 +46,7 @@ STOP  = $FFE1 ;Query Stop key indicator, at memory address $0091; if pressed, ca
 GETIN = $FFE4 ;get a character from keyboard
 CLALL = $FFE7 ;Close all channels and files
 UDTIM = $FFEA ;Increment real-time clock
-SCREEN= $FFED ;Fetch number of screen rows and columns
+SCRORG= $FFED ;Fetch number of screen rows and columns
 PLOT  = $FFF0 ;Save or restore cursor position
 IOBASE= $FFF3 ;Fetch CIA #1 base address
 
@@ -111,7 +111,7 @@ STOP  = $FFE1 ;Query Stop key indicator, at memory address $0091; if pressed, ca
 GETIN = $FFE4 ;get a character from keyboard
 CLALL = $FFE7 ;Close all channels and files
 UDTIM = $FFEA ;Increment real-time clock
-SCREEN= $FFED ;Fetch number of screen rows and columns
+SCRORG= $FFED ;Fetch number of screen rows and columns
 PLOT  = $FFF0 ;Save or restore cursor position
 IOBASE= $FFF3 ;Fetch CIA #1 base address
 
@@ -185,7 +185,7 @@ STOP  = $FFE1 ;Query Stop key indicator, at memory address $0091; if pressed, ca
 GETIN = $FFE4 ;get a character from keyboard
 CLALL = $FFE7 ;Close all channels and files
 UDTIM = $FFEA ;Increment real-time clock
-SCREEN= $FFED ;Fetch number of screen rows and columns
+SCRORG= $FFED ;Fetch number of screen rows and columns
 PLOT  = $FFF0 ;Save or restore cursor position
 IOBASE= $FFF3 ;Fetch CIA #1 base address
 

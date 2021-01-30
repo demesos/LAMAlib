@@ -13,7 +13,7 @@ gfx_masks    = gfx_ytablelow + 200 ;no bug, decimal 200 here!
 ; ZP allocation for graphics routines
 
 zpaddr1=$22       ;not used by cc65, used by BASIC for temporary ptrs and results, so do we
-		  ;can be used util address $2A, at $2B is the pointer to BASIC area
+		  ;can be used until address $2A, at $2B is the pointer to BASIC area
 zpaddr2=$4b	  ;2 byte temporary area for saving original pointer to current BASIC instruction during GET, INPUT and READ
 zpaddr3=$2A	  ;the last byte from above
 zpaddr4=$57	  ;Arithmetoc register #3, #4, #1 15 bytes

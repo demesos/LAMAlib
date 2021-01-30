@@ -325,16 +325,23 @@
        .byte $00,$00,$00
 .endmacro
 
+;; check_C128
+;; Detects if we are on a C128 in C64 mode
+;; returns with carry set for C128
+.macro check_C128
+     lda $d030
+     cmp #$ff
+.endmacro
 
-;; identifySID [baseaddress]
+
+;; identify_SID [baseaddress]
 ;; Detects the SID soundchip model
 ;; SID detection routine from codebase64 by SounDemon and a tip from Dag Lem
 ;; If no base address is given, the standard base address $d400 is used
 ;; Overwrites register A
 ;; Result is returned in carry
 ;; Carry flag is set for 6581, and clear for 8580
-
-.macro identifySID address
+.macro identify_SID address
 .scope
        .if .paramcount > 0
 	    SIDbaseaddress=address
@@ -357,14 +364,14 @@ waitraster:
 .endscope
 .endmacro
 
-;; disableNMI
+;; disable_NMI
 ;; Executes a short routine to disable the NMI
 ;; the trick is to cause an NMI but don't ackowledge it
 ;; Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)
 ;; Registers modified: A
-.macro  disableNMI
-.import _disableNMI_sr
-       jsr _disableNMI_sr
+.macro  disable_NMI
+.import _disable_NMI_sr
+       jsr _disable_NMI_sr
 .endmacro
 
 ;; set_raster_irq
@@ -390,3 +397,22 @@ waitraster:
 	lda #01
 	sta $D01A 	; set raster interrupt
 .endmacro
+
+;; memset start_addr end_adder fillvalue
+;; Fills the memory area between start_addr and end_adder with the byte fillvalue
+;; Registers modified: A
+.macro  memset start_addr,end_adder,fillvalue
+.import _memset_sr
+       jsr _memset_sr
+.endmacro
+
+;; decimal_flag_to_N
+;; Copies the decimal flag into the negative flag to detect if decimal mode is on
+;; Macro alsways returns with a cleared Carry
+;; Registers modified: A 
+.macro  decimal_flag_to_N
+	lda #$42
+	adc #$38	;this will result in $80 in decimal mode, but not in normal mode
+.endmacro
+
+

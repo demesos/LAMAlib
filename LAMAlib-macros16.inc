@@ -512,6 +512,8 @@
 
 ;; poke arg1,arg2 
 ;; Copies arg2 into the address of arg1
+;; arg1 can be a constant or AX
+;; arg2 can be a constant or A, X or Y
 .macro  poke arg1,arg2
 .scope
         .if (.xmatch ({arg1}, {AX}))          ;AX is used as address
@@ -523,7 +525,7 @@
                       lda #arg2
             @targetsm: sta $ffff
           .endif
-        .else                                ;assuming address is a given constant
+        .else                                ;address is a given constant
           .if (.xmatch ({arg2}, {A}))         ;value in Accu is to be poked
             sta arg1
           .elseif (.xmatch ({arg2}, {X}))      ;value in X register is to be poked
@@ -533,6 +535,39 @@
           .else                              ;value to be poked is a given constant
             lda #arg2
             sta arg1
+          .endif
+        .endif
+.endscope
+.endmacro
+
+;; pokew arg1,arg2
+;; poke word: copies 16 bit value arg2 into the address of arg1 and arg1+1
+;; arg1 will be filled with low byte of arg2
+;; arg2 will be filled with high byte of arg2
+;; arg1, arg2 can be both constants or one can be AX and the other a constant
+;; Regs changed: A, Y (in case AX is used as address)
+
+.macro  pokew arg1,arg2
+.scope
+        .if (.xmatch ({arg1}, {AX}))          ;AX is used as address
+.importzp _zp_ptr1
+          sta _zp_ptr1
+          stx _zp_ptr1+1
+          ldy #00
+          lda #<(arg2)
+          sta (_zp_ptr1),y
+          lda #>(arg2)
+          iny
+          sta (_zp_ptr1),y
+        .else                                ;address is a given constant
+          .if (.xmatch ({arg2}, {AX}))       ;value to be poked in AX
+            sta arg1
+            stx arg1+1
+          .else                              ;value to be poked is a given constant
+            lda #<(arg2)
+            sta arg1
+            lda #>(arg2)
+            sta arg1+1
           .endif
         .endif
 .endscope

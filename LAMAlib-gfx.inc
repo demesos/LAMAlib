@@ -70,3 +70,34 @@
 	.endif
 .endmacro
 
+;; set_VIC_charset addr
+;; Sets VIC register $D018 to display the charset at the given address
+;; addr must be a constant that is a multiple of $800
+;; This macro does not adjust the VIC bank, see set_VIC_bank
+.macro set_VIC_charset addr
+	lda $D018
+	and #$f0
+	ora #((addr & $3800)/$400)
+	sta $D018
+.endmacro
+
+;; set_VIC_screen addr
+;; Sets VIC register $D018 to have the screen RAM at the given address
+;; addr must be a constant that is a multiple of $400
+;; This macro does not adjust the VIC bank, see set_VIC_bank
+.macro set_VIC_screen addr
+	lda $D018
+	and #$f0
+	ora #((addr & $3C00)/$40)
+	sta $D018
+.endmacro
+
+;; set_VIC_bank addr
+;; Sets CIA register $DD00 to have the VIC RAM bank at the given address
+;; addr must be a constant that is a multiple of $4000
+.macro set_VIC_bank addr
+	lda $DD00
+	and #$fc
+	ora #(3 - addr/$4000)
+	sta $DD00
+.endmacro
