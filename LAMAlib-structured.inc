@@ -1,50 +1,142 @@
+; auxiliary defintions for long branches, basically a copy of macro package longbranch
+; but with other names, since we don't know if the user will use the macro package
+.macro  longbeq     Target
+        .if     .match(Target, 0)
+        bne     *+5
+        jmp     Target
+        .elseif .def(Target) .and .const((*-2)-(Target)) .and ((*+2)-(Target) <= 127)
+                beq     Target
+        .else
+                bne     *+5
+                jmp     Target
+        .endif
+.endmacro
+.macro  longbne     Target
+        .if     .match(Target, 0)
+                beq     *+5
+                jmp     Target
+        .elseif .def(Target) .and .const((*-2)-(Target)) .and ((*+2)-(Target) <= 127)
+                bne     Target
+        .else
+                beq     *+5
+                jmp     Target
+        .endif
+.endmacro
+.macro  longbmi     Target
+        .if     .match(Target, 0)
+                bpl     *+5
+                jmp     Target
+        .elseif .def(Target) .and .const((*-2)-(Target)) .and ((*+2)-(Target) <= 127)
+                bmi     Target
+        .else
+                bpl     *+5
+                jmp     Target
+        .endif
+.endmacro
+.macro  longbpl     Target
+        .if     .match(Target, 0)
+                bmi     *+5
+                jmp     Target
+        .elseif .def(Target) .and .const((*-2)-(Target)) .and ((*+2)-(Target) <= 127)
+                bpl     Target
+        .else
+                bmi     *+5
+                jmp     Target
+        .endif
+.endmacro
+.macro  longbcs     Target
+        .if     .match(Target, 0)
+                bcc     *+5
+                jmp     Target
+        .elseif .def(Target) .and .const((*-2)-(Target)) .and ((*+2)-(Target) <= 127)
+                bcs     Target
+        .else
+                bcc     *+5
+                jmp     Target
+        .endif
+.endmacro
+.macro  longbcc     Target
+        .if     .match(Target, 0)
+                bcs     *+5
+                jmp     Target
+        .elseif .def(Target) .and .const((*-2)-(Target)) .and ((*+2)-(Target) <= 127)
+                bcc     Target
+        .else
+                bcs     *+5
+                jmp     Target
+        .endif
+.endmacro
+.macro  longbvs     Target
+        .if     .match(Target, 0)
+                bvc     *+5
+                jmp     Target
+        .elseif .def(Target) .and .const((*-2)-(Target)) .and ((*+2)-(Target) <= 127)
+                bvs     Target
+        .else
+                bvc     *+5
+                jmp     Target
+        .endif
+.endmacro
+.macro  longbvc     Target
+        .if     .match(Target, 0)
+                bvs     *+5
+                jmp     Target
+        .elseif .def(Target) .and .const((*-2)-(Target)) .and ((*+2)-(Target) <= 127)
+                bvc     Target
+        .else
+                bvs     *+5
+                jmp     Target
+        .endif
+.endmacro
+
 ; auxiliary functions for generating labels for nested function
 .macro inc_nesting_level
   .if .defined(::nesting_level)
-    ::nesting_level .set ::nesting_level+1
+    ::nesting_level .set ::nesting_level*10
   .else
-    ::nesting_level .set 1
+    ::nesting_level .set 10
   .endif
 .endmacro
 
 .macro dec_nesting_level
-  ::nesting_level .set ::nesting_level-1
+  ::nesting_level .set ::nesting_level/10 + 1
 .endmacro
 
+;inc_nesting_levelA, inc_nesting_levelX and inc_nesting_levelY are used for store/restore
 .macro inc_nesting_levelA
   .if .defined(::nesting_levelA)
-    ::nesting_levelA .set ::nesting_levelA+1
+    ::nesting_levelA .set ::nesting_levelA*10
   .else
-    ::nesting_levelA .set 1
+    ::nesting_levelA .set 10
   .endif
 .endmacro
 
 .macro dec_nesting_levelA
-  ::nesting_levelA .set ::nesting_levelA-1
+  ::nesting_levelA .set ::nesting_levelA/10 + 1
 .endmacro
 
 .macro inc_nesting_levelX
   .if .defined(::nesting_levelX)
-    ::nesting_levelX .set ::nesting_levelX+1
+    ::nesting_levelX .set ::nesting_levelX*10
   .else
-    ::nesting_levelX .set 1
+    ::nesting_levelX .set 10
   .endif
 .endmacro
 
 .macro dec_nesting_levelX
-  ::nesting_levelX .set ::nesting_levelX-1
+  ::nesting_levelX .set ::nesting_levelX/10 + 1
 .endmacro
 
 .macro inc_nesting_levelY
   .if .defined(::nesting_levelY)
-    ::nesting_levelY .set ::nesting_levelY+1
+    ::nesting_levelY .set ::nesting_levelY*10
   .else
-    ::nesting_levelY .set 1
+    ::nesting_levelY .set 10
   .endif
 .endmacro
 
 .macro dec_nesting_levelY
-  ::nesting_levelY .set ::nesting_levelY-1
+  ::nesting_levelY .set ::nesting_levelY/10 + 1
 .endmacro
 
 ;; <h2>Structured Programming</h2>
@@ -52,49 +144,49 @@
 ;; All macros can be nested.
 
 ;; store reg
-;; Generates self-modifying code for store/recall of a register
+;; Generates self-modifying code for store/restore of a register
 ;; Registers can be A,X,Y, or AX (that is A and X)
-;; An example application for <i>store</i>/<i>recall</i> is for saving a register to be able use it in between. An alternative to <i>store</i>/<i>recall</i> are stack push/pull, which is more compact, but 1 cycle slower.
-;; Each store must match with exactly one <i>recall</i> macro using the same register, recall has to be placed later in your code
+;; An example application for <i>store</i>/<i>restore</i> is for saving a register to be able use it in between. An alternative to <i>store</i>/<i>restore</i> are stack push/pull, which is more compact, but 1 cycle slower.
+;; Each store must match with exactly one <i>restore</i> macro using the same register, restore has to be placed later in your code
 ;; Registers modified: none
 .macro store reg
   .if .xmatch ({reg}, {A}) 
     inc_nesting_levelA
-    sta .ident(.sprintf("selfmod_A%d", ::nesting_levelA))+1
+    sta .ident(.sprintf("selfmod_A%d", ::nesting_levelA/10))+1
   .elseif .xmatch ({reg}, {X}) 
     inc_nesting_levelX
-    stx .ident(.sprintf("selfmod_X%d", ::nesting_levelX))+1
+    stx .ident(.sprintf("selfmod_X%d", ::nesting_levelX/10))+1
   .elseif .xmatch ({reg}, {Y}) 
     inc_nesting_levelY
-    sty .ident(.sprintf("selfmod_Y%d", ::nesting_levelY))+1
+    sty .ident(.sprintf("selfmod_Y%d", ::nesting_levelY/10))+1
   .elseif .xmatch ({reg}, {AX}) 
     store A
     store X
   .endif
 .endmacro
 
-;; recall reg
-;; Generates the code for recalling a stored register
+;; restore reg
+;; Generates the code for restoreing a stored register
 ;; Registers can be A,X,Y, or AX (that is A and X)
-;; Each recall must match with exactly one preceding <i>store</i> macro using the same register
-;; Registers modified: the recalled register
+;; Each restore must match with exactly one preceding <i>store</i> macro using the same register
+;; Registers modified: the restoreed register
 
-.macro recall reg
+.macro restore reg
   .if .xmatch ({reg}, {A}) 
-.ident(.sprintf("selfmod_A%d", ::nesting_levelA)):
+.ident(.sprintf("selfmod_A%d", ::nesting_levelA/10)):
     lda #00
     dec_nesting_levelA
   .elseif .xmatch ({reg}, {X}) 
-.ident(.sprintf("selfmod_X%d", ::nesting_levelX)):
+.ident(.sprintf("selfmod_X%d", ::nesting_levelX/10)):
     ldx #00
     dec_nesting_levelX
   .elseif .xmatch ({reg}, {Y}) 
-.ident(.sprintf("selfmod_Y%d", ::nesting_levelY)):
+.ident(.sprintf("selfmod_Y%d", ::nesting_levelY/10)):
     ldy #00
     dec_nesting_levelY
   .elseif .xmatch ({reg}, {AX}) 
-    recall A
-    recall X
+    restore A
+    restore X
   .endif
 .endmacro
 
@@ -113,36 +205,38 @@
 .macro if cond
   inc_nesting_level
   .if ((.xmatch ({cond}, {eq})) || (.xmatch ({cond}, {zero})))
-    bne .ident(.sprintf("else_or_end%d", ::nesting_level))
+    bne .ident(.sprintf("else_or_end%d", ::nesting_level/10))
   .elseif (.xmatch ({cond}, {neq}))
-    beq .ident(.sprintf("else_or_end%d", ::nesting_level))
+    beq .ident(.sprintf("else_or_end%d", ::nesting_level/10))
   .elseif (.xmatch ({cond}, {minus}))
-    bpl .ident(.sprintf("else_or_end%d", ::nesting_level))
+    bpl .ident(.sprintf("else_or_end%d", ::nesting_level/10))
   .elseif (.xmatch ({cond}, {plus}))
-    bmi .ident(.sprintf("else_or_end%d", ::nesting_level))
+    bmi .ident(.sprintf("else_or_end%d", ::nesting_level/10))
   .elseif ((.xmatch ({cond}, {c_clr})) || (.xmatch ({cond}, {lt})))
-    bcs .ident(.sprintf("else_or_end%d", ::nesting_level))
+    bcs .ident(.sprintf("else_or_end%d", ::nesting_level/10))
   .elseif ((.xmatch ({cond}, {c_set})) || (.xmatch ({cond}, {ge})))
-    bcc .ident(.sprintf("else_or_end%d", ::nesting_level))
+    bcc .ident(.sprintf("else_or_end%d", ::nesting_level/10))
   .elseif (.xmatch ({cond}, {v_clr}))
-    bvs .ident(.sprintf("else_or_end%d", ::nesting_level))
+    bvs .ident(.sprintf("else_or_end%d", ::nesting_level/10))
   .elseif (.xmatch ({cond}, {v_set}))
-    bvc .ident(.sprintf("else_or_end%d", ::nesting_level))
+    bvc .ident(.sprintf("else_or_end%d", ::nesting_level/10))
   .else
     .error  "Condition for if undefined!"
   .endif
 .endmacro
 
+; future extension: add a version iflong with long branches
+
 .macro else
-  jmp .ident(.sprintf("end_of_if%d", ::nesting_level))
-  .ident(.sprintf("else_or_end%d", ::nesting_level)):
+  jmp .ident(.sprintf("end_of_if%d", ::nesting_level/10))
+  .ident(.sprintf("else_or_end%d", ::nesting_level/10)):
 .endmacro
 
 .macro endif
-  .ifndef .ident(.sprintf("else_or_end%d", ::nesting_level))
-    .ident(.sprintf("else_or_end%d", ::nesting_level)):
+  .ifndef .ident(.sprintf("else_or_end%d", ::nesting_level/10))
+    .ident(.sprintf("else_or_end%d", ::nesting_level/10)):
   .endif
-  .ident(.sprintf("end_of_if%d", ::nesting_level)):
+  .ident(.sprintf("end_of_if%d", ::nesting_level/10)):
   dec_nesting_level
 .endmacro
 
@@ -178,619 +272,619 @@
 .macro for var,start,dir,end,step
   inc_nesting_level
   .if .xmatch ({var}, {A})
-    .ident(.sprintf("for_var%d", ::nesting_level))=-1
+    .ident(.sprintf("for_var%d", ::nesting_level/10))=-1
   .elseif .xmatch ({var}, {X})
-    .ident(.sprintf("for_var%d", ::nesting_level))=-2
+    .ident(.sprintf("for_var%d", ::nesting_level/10))=-2
   .elseif .xmatch ({var}, {Y})
-    .ident(.sprintf("for_var%d", ::nesting_level))=-3
+    .ident(.sprintf("for_var%d", ::nesting_level/10))=-3
   .elseif .xmatch ({var}, {AX})
-    .ident(.sprintf("for_var%d", ::nesting_level))=-4
+    .ident(.sprintf("for_var%d", ::nesting_level/10))=-4
   .else
-    .ident(.sprintf("for_var%d", ::nesting_level))=var
+    .ident(.sprintf("for_var%d", ::nesting_level/10))=var
   .endif
 
   .if .xmatch ({dir}, {to}) 
-    .ident(.sprintf("for_dir%d", ::nesting_level))=1
+    .ident(.sprintf("for_dir%d", ::nesting_level/10))=1
   .elseif .xmatch ({dir}, {downto}) 
-    .ident(.sprintf("for_dir%d", ::nesting_level))=-1
+    .ident(.sprintf("for_dir%d", ::nesting_level/10))=-1
   .else
     .error  "Syntax error in for loop, 3rd argument needs to be TO or DOWNTO!"
   .endif
 
   .if .paramcount = 5
-     .ident(.sprintf("for_inc%d", ::nesting_level))=step
+     .ident(.sprintf("for_inc%d", ::nesting_level/10))=step
      .if (.match (.left (1, {step}), {(})) .and (.match (.right (1, {step}), {)}))	;argument in brackets -> means indirect addressing
-       .ident(.sprintf("for_inc%d", ::nesting_level))_indirect=1
+       .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
      .else
-       .ident(.sprintf("for_inc%d", ::nesting_level))_indirect=0
+       .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=0
      .endif
   .else
-      .ident(.sprintf("for_inc%d", ::nesting_level)) .set 1
-      .ident(.sprintf("for_inc%d", ::nesting_level))_indirect=0
+      .ident(.sprintf("for_inc%d", ::nesting_level/10)) .set 1
+      .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=0
   .endif
 
   .if (.match (.left (1, {end}), {(})) .and (.match (.right (1, {end}), {)}))	;argument in brackets -> means indirect addressing
-    .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-    .ident(.sprintf("for_end%d", ::nesting_level))=end
+    .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+    .ident(.sprintf("for_end%d", ::nesting_level/10))=end
   .else
-    .ident(.sprintf("for_end%d", ::nesting_level))_indirect=0
-    .if .ident(.sprintf("for_dir%d", ::nesting_level))>0
-      .ident(.sprintf("for_end%d", ::nesting_level))=end+1
+    .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=0
+    .if .ident(.sprintf("for_dir%d", ::nesting_level/10))>0
+      .ident(.sprintf("for_end%d", ::nesting_level/10))=end+1
     .else
-      .ident(.sprintf("for_end%d", ::nesting_level))=end-1
+      .ident(.sprintf("for_end%d", ::nesting_level/10))=end-1
     .endif
   .endif
 
   .if (.match (.left (1, {start}), {(})) .and (.match (.right (1, {start}), {)}))	;argument in brackets -> means indirect addressing
-    .ident(.sprintf("for_start_positive%d", ::nesting_level))=0
-    .if .ident(.sprintf("for_var%d", ::nesting_level))=-2
+    .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=0
+    .if .ident(.sprintf("for_var%d", ::nesting_level/10))=-2
       ldx 0+start
-    .elseif .ident(.sprintf("for_var%d", ::nesting_level))=-3
+    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-3
       ldy 0+start
-    .elseif .ident(.sprintf("for_var%d", ::nesting_level))=-1
+    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-1
       lda 0+start
-    .elseif .ident(.sprintf("for_var%d", ::nesting_level))=-4
+    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-4
       ldax 0+start
     .else
       lda 0+start
-      sta .ident(.sprintf("for_var%d", ::nesting_level))
+      sta .ident(.sprintf("for_var%d", ::nesting_level/10))
       lda 0+start+1
-      sta .ident(.sprintf("for_var%d", ::nesting_level))+1
+      sta .ident(.sprintf("for_var%d", ::nesting_level/10))+1
     .endif
   .else
-    .if .ident(.sprintf("for_var%d", ::nesting_level))=-2
+    .if .ident(.sprintf("for_var%d", ::nesting_level/10))=-2
       ldx #start
       .if start<128
-        .ident(.sprintf("for_start_positive%d", ::nesting_level))=1
+        .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=1
       .else
-        .ident(.sprintf("for_start_positive%d", ::nesting_level))=0
+        .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=0
       .endif
-    .elseif .ident(.sprintf("for_var%d", ::nesting_level))=-3
+    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-3
       ldy #start
       .if start<128
-        .ident(.sprintf("for_start_positive%d", ::nesting_level))=1
+        .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=1
       .else
-        .ident(.sprintf("for_start_positive%d", ::nesting_level))=0
+        .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=0
       .endif
-    .elseif .ident(.sprintf("for_var%d", ::nesting_level))=-1
+    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-1
       lda #start
       .if start<128
-        .ident(.sprintf("for_start_positive%d", ::nesting_level))=1
+        .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=1
       .else
-        .ident(.sprintf("for_start_positive%d", ::nesting_level))=0
+        .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=0
       .endif
-    .elseif .ident(.sprintf("for_var%d", ::nesting_level))=-4
+    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-4
       ldax #start
       .if start<32768
-        .ident(.sprintf("for_start_positive%d", ::nesting_level))=1
+        .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=1
       .else
-        .ident(.sprintf("for_start_positive%d", ::nesting_level))=0
+        .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=0
       .endif
     .else
       .if start<32768
-        .ident(.sprintf("for_start_positive%d", ::nesting_level))=1
+        .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=1
       .else
-        .ident(.sprintf("for_start_positive%d", ::nesting_level))=0
+        .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=0
       .endif
       lda #<start
-      sta .ident(.sprintf("for_var%d", ::nesting_level))
+      sta .ident(.sprintf("for_var%d", ::nesting_level/10))
       lda #>start
-      sta .ident(.sprintf("for_var%d", ::nesting_level))+1
+      sta .ident(.sprintf("for_var%d", ::nesting_level/10))+1
     .endif
   .endif
-.ident(.sprintf("begin_loop%d", ::nesting_level)):
+.ident(.sprintf("begin_loop%d", ::nesting_level/10)):
 .endmacro
 
 .macro next
-.ident(.sprintf("continue_point%d", ::nesting_level)):
-  .if .ident(.sprintf("for_dir%d", ::nesting_level))>0   ;--- incrementing loops ---
-    .if .ident(.sprintf("for_var%d", ::nesting_level))=-2   ;--- next X ---
-      .if .ident(.sprintf("for_inc%d", ::nesting_level))_indirect=1
+.ident(.sprintf("continue_point%d", ::nesting_level/10)):
+  .if .ident(.sprintf("for_dir%d", ::nesting_level/10))>0   ;--- incrementing loops ---
+    .if .ident(.sprintf("for_var%d", ::nesting_level/10))=-2   ;--- next X ---
+      .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
         txa
         clc
-        adc .ident(.sprintf("for_inc%d", ::nesting_level))
+        adc .ident(.sprintf("for_inc%d", ::nesting_level/10))
         tax
-        .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-          cpx .ident(.sprintf("for_end%d", ::nesting_level))
-          bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-          beq .ident(.sprintf("begin_loop%d", ::nesting_level))
+        .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+          cpx .ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
-          cpx #.ident(.sprintf("for_end%d", ::nesting_level))
-          bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
+          cpx #.ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
-        .repeat .ident(.sprintf("for_inc%d", ::nesting_level))
+        .repeat .ident(.sprintf("for_inc%d", ::nesting_level/10))
         inx
         .endrep
-        .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-          cpx .ident(.sprintf("for_end%d", ::nesting_level))
-          bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-          beq .ident(.sprintf("begin_loop%d", ::nesting_level))
+        .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+          cpx .ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
-          .if .ident(.sprintf("for_inc%d", ::nesting_level))=1
-            .if .not .ident(.sprintf("for_end%d", ::nesting_level))=0
-              cpx #.ident(.sprintf("for_end%d", ::nesting_level))
+          .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
+            .if .not .ident(.sprintf("for_end%d", ::nesting_level/10))=0
+              cpx #.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif
-            bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+            longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
-            cpx #.ident(.sprintf("for_end%d", ::nesting_level))
-            bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
+            cpx #.ident(.sprintf("for_end%d", ::nesting_level/10))
+            longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .endif
         .endif
       .endif
-    .elseif .ident(.sprintf("for_var%d", ::nesting_level))=-3   ;--- next Y ---
-      .if .ident(.sprintf("for_inc%d", ::nesting_level))_indirect=1
+    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-3   ;--- next Y ---
+      .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
         tya
         clc
-        adc .ident(.sprintf("for_inc%d", ::nesting_level))
+        adc .ident(.sprintf("for_inc%d", ::nesting_level/10))
         tay
-        .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-          cpy .ident(.sprintf("for_end%d", ::nesting_level))
-          bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-          beq .ident(.sprintf("begin_loop%d", ::nesting_level))
+        .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+          cpy .ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
-          cpy #.ident(.sprintf("for_end%d", ::nesting_level))
-          bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
+          cpy #.ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
-        .repeat .ident(.sprintf("for_inc%d", ::nesting_level))
+        .repeat .ident(.sprintf("for_inc%d", ::nesting_level/10))
         iny
         .endrep
-        .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-          cpy .ident(.sprintf("for_end%d", ::nesting_level))
-          bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-          beq .ident(.sprintf("begin_loop%d", ::nesting_level))
+        .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+          cpy .ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
-          .if .ident(.sprintf("for_inc%d", ::nesting_level))=1
-            .if .not .ident(.sprintf("for_end%d", ::nesting_level))=0
-              cpy #.ident(.sprintf("for_end%d", ::nesting_level))
+          .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
+            .if .not .ident(.sprintf("for_end%d", ::nesting_level/10))=0
+              cpy #.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif
-            bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+            longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
-            cpy #.ident(.sprintf("for_end%d", ::nesting_level))
-            bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
+            cpy #.ident(.sprintf("for_end%d", ::nesting_level/10))
+            longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .endif
         .endif
       .endif
-    .elseif .ident(.sprintf("for_var%d", ::nesting_level))=-1   ;--- next A ---
-      .if .ident(.sprintf("for_inc%d", ::nesting_level))_indirect=1
+    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-1   ;--- next A ---
+      .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
         clc
-        adc .ident(.sprintf("for_inc%d", ::nesting_level))
-        .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-          cmp .ident(.sprintf("for_end%d", ::nesting_level))
-          bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-          beq .ident(.sprintf("begin_loop%d", ::nesting_level))
+        adc .ident(.sprintf("for_inc%d", ::nesting_level/10))
+        .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+          cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
-          cmp #.ident(.sprintf("for_end%d", ::nesting_level))
-          bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
+          cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
         clc
-        adc #.ident(.sprintf("for_inc%d", ::nesting_level))
-        .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-          cmp .ident(.sprintf("for_end%d", ::nesting_level))
-          bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-          beq .ident(.sprintf("begin_loop%d", ::nesting_level))
+        adc #.ident(.sprintf("for_inc%d", ::nesting_level/10))
+        .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+          cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
-          .if .ident(.sprintf("for_inc%d", ::nesting_level))=1
-            .if .not .ident(.sprintf("for_end%d", ::nesting_level))=0
-              cmp #.ident(.sprintf("for_end%d", ::nesting_level))
+          .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
+            .if .not .ident(.sprintf("for_end%d", ::nesting_level/10))=0
+              cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif
-            bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+            longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
-            cmp #.ident(.sprintf("for_end%d", ::nesting_level))
-            bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
+            cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))
+            longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .endif
         .endif
       .endif
-    .elseif .ident(.sprintf("for_var%d", ::nesting_level))=-4   ;--- next AX ---
-      .if .ident(.sprintf("for_inc%d", ::nesting_level))_indirect=1
+    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-4   ;--- next AX ---
+      .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
         clc
-        adcax .ident(.sprintf("for_inc%d", ::nesting_level))
+        adcax .ident(.sprintf("for_inc%d", ::nesting_level/10))
       .else
-        .if .ident(.sprintf("for_inc%d", ::nesting_level))=1
+        .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
           incax
         .else
           clc
-          adcax #.ident(.sprintf("for_inc%d", ::nesting_level))
+          adcax #.ident(.sprintf("for_inc%d", ::nesting_level/10))
         .endif
       .endif
-      .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-        cpx .ident(.sprintf("for_end%d", ::nesting_level))+1
-        bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-        cmp .ident(.sprintf("for_end%d", ::nesting_level))
-        bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-        beq .ident(.sprintf("begin_loop%d", ::nesting_level))
+      .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+        cpx .ident(.sprintf("for_end%d", ::nesting_level/10))+1
+        longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+        cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
+        longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+        longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
       .else
-        cpx #>.ident(.sprintf("for_end%d", ::nesting_level))
-        bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-        cmp #<.ident(.sprintf("for_end%d", ::nesting_level))     
-        bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
+        cpx #>.ident(.sprintf("for_end%d", ::nesting_level/10))
+        longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+        cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))     
+        longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
       .endif
     .else   ;--- next (addr) ---
-      .if .ident(.sprintf("for_inc%d", ::nesting_level))_indirect=1
+      .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
         clc
-        lda .ident(.sprintf("for_var%d", ::nesting_level))
-        adc .ident(.sprintf("for_inc%d", ::nesting_level))
-        sta .ident(.sprintf("for_var%d", ::nesting_level))
-        lda .ident(.sprintf("for_var%d", ::nesting_level))+1
-        adc .ident(.sprintf("for_inc%d", ::nesting_level))+1
-        sta .ident(.sprintf("for_var%d", ::nesting_level))+1
-        .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-          cmp .ident(.sprintf("for_end%d", ::nesting_level))+1
-          bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-          bne .ident(.sprintf("end_loop%d", ::nesting_level))
-          lda .ident(.sprintf("for_end%d", ::nesting_level))
-          cmp .ident(.sprintf("for_var%d", ::nesting_level))
-          bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+        lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+        adc .ident(.sprintf("for_inc%d", ::nesting_level/10))
+        sta .ident(.sprintf("for_var%d", ::nesting_level/10))
+        lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+        adc .ident(.sprintf("for_inc%d", ::nesting_level/10))+1
+        sta .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+        .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+          cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
+          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          bne .ident(.sprintf("end_loop%d", ::nesting_level/10))
+          lda .ident(.sprintf("for_end%d", ::nesting_level/10))
+          cmp .ident(.sprintf("for_var%d", ::nesting_level/10))
+          longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
-          cmp #>.ident(.sprintf("for_end%d", ::nesting_level))
-          bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-          bne .ident(.sprintf("end_loop%d", ::nesting_level))
-          lda .ident(.sprintf("for_var%d", ::nesting_level))
-          cmp #<.ident(.sprintf("for_end%d", ::nesting_level))     
-          bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
+          cmp #>.ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          bne .ident(.sprintf("end_loop%d", ::nesting_level/10))
+          lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+          cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))     
+          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
-        .if .ident(.sprintf("for_inc%d", ::nesting_level))=1
-          inc16 .ident(.sprintf("for_var%d", ::nesting_level))
-          .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-            lda .ident(.sprintf("for_var%d", ::nesting_level))+1
-            cmp .ident(.sprintf("for_end%d", ::nesting_level))+1
-            bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-            lda .ident(.sprintf("for_end%d", ::nesting_level))
-            cmp .ident(.sprintf("for_var%d", ::nesting_level))
-            bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+        .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
+          inc16 .ident(.sprintf("for_var%d", ::nesting_level/10))
+          .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+            lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+            cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
+            longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+            lda .ident(.sprintf("for_end%d", ::nesting_level/10))
+            cmp .ident(.sprintf("for_var%d", ::nesting_level/10))
+            longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
-            lda .ident(.sprintf("for_var%d", ::nesting_level))
-            .if (<.ident(.sprintf("for_end%d", ::nesting_level)))>0
-              cmp #<.ident(.sprintf("for_end%d", ::nesting_level))
+            lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+            .if (<.ident(.sprintf("for_end%d", ::nesting_level/10)))>0
+              cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif 
-            bne .ident(.sprintf("begin_loop%d", ::nesting_level))
-            lda .ident(.sprintf("for_var%d", ::nesting_level))+1
-            .if (>.ident(.sprintf("for_end%d", ::nesting_level)))>0
-              cmp #>.ident(.sprintf("for_end%d", ::nesting_level))
+            longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+            lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+            .if (>.ident(.sprintf("for_end%d", ::nesting_level/10)))>0
+              cmp #>.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif
-            bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+            longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .endif
         .else
           clc
-          lda .ident(.sprintf("for_var%d", ::nesting_level))
-          adc #<.ident(.sprintf("for_inc%d", ::nesting_level))
-          sta .ident(.sprintf("for_var%d", ::nesting_level))
-          lda .ident(.sprintf("for_var%d", ::nesting_level))+1
-          adc #>.ident(.sprintf("for_inc%d", ::nesting_level))
-          sta .ident(.sprintf("for_var%d", ::nesting_level))+1
-          .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-            cmp .ident(.sprintf("for_end%d", ::nesting_level))+1
-            bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-            bne .ident(.sprintf("end_loop%d", ::nesting_level))
-            lda .ident(.sprintf("for_end%d", ::nesting_level))
-            cmp .ident(.sprintf("for_var%d", ::nesting_level))
-            bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+          lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+          adc #<.ident(.sprintf("for_inc%d", ::nesting_level/10))
+          sta .ident(.sprintf("for_var%d", ::nesting_level/10))
+          lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+          adc #>.ident(.sprintf("for_inc%d", ::nesting_level/10))
+          sta .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+          .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+            cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
+            longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+            bne .ident(.sprintf("end_loop%d", ::nesting_level/10))
+            lda .ident(.sprintf("for_end%d", ::nesting_level/10))
+            cmp .ident(.sprintf("for_var%d", ::nesting_level/10))
+            longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
-            cmp #>.ident(.sprintf("for_end%d", ::nesting_level))
-            bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-            bne .ident(.sprintf("end_loop%d", ::nesting_level))
-            lda .ident(.sprintf("for_var%d", ::nesting_level))
-            cmp #<.ident(.sprintf("for_end%d", ::nesting_level))     
-            bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
+            cmp #>.ident(.sprintf("for_end%d", ::nesting_level/10))
+            longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+            bne .ident(.sprintf("end_loop%d", ::nesting_level/10))
+            lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+            cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))     
+            longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .endif
         .endif
       .endif
     .endif
   .else              ;--- decrementing loops ---
-    .if .ident(.sprintf("for_var%d", ::nesting_level))=-2   ;--- next X ---
-      .if .ident(.sprintf("for_inc%d", ::nesting_level))_indirect=1
+    .if .ident(.sprintf("for_var%d", ::nesting_level/10))=-2   ;--- next X ---
+      .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
         txa
         sec
-        sbc .ident(.sprintf("for_inc%d", ::nesting_level))
+        sbc .ident(.sprintf("for_inc%d", ::nesting_level/10))
         tax
-        .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-          cpx .ident(.sprintf("for_end%d", ::nesting_level))
-          bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
+        .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+          cpx .ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
-          .if .ident(.sprintf("for_end%d", ::nesting_level)) >= 0
-            cpx #.ident(.sprintf("for_end%d", ::nesting_level))+1
+          .if .ident(.sprintf("for_end%d", ::nesting_level/10)) >= 0
+            cpx #.ident(.sprintf("for_end%d", ::nesting_level/10))+1
           .endif
-          bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
+          longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
-        .repeat .ident(.sprintf("for_inc%d", ::nesting_level))
+        .repeat .ident(.sprintf("for_inc%d", ::nesting_level/10))
         dex
         .endrep
-        .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-          cpx .ident(.sprintf("for_end%d", ::nesting_level))
-          bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
+        .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+          cpx .ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
-          .if .ident(.sprintf("for_inc%d", ::nesting_level))=1
-            .if .ident(.sprintf("for_end%d", ::nesting_level)) = -1
-              .if .ident(.sprintf("for_start_positive%d", ::nesting_level))=1
-                bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
+          .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
+            .if .ident(.sprintf("for_end%d", ::nesting_level/10)) = -1
+              .if .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=1
+                longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
               .else
-                cpx #.ident(.sprintf("for_end%d", ::nesting_level))+$100
-                bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+                cpx #.ident(.sprintf("for_end%d", ::nesting_level/10))+$100
+                longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
               .endif
             .else
-              .if .ident(.sprintf("for_end%d", ::nesting_level)) > 0
-                cpx #.ident(.sprintf("for_end%d", ::nesting_level))
+              .if .ident(.sprintf("for_end%d", ::nesting_level/10)) > 0
+                cpx #.ident(.sprintf("for_end%d", ::nesting_level/10))
               .endif
-              bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+              longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             .endif
           .else
-            .if .ident(.sprintf("for_end%d", ::nesting_level))-.ident(.sprintf("for_inc%d", ::nesting_level)) < 0
-              .if .ident(.sprintf("for_start_positive%d", ::nesting_level))=1
-                bmi .ident(.sprintf("end_loop%d", ::nesting_level))
+            .if .ident(.sprintf("for_end%d", ::nesting_level/10))-.ident(.sprintf("for_inc%d", ::nesting_level/10)) < 0
+              .if .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=1
+                longbmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
               .else
-                cpx #.ident(.sprintf("for_end%d", ::nesting_level))-.ident(.sprintf("for_inc%d", ::nesting_level))+$100
-                bcs .ident(.sprintf("end_loop%d", ::nesting_level))
+                cpx #.ident(.sprintf("for_end%d", ::nesting_level/10))-.ident(.sprintf("for_inc%d", ::nesting_level/10))+$100
+                longbcs .ident(.sprintf("end_loop%d", ::nesting_level/10))
               .endif
             .endif
-            .if .ident(.sprintf("for_end%d", ::nesting_level)) < 0
-              jmp .ident(.sprintf("begin_loop%d", ::nesting_level))
-            .elseif .ident(.sprintf("for_end%d", ::nesting_level)) > 0
-              cpx #.ident(.sprintf("for_end%d", ::nesting_level))+1
-              bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+            .if .ident(.sprintf("for_end%d", ::nesting_level/10)) < 0
+              jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+            .elseif .ident(.sprintf("for_end%d", ::nesting_level/10)) > 0
+              cpx #.ident(.sprintf("for_end%d", ::nesting_level/10))+1
+              longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     	    .else
-              bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+              longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             .endif
           .endif
         .endif
       .endif
-    .elseif .ident(.sprintf("for_var%d", ::nesting_level))=-3   ;--- next Y ---
-      .if .ident(.sprintf("for_inc%d", ::nesting_level))_indirect=1
+    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-3   ;--- next Y ---
+      .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
         tya
         sec
-        sbc .ident(.sprintf("for_inc%d", ::nesting_level))
+        sbc .ident(.sprintf("for_inc%d", ::nesting_level/10))
         tay
-        .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-          cpy .ident(.sprintf("for_end%d", ::nesting_level))
-          bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
+        .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+          cpy .ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
-          .if .ident(.sprintf("for_end%d", ::nesting_level)) >= 0
-            cpy #.ident(.sprintf("for_end%d", ::nesting_level))+1
+          .if .ident(.sprintf("for_end%d", ::nesting_level/10)) >= 0
+            cpy #.ident(.sprintf("for_end%d", ::nesting_level/10))+1
           .endif
-          bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
+          longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
-        .repeat .ident(.sprintf("for_inc%d", ::nesting_level))
+        .repeat .ident(.sprintf("for_inc%d", ::nesting_level/10))
         dey
         .endrep
-        .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-          cpy .ident(.sprintf("for_end%d", ::nesting_level))
-          bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
+        .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+          cpy .ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
-          .if .ident(.sprintf("for_inc%d", ::nesting_level))=1
-            .if .ident(.sprintf("for_end%d", ::nesting_level)) = -1
-              .if .ident(.sprintf("for_start_positive%d", ::nesting_level))=1
-                bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
+          .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
+            .if .ident(.sprintf("for_end%d", ::nesting_level/10)) = -1
+              .if .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=1
+                longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
               .else
-                cpy #.ident(.sprintf("for_end%d", ::nesting_level))+$100
-                bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+                cpy #.ident(.sprintf("for_end%d", ::nesting_level/10))+$100
+                longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
               .endif
             .else
-              .if .ident(.sprintf("for_end%d", ::nesting_level)) > 0
-                cpy #.ident(.sprintf("for_end%d", ::nesting_level))
+              .if .ident(.sprintf("for_end%d", ::nesting_level/10)) > 0
+                cpy #.ident(.sprintf("for_end%d", ::nesting_level/10))
               .endif
-              bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+              longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             .endif
           .else
-            .if .ident(.sprintf("for_end%d", ::nesting_level))-.ident(.sprintf("for_inc%d", ::nesting_level)) < 0
-              .if .ident(.sprintf("for_start_positive%d", ::nesting_level))=1
-                bmi .ident(.sprintf("end_loop%d", ::nesting_level))
+            .if .ident(.sprintf("for_end%d", ::nesting_level/10))-.ident(.sprintf("for_inc%d", ::nesting_level/10)) < 0
+              .if .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=1
+                bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
               .else
-                cpy #.ident(.sprintf("for_end%d", ::nesting_level))-.ident(.sprintf("for_inc%d", ::nesting_level))+$100
-                bcs .ident(.sprintf("end_loop%d", ::nesting_level))
+                cpy #.ident(.sprintf("for_end%d", ::nesting_level/10))-.ident(.sprintf("for_inc%d", ::nesting_level/10))+$100
+                bcs .ident(.sprintf("end_loop%d", ::nesting_level/10))
               .endif
             .endif
-            .if .ident(.sprintf("for_end%d", ::nesting_level)) < 0
-              jmp .ident(.sprintf("begin_loop%d", ::nesting_level))
-            .elseif .ident(.sprintf("for_end%d", ::nesting_level)) > 0
-              cpy #.ident(.sprintf("for_end%d", ::nesting_level))+1
-              bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+            .if .ident(.sprintf("for_end%d", ::nesting_level/10)) < 0
+              jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+            .elseif .ident(.sprintf("for_end%d", ::nesting_level/10)) > 0
+              cpy #.ident(.sprintf("for_end%d", ::nesting_level/10))+1
+              longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     	    .else
-              bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+              longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             .endif
           .endif
         .endif
       .endif
-    .elseif .ident(.sprintf("for_var%d", ::nesting_level))=-1   ;--- next A ---
-      .if .ident(.sprintf("for_inc%d", ::nesting_level))_indirect=1
+    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-1   ;--- next A ---
+      .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
         sec
-        sbc .ident(.sprintf("for_inc%d", ::nesting_level))
-        .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-          cmp .ident(.sprintf("for_end%d", ::nesting_level))
-          bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
+        sbc .ident(.sprintf("for_inc%d", ::nesting_level/10))
+        .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+          cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
-          .if .ident(.sprintf("for_end%d", ::nesting_level)) >= 0
-            cmp #.ident(.sprintf("for_end%d", ::nesting_level))+1
+          .if .ident(.sprintf("for_end%d", ::nesting_level/10)) >= 0
+            cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))+1
           .endif
-          bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
+          longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
         sec
-        sbc #.ident(.sprintf("for_inc%d", ::nesting_level))
-        .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-          cmp .ident(.sprintf("for_end%d", ::nesting_level))
-          bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
+        sbc #.ident(.sprintf("for_inc%d", ::nesting_level/10))
+        .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+          cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
-          .if .ident(.sprintf("for_inc%d", ::nesting_level))=1
-            .if .ident(.sprintf("for_end%d", ::nesting_level)) = -1
-              .if .ident(.sprintf("for_start_positive%d", ::nesting_level))=1
-                bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
+          .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
+            .if .ident(.sprintf("for_end%d", ::nesting_level/10)) = -1
+              .if .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=1
+                longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
               .else
-                cmp #.ident(.sprintf("for_end%d", ::nesting_level))+$100
-                bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+                cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))+$100
+                longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
               .endif
             .else
-              .if .ident(.sprintf("for_end%d", ::nesting_level)) > 0
-                cmp #.ident(.sprintf("for_end%d", ::nesting_level))
+              .if .ident(.sprintf("for_end%d", ::nesting_level/10)) > 0
+                cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))
               .endif
-              bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+              longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             .endif
           .else
-            .if .ident(.sprintf("for_end%d", ::nesting_level))-.ident(.sprintf("for_inc%d", ::nesting_level)) < 0
-              .if .ident(.sprintf("for_start_positive%d", ::nesting_level))=1
-                bmi .ident(.sprintf("end_loop%d", ::nesting_level))
+            .if .ident(.sprintf("for_end%d", ::nesting_level/10))-.ident(.sprintf("for_inc%d", ::nesting_level/10)) < 0
+              .if .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=1
+                bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
               .else
-                cmp #.ident(.sprintf("for_end%d", ::nesting_level))-.ident(.sprintf("for_inc%d", ::nesting_level))+$100
-                bcs .ident(.sprintf("end_loop%d", ::nesting_level))
+                cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))-.ident(.sprintf("for_inc%d", ::nesting_level/10))+$100
+                bcs .ident(.sprintf("end_loop%d", ::nesting_level/10))
               .endif
             .endif
-            .if .ident(.sprintf("for_end%d", ::nesting_level)) < 0
-              jmp .ident(.sprintf("begin_loop%d", ::nesting_level))
-            .elseif .ident(.sprintf("for_end%d", ::nesting_level)) > 0
-              cmp #.ident(.sprintf("for_end%d", ::nesting_level))+1
-              bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+            .if .ident(.sprintf("for_end%d", ::nesting_level/10)) < 0
+              jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+            .elseif .ident(.sprintf("for_end%d", ::nesting_level/10)) > 0
+              cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))+1
+              longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     	    .else
-              bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+              longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             .endif
           .endif
         .endif
       .endif
-    .elseif .ident(.sprintf("for_var%d", ::nesting_level))=-4   ;--- next AX ---
-      .if .ident(.sprintf("for_inc%d", ::nesting_level))_indirect=1
+    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-4   ;--- next AX ---
+      .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
         sec
-        sbcax .ident(.sprintf("for_inc%d", ::nesting_level))
-        .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-          cpx .ident(.sprintf("for_end%d", ::nesting_level))+1
-          bmi .ident(.sprintf("end_loop%d", ::nesting_level))
-          bne .ident(.sprintf("begin_loop%d", ::nesting_level))
-          cmp .ident(.sprintf("for_end%d", ::nesting_level))
-          bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+        sbcax .ident(.sprintf("for_inc%d", ::nesting_level/10))
+        .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+          cpx .ident(.sprintf("for_end%d", ::nesting_level/10))+1
+          bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
+          longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
-          cpx #>(.ident(.sprintf("for_end%d", ::nesting_level))+1)
-          bmi .ident(.sprintf("end_loop%d", ::nesting_level))
-          bne .ident(.sprintf("begin_loop%d", ::nesting_level))
-          cmp #<(.ident(.sprintf("for_end%d", ::nesting_level))+1)
-          bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+          cpx #>(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
+          bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
+          longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          cmp #<(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
+          longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
-        .if .ident(.sprintf("for_inc%d", ::nesting_level))=1
+        .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
           decax
-          .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-            cpx .ident(.sprintf("for_end%d", ::nesting_level))+1
-            bmi .ident(.sprintf("end_loop%d", ::nesting_level))
-            bne .ident(.sprintf("begin_loop%d", ::nesting_level))
-            cmp .ident(.sprintf("for_end%d", ::nesting_level))
-            bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+          .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+            cpx .ident(.sprintf("for_end%d", ::nesting_level/10))+1
+            bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
+            longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+            cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
+            longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
-            cpx #>.ident(.sprintf("for_end%d", ::nesting_level))
-            bne .ident(.sprintf("begin_loop%d", ::nesting_level))
-            cmp #<.ident(.sprintf("for_end%d", ::nesting_level))     
-            bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+            cpx #>.ident(.sprintf("for_end%d", ::nesting_level/10))
+            longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+            cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))     
+            longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .endif
         .else
           sec
-          sbcax #.ident(.sprintf("for_inc%d", ::nesting_level))
-          .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-            cpx .ident(.sprintf("for_end%d", ::nesting_level))+1
-            bmi .ident(.sprintf("end_loop%d", ::nesting_level))
-            bne .ident(.sprintf("begin_loop%d", ::nesting_level))
-            cmp .ident(.sprintf("for_end%d", ::nesting_level))
-            bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+          sbcax #.ident(.sprintf("for_inc%d", ::nesting_level/10))
+          .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+            cpx .ident(.sprintf("for_end%d", ::nesting_level/10))+1
+            bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
+            longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+            cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
+            longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
-            .if .ident(.sprintf("for_end%d", ::nesting_level))-.ident(.sprintf("for_inc%d", ::nesting_level))>0
-              cpx #>.ident(.sprintf("for_end%d", ::nesting_level))
-              bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-              cmp #<.ident(.sprintf("for_end%d", ::nesting_level))     
-              bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
+            .if .ident(.sprintf("for_end%d", ::nesting_level/10))-.ident(.sprintf("for_inc%d", ::nesting_level/10))>0
+              cpx #>.ident(.sprintf("for_end%d", ::nesting_level/10))
+              longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+              cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))     
+              longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             .else
-              cpx #>(.ident(.sprintf("for_end%d", ::nesting_level))+1)
-              bmi .ident(.sprintf("end_loop%d", ::nesting_level))
-              bne .ident(.sprintf("begin_loop%d", ::nesting_level))
-              cmp #<(.ident(.sprintf("for_end%d", ::nesting_level))+1)
-              bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+              cpx #>(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
+              bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
+              longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+              cmp #<(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
+              longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             .endif
           .endif
         .endif
       .endif
     .else   ;--- next (addr) ---
-      .if .ident(.sprintf("for_inc%d", ::nesting_level))_indirect=1
+      .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
         sec
-        lda .ident(.sprintf("for_var%d", ::nesting_level))
-        sbc .ident(.sprintf("for_inc%d", ::nesting_level))
-        sta .ident(.sprintf("for_var%d", ::nesting_level))
-        lda .ident(.sprintf("for_var%d", ::nesting_level))+1
-        sbc .ident(.sprintf("for_inc%d", ::nesting_level))+1
-        sta .ident(.sprintf("for_var%d", ::nesting_level))+1
-        .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-          cmp .ident(.sprintf("for_end%d", ::nesting_level))+1
-          bmi .ident(.sprintf("end_loop%d", ::nesting_level))
-          bne .ident(.sprintf("begin_loop%d", ::nesting_level))
-          lda .ident(.sprintf("for_var%d", ::nesting_level))
-          cmp .ident(.sprintf("for_end%d", ::nesting_level))
-          bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+        lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+        sbc .ident(.sprintf("for_inc%d", ::nesting_level/10))
+        sta .ident(.sprintf("for_var%d", ::nesting_level/10))
+        lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+        sbc .ident(.sprintf("for_inc%d", ::nesting_level/10))+1
+        sta .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+        .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+          cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
+          bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
+          longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+          cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
-          cmp #>(.ident(.sprintf("for_end%d", ::nesting_level))+1)
-          bmi .ident(.sprintf("end_loop%d", ::nesting_level))
-          bne .ident(.sprintf("begin_loop%d", ::nesting_level))
-          lda .ident(.sprintf("for_var%d", ::nesting_level))
-          cmp #<(.ident(.sprintf("for_end%d", ::nesting_level))+1)
-          bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+          cmp #>(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
+          bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
+          longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+          cmp #<(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
+          longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
-        .if .ident(.sprintf("for_inc%d", ::nesting_level))=1
-          dec16 .ident(.sprintf("for_var%d", ::nesting_level))
-          .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-            lda .ident(.sprintf("for_var%d", ::nesting_level))+1
-            cmp .ident(.sprintf("for_end%d", ::nesting_level))+1
-            bmi .ident(.sprintf("end_loop%d", ::nesting_level))
-            bne .ident(.sprintf("begin_loop%d", ::nesting_level))
-            lda .ident(.sprintf("for_var%d", ::nesting_level))
-            cmp .ident(.sprintf("for_end%d", ::nesting_level))
-            bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+        .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
+          dec16 .ident(.sprintf("for_var%d", ::nesting_level/10))
+          .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+            lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+            cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
+            bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
+            longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+            lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+            cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
+            longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
-            lda .ident(.sprintf("for_var%d", ::nesting_level))
-            .if (<.ident(.sprintf("for_end%d", ::nesting_level)))>0
-              cmp #<.ident(.sprintf("for_end%d", ::nesting_level))
+            lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+            .if (<.ident(.sprintf("for_end%d", ::nesting_level/10)))>0
+              cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif 
-            bne .ident(.sprintf("begin_loop%d", ::nesting_level))
-            lda .ident(.sprintf("for_var%d", ::nesting_level))+1
-            .if (>.ident(.sprintf("for_end%d", ::nesting_level)))>0
-              cmp #>.ident(.sprintf("for_end%d", ::nesting_level))
+            longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+            lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+            .if (>.ident(.sprintf("for_end%d", ::nesting_level/10)))>0
+              cmp #>.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif
-            bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+            longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .endif
         .else
           sec
-          lda .ident(.sprintf("for_var%d", ::nesting_level))
-          sbc #<.ident(.sprintf("for_inc%d", ::nesting_level))
-          sta .ident(.sprintf("for_var%d", ::nesting_level))
-          lda .ident(.sprintf("for_var%d", ::nesting_level))+1
-          sbc #>.ident(.sprintf("for_inc%d", ::nesting_level))
-          sta .ident(.sprintf("for_var%d", ::nesting_level))+1
-          .if .ident(.sprintf("for_end%d", ::nesting_level))_indirect=1
-            lda .ident(.sprintf("for_var%d", ::nesting_level))+1
-            cmp .ident(.sprintf("for_end%d", ::nesting_level))+1
-            bmi .ident(.sprintf("end_loop%d", ::nesting_level))
-            bne .ident(.sprintf("begin_loop%d", ::nesting_level))
-            lda .ident(.sprintf("for_var%d", ::nesting_level))
-            cmp .ident(.sprintf("for_end%d", ::nesting_level))
-            bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+          lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+          sbc #<.ident(.sprintf("for_inc%d", ::nesting_level/10))
+          sta .ident(.sprintf("for_var%d", ::nesting_level/10))
+          lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+          sbc #>.ident(.sprintf("for_inc%d", ::nesting_level/10))
+          sta .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+          .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
+            lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+            cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
+            bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
+            longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+            lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+            cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
+            longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
-            .if .ident(.sprintf("for_end%d", ::nesting_level))-.ident(.sprintf("for_inc%d", ::nesting_level))>0
-              lda .ident(.sprintf("for_var%d", ::nesting_level))+1
-              cmp #>.ident(.sprintf("for_end%d", ::nesting_level))
-              bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
-              lda .ident(.sprintf("for_var%d", ::nesting_level))
-              cmp #<.ident(.sprintf("for_end%d", ::nesting_level))     
-              bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
+            .if .ident(.sprintf("for_end%d", ::nesting_level/10))-.ident(.sprintf("for_inc%d", ::nesting_level/10))>0
+              lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+              cmp #>.ident(.sprintf("for_end%d", ::nesting_level/10))
+              longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+              lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+              cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))     
+              longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             .else
-              lda .ident(.sprintf("for_var%d", ::nesting_level))+1
-              cmp #>(.ident(.sprintf("for_end%d", ::nesting_level))+1)
-              bmi .ident(.sprintf("end_loop%d", ::nesting_level))
-              bne .ident(.sprintf("begin_loop%d", ::nesting_level))
-              lda .ident(.sprintf("for_var%d", ::nesting_level))
-              cmp #<(.ident(.sprintf("for_end%d", ::nesting_level))+1)
-              bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+              lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+              cmp #>(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
+              bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
+              longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+              lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+              cmp #<(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
+              longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             .endif
           .endif
         .endif
       .endif
     .endif
   .endif
-.ident(.sprintf("end_loop%d", ::nesting_level)):
+.ident(.sprintf("end_loop%d", ::nesting_level/10)):
   dec_nesting_level
 .endmacro 
 
@@ -819,27 +913,27 @@
 
 .macro do
   inc_nesting_level
-  .ident(.sprintf("begin_loop%d", ::nesting_level)):
-  .ident(.sprintf("continue_point%d", ::nesting_level)):
+  .ident(.sprintf("begin_loop%d", ::nesting_level/10)):
+  .ident(.sprintf("continue_point%d", ::nesting_level/10)):
 .endmacro
 
 .macro until cond
   .if ((.xmatch ({cond}, {eq})) || (.xmatch ({cond}, {zero})))
-    beq .ident(.sprintf("end_loop%d", ::nesting_level))
+    beq .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .elseif (.xmatch ({cond}, {neq}))
-    bne .ident(.sprintf("end_loop%d", ::nesting_level))
+    bne .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .elseif (.xmatch ({cond}, {minus}))
-    bmi .ident(.sprintf("end_loop%d", ::nesting_level))
+    bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .elseif (.xmatch ({cond}, {plus}))
-    bpl .ident(.sprintf("end_loop%d", ::nesting_level))
+    bpl .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .elseif ((.xmatch ({cond}, {c_clr})) || (.xmatch ({cond}, {lt})))
-    bcc .ident(.sprintf("end_loop%d", ::nesting_level))
+    bcc .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .elseif ((.xmatch ({cond}, {c_set})) || (.xmatch ({cond}, {ge})))
-    bcs .ident(.sprintf("end_loop%d", ::nesting_level))
+    bcs .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .elseif (.xmatch ({cond}, {v_clr}))
-    bvc .ident(.sprintf("end_loop%d", ::nesting_level))
+    bvc .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .elseif (.xmatch ({cond}, {v_set}))
-    bvs .ident(.sprintf("end_loop%d", ::nesting_level))
+    bvs .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .else
     .error  "Syntax error in until condition"
   .endif
@@ -847,77 +941,77 @@
 
 .macro while cond
   .if ((.xmatch ({cond}, {eq})) || (.xmatch ({cond}, {zero})))
-    bne .ident(.sprintf("end_loop%d", ::nesting_level))
+    bne .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .elseif (.xmatch ({cond}, {neq}))
-    beq .ident(.sprintf("end_loop%d", ::nesting_level))
+    beq .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .elseif (.xmatch ({cond}, {minus}))
-    bpl .ident(.sprintf("end_loop%d", ::nesting_level))
+    bpl .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .elseif (.xmatch ({cond}, {plus}))
-    bmi .ident(.sprintf("end_loop%d", ::nesting_level))
+    bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .elseif ((.xmatch ({cond}, {c_clr})) || (.xmatch ({cond}, {lt})))
-    bcs .ident(.sprintf("end_loop%d", ::nesting_level))
+    bcs .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .elseif ((.xmatch ({cond}, {c_set})) || (.xmatch ({cond}, {ge})))
-    bcc .ident(.sprintf("end_loop%d", ::nesting_level))
+    bcc .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .elseif (.xmatch ({cond}, {v_clr}))
-    bvs .ident(.sprintf("end_loop%d", ::nesting_level))
+    bvs .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .elseif (.xmatch ({cond}, {v_set}))
-    bvc .ident(.sprintf("end_loop%d", ::nesting_level))
+    bvc .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .else
     .error  "Syntax error in while condition"
   .endif
 .endmacro
 
 .macro break
-  jmp .ident(.sprintf("end_loop%d", ::nesting_level))
+  jmp .ident(.sprintf("end_loop%d", ::nesting_level/10))
 .endmacro
 
 .macro continue
-  jmp .ident(.sprintf("continue_point%d", ::nesting_level))
+  jmp .ident(.sprintf("continue_point%d", ::nesting_level/10))
 .endmacro
 
 .macro loop cond
   .if .paramcount = 0
-    jmp .ident(.sprintf("begin_loop%d", ::nesting_level))
+    jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
   .elseif .paramcount = 1
     .if ((.xmatch ({cond}, {until eq})) || (.xmatch ({cond}, {until zero})))
-      bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif (.xmatch ({cond}, {until neq}))
-      beq .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif (.xmatch ({cond}, {until minus}))
-      bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif (.xmatch ({cond}, {until plus}))
-      bmi .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbmi .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif ((.xmatch ({cond}, {until c_clr})) || (.xmatch ({cond}, {lt})))
-      bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif ((.xmatch ({cond}, {until c_set})) || (.xmatch ({cond}, {ge})))
-      bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif (.xmatch ({cond}, {until v_clr}))
-      bvs .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbvs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif (.xmatch ({cond}, {until v_set}))
-      bvc .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbvc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif ((.xmatch ({cond}, {while eq})) || (.xmatch ({cond}, {while zero})))
-      beq .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif (.xmatch ({cond}, {while neq}))
-      bne .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif (.xmatch ({cond}, {while minus}))
-      bmi .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbmi .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif (.xmatch ({cond}, {while plus}))
-      bpl .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif ((.xmatch ({cond}, {while c_clr})) || (.xmatch ({cond}, {while lt})))
-      bcc .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif ((.xmatch ({cond}, {while c_set})) || (.xmatch ({cond}, {while ge})))
-      bcs .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif (.xmatch ({cond}, {while v_clr}))
-      bvc .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbvc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif (.xmatch ({cond}, {while v_set}))
-      bvs .ident(.sprintf("begin_loop%d", ::nesting_level))
+      longbvs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .else
       .error "Syntax error in loop condition"
     .endif
   .elseif 
     .error  "Too many parameters in loop condition"
   .endif
-.ident(.sprintf("end_loop%d", ::nesting_level)):
+.ident(.sprintf("end_loop%d", ::nesting_level/10)):
   dec_nesting_level
 .endmacro
 
