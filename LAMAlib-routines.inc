@@ -46,9 +46,9 @@
 	   ldax #arg
 	.endif 
 	cmpax #32755	;this is the one seed we need to avoid
-	bne @ok
+	bne ok
 	and #$FE ;make it 32754
-@ok:	sta _rand16_seed
+ok:	sta _rand16_seed
 	stx _rand16_seed+1
 .endscope
 .endmacro
@@ -189,9 +189,9 @@
 ;; Registers modified: A,Y,X
 .macro  printax
 .scope
-		sta @setx +1	;we need to switch A and X
+		sta setx +1	;we need to switch A and X
 		txa
-@setx:		ldx #00
+setx:		ldx #00
                 jsr LINPRT
 .endscope
 .endmacro
@@ -203,15 +203,15 @@
 .macro  printax_signed
 .scope
 		cpx #$80	;is it a negative number?
-		bcc @positive
+		bcc positive
 		negax		;negate number
 		pha
 		lda #'-'	;write out minus sign
 		jsr CHROUT
 		pla
-@positive:	sta @setx +1	;we need to switch A and X
+positive:	sta setx +1	;we need to switch A and X
 		txa
-@setx:		ldx #00
+setx:		ldx #00
                 jsr LINPRT
 .endscope
 .endmacro

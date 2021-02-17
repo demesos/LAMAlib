@@ -100,15 +100,15 @@
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
 	    cpx     #>(.right (.tcount ({arg})-1, {arg}))
-	    bne @end
+	    bne end
             cmp     #<(.right (.tcount ({arg})-1, {arg}))        
         .else
             ; absolute or zero page
             cpx     1+(arg)
-	    bne @end
+	    bne end
             cmp arg
         .endif
-@end:
+end:
 .endscope
 .endmacro
 
@@ -301,10 +301,10 @@
 	ror
 
 ;	; variant 2: 14 cyc, 9 byte, self-modifying, not reentrant
-;	stx @sm+1
-;	ror @sm+1
+;	stx sm+1
+;	ror sm+1
 ;	ror
-;@sm	ldx #00
+;sm	ldx #00
 
 .endscope
 .endmacro
@@ -345,9 +345,9 @@
 .macro  absax
 .scope
 	cpx #$80
-	bne @end
+	bne end
 	negax
-@end:
+end:
 .endscope
 .endmacro
 
@@ -358,9 +358,9 @@
 .scope
         clc
         adc #01
-	bne @end
+	bne end
         inx
-@end:
+end:
 .endscope
 .endmacro
 
@@ -370,9 +370,9 @@
 .macro  inc16 addr
 .scope
                 inc addr
-                bne @end
+                bne end
                 inc addr+1
-@end:
+end:
 .endscope
 .endmacro
 
@@ -382,9 +382,9 @@
 .macro  decax
 .scope
                 cmp #00 ;test A, sets the carry
-		bne @declo
+		bne declo
 		dex
-@declo:		sbc #01
+declo:		sbc #01
 .endscope
 .endmacro
 
@@ -395,9 +395,9 @@
 .macro  dec16 addr
 .scope
                 lda addr
-		bne @declo
+		bne declo
                 dec addr+1
-@declo:         dec addr
+declo:         dec addr
 .endscope
 .endmacro
 
@@ -412,12 +412,12 @@
               inx
             .endrep
         .else
-          sta @recva+1
+          sta recva+1
           clc
           txa
           adc #n
           tax
-  @recva: lda #00
+  recva: lda #00
 	.endif
 .endscope
 .endmacro
@@ -434,12 +434,12 @@
             .endrep
         .else
 .warning "not const"
-          sta @recva+1
+          sta recva+1
           sec
           txa
           sbc #n
           tax
-  @recva: lda #00
+  recva: lda #00
 	.endif
 
 .endscope
@@ -456,12 +456,12 @@
               iny
             .endrep
         .else
-          sta @recva+1
+          sta recva+1
           clc
           tya
           adc #n
           tay
-  @recva: lda #00
+  recva: lda #00
 	.endif
 .endscope
 .endmacro
@@ -477,12 +477,12 @@
               dey
             .endrep
         .else
-          sta @recva+1
+          sta recva+1
           sec
           tya
           sbc #n
           tay
-  @recva: lda #00
+  recva: lda #00
 	.endif
 
 .endscope
@@ -493,10 +493,10 @@
 .macro  pushax
 .scope
                 pha
-		sta @savea+1
+		sta savea+1
 		txa
                 pha
-@savea:		lda #00
+savea:		lda #00
 .endscope
 .endmacro
 
@@ -517,13 +517,13 @@
 .macro  poke arg1,arg2
 .scope
         .if (.xmatch ({arg1}, {AX}))          ;AX is used as address
-          sta @targetsm+1
-          stx @targetsm+2
+          sta targetsm+1
+          stx targetsm+2
           .if (.xmatch ({arg2}, {Y}))         ;value in Y register is to be poked
-            @targetsm: sty $ffff
+            targetsm: sty $ffff
           .else                              ;value to be poked is a given constant
                       lda #arg2
-            @targetsm: sta $ffff
+            targetsm: sta $ffff
           .endif
         .else                                ;address is a given constant
           .if (.xmatch ({arg2}, {A}))         ;value in Accu is to be poked

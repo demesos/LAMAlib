@@ -93,6 +93,9 @@
 .macro inc_nesting_level
   .if .defined(::nesting_level)
     ::nesting_level .set ::nesting_level*10
+    .if ::nesting_level = 90
+      ::nesting_level .set ::nesting_level*10
+    .endif
   .else
     ::nesting_level .set 10
   .endif
@@ -283,9 +286,9 @@
     .ident(.sprintf("for_var%d", ::nesting_level/10))=var
   .endif
 
-  .if .xmatch ({dir}, {to}) 
+  .if .xmatch ({dir}, {to}) || .xmatch ({dir}, {TO})
     .ident(.sprintf("for_dir%d", ::nesting_level/10))=1
-  .elseif .xmatch ({dir}, {downto}) 
+  .elseif .xmatch ({dir}, {downto}) || .xmatch ({dir}, {DOWNTO})
     .ident(.sprintf("for_dir%d", ::nesting_level/10))=-1
   .else
     .error  "Syntax error in for loop, 3rd argument needs to be TO or DOWNTO!"
@@ -452,8 +455,13 @@
         adc .ident(.sprintf("for_inc%d", ::nesting_level/10))
         .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
           cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
-          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-          longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          .if ((*+4)-(.ident(.sprintf("begin_loop%d", ::nesting_level/10))) <= 127)
+            bcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+            beq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          .else
+  	  bcs *+5
+            jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          .endif
         .else
           cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))
           longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -463,8 +471,13 @@
         adc #.ident(.sprintf("for_inc%d", ::nesting_level/10))
         .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
           cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
-          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-          longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          .if ((*+4)-(.ident(.sprintf("begin_loop%d", ::nesting_level/10))) <= 127)
+            bcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+            beq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          .else
+  	  bcs *+5
+            jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          .endif
         .else
           .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
             .if .not .ident(.sprintf("for_end%d", ::nesting_level/10))=0
@@ -493,8 +506,13 @@
         cpx .ident(.sprintf("for_end%d", ::nesting_level/10))+1
         longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
-        longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-        longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+        .if ((*+4)-(.ident(.sprintf("begin_loop%d", ::nesting_level/10))) <= 127)
+          bcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+          beq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+        .else
+	  bcs *+5
+          jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+        .endif
       .else
         cpx #>.ident(.sprintf("for_end%d", ::nesting_level/10))
         longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))

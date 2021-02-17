@@ -53,7 +53,7 @@ echo ***************************************************************************
 echo * Congratulations, LAMAlib has been installed^^!                                              *
 echo *                                                                                           *
 echo * To use it,                                                                                *
-echo * add the line %cyan%include "LAMAlib.inc"%white% at the top of your assembler file                      *
+echo * add the line %cyan%.include "LAMAlib.inc"%white% at the top of your assembler file                     *
 echo * and assemble with command %cyan%cl65 yourprog.s -lib LAMAlib.lib -C c64-asm.cfg -o yourprog.prg%white% *
 echo * There is no overhead to your assembled program for unused functions                       *
 echo *********************************************************************************************%reset%

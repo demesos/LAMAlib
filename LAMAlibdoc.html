@@ -1,7 +1,7 @@
 <html>
 <body>
 <h1>LAMAlib - Lightweight Assembler MAcro library for cc65</h1>
-Version: 0.13<br>
+Version: 0.14<br>
 Date: 2020-09-16<br>
 Author: Wil Elmenreich (wilfried at gmx dot at)<br>
 License: The Unlicense (public domain)<br>
@@ -33,6 +33,9 @@ In your programs,<br>
 <h2>Points to remember</h2>
 Please note that the zero flag for 16/24/32 bit operations is not properly set for most macros except CMP. For example after a 16 bit calculation, a CMPAX #00 is be necessary to test for zero.<br>
 Some of the more complex functions like division and multiplication use zero page addresses $22-$2a as temporary memory. This area is also used by BASIC for temporary ptrs and results, but borrowing these addresses seem not to interfere severely with the system. Using $22-2A further plays well with cc65 parts written in C and leaves the well-known free ZP addresses at $FB to $FE to the user.<br>
+<br>
+Instead of zero page variable , the library functions uses self-contained self-modifying codeblocks whenever possible, but the multiplication and division routines need some temporary zeropage variables, these are used from $22 on until max $2a.<br>
+<br>
 <br>
 <h1>Command documentation</h1>
 <h2>16-bit Emulation Macros</h2>
@@ -178,6 +181,15 @@ Pulls AX from the stack<br>
 <br>
 <b>poke <i>arg1,arg2</i></b><br>
 Copies arg2 into the address of arg1<br>
+arg1 can be a constant or AX<br>
+arg2 can be a constant or A, X or Y<br>
+<br>
+<b>pokew <i>arg1,arg2</i></b><br>
+poke word: copies 16 bit value arg2 into the address of arg1 and arg1+1<br>
+arg1 will be filled with low byte of arg2<br>
+arg2 will be filled with high byte of arg2<br>
+arg1, arg2 can be both constants or one can be AX and the other a constant<br>
+Regs changed: A, Y (in case AX is used as address)<br>
 <h2>Hires Graphics Functions</h2>
 <br>
 <b>blank_screen</b><br>
@@ -203,22 +215,36 @@ Uses all registers and overwrites memory area $9000 - $92C7<br>
 <b>gfx_plot</b><br>
 Sets pixel at position x=AX, y=Y<br>
 where AX is the 16 bit value in registers A and X and Y is the Y register<br>
+<br>
+<b>set_VIC_charset <i>addr</i></b><br>
+Sets VIC register $D018 to display the charset at the given address<br>
+addr must be a constant that is a multiple of $800<br>
+This macro does not adjust the VIC bank, see set_VIC_bank<br>
+<br>
+<b>set_VIC_screen <i>addr</i></b><br>
+Sets VIC register $D018 to have the screen RAM at the given address<br>
+addr must be a constant that is a multiple of $400<br>
+This macro does not adjust the VIC bank, see set_VIC_bank<br>
+<br>
+<b>set_VIC_bank <i>addr</i></b><br>
+Sets CIA register $DD00 to have the VIC RAM bank at the given address<br>
+addr must be a constant that is a multiple of $4000<br>
 <h2>Structured Programming</h2>
 These commands allow you to use constructs like <i>if .. else .. endif</i>, <i>do...loop</i>, <i>for...next</i>, and <i>switch...case</i> in assembly language! The structures can even be nested. The implementation of these structures is basically as efficient as a a handcoded composure of branches, jumps as labels, while it is much easier to write and read.<br>
 All macros can be nested.<br>
 <br>
 <b>store <i>reg</i></b><br>
-Generates self-modifying code for store/recall of a register<br>
+Generates self-modifying code for store/restore of a register<br>
 Registers can be A,X,Y, or AX (that is A and X)<br>
-An example application for <i>store</i>/<i>recall</i> is for saving a register to be able use it in between. An alternative to <i>store</i>/<i>recall</i> are stack push/pull, which is more compact, but 1 cycle slower.<br>
-Each store must match with exactly one <i>recall</i> macro using the same register, recall has to be placed later in your code<br>
+An example application for <i>store</i>/<i>restore</i> is for saving a register to be able use it in between. An alternative to <i>store</i>/<i>restore</i> are stack push/pull, which is more compact, but 1 cycle slower.<br>
+Each store must match with exactly one <i>restore</i> macro using the same register, restore has to be placed later in your code<br>
 Registers modified: none<br>
 <br>
-<b>recall <i>reg</i></b><br>
-Generates the code for recalling a stored register<br>
+<b>restore <i>reg</i></b><br>
+Generates the code for restoreing a stored register<br>
 Registers can be A,X,Y, or AX (that is A and X)<br>
-Each recall must match with exactly one preceding <i>store</i> macro using the same register<br>
-Registers modified: the recalled register<br>
+Each restore must match with exactly one preceding <i>store</i> macro using the same register<br>
+Registers modified: the restoreed register<br>
 <br>
 <b>if <i>cond</i></b><br>
 ...<br>
@@ -283,6 +309,29 @@ do<br>
 &nbsp;  and $dc00<br>
 loop until eq<br>
 </code><br>
+<br>
+<b>switch <i>A|X|Y|AX</i></b><br>
+case|case_eq|case_lt|case_ge num1<br>
+...<br>
+[break]<br>
+case num2<br>
+...<br>
+[break]<br>
+case num3<br>
+...<br>
+[break]<br>
+default<br>
+endswitch<br>
+...<br>
+Defines a selection mechanism to allow the value of a register to change the control flow<br>
+<b>case</b> and <b>case_eq</b> are the same function, they trigger if the register value and the comparison value are identical<br>
+<b>case_lt</b> ("less than") triggers if the register value is smaller than the comparison value<br>
+<b>case_ge</b> ("greater or equal") triggers if the register value is greater or equal than the comparison value<br>
+<b>break</b> jumps out of the structure. If break is omitted, the next comparison is done<br>
+<b>default</b> performs no comparison but triggers always<br>
+<br>
+Registers modified: none<br>
+<br>
 <h2>Useful Routines</h2>
 <br>
 <b>rand8</b><br>
@@ -380,7 +429,11 @@ This is similar to the command line option  -u __EXEHDR__<br>
 Difference is that with this function the code segment starts at $801, so .align is off only by 1<br>
 Default line number is 2020<br>
 <br>
-<b>identifySID <i>[baseaddress]</i></b><br>
+<b>check_C128</b><br>
+Detects if we are on a C128 in C64 mode<br>
+returns with carry set for C128<br>
+<br>
+<b>identify_SID <i>[baseaddress]</i></b><br>
 Detects the SID soundchip model<br>
 SID detection routine from codebase64 by SounDemon and a tip from Dag Lem<br>
 If no base address is given, the standard base address $d400 is used<br>
@@ -388,7 +441,7 @@ Overwrites register A<br>
 Result is returned in carry<br>
 Carry flag is set for 6581, and clear for 8580<br>
 <br>
-<b>disableNMI</b><br>
+<b>disable_NMI</b><br>
 Executes a short routine to disable the NMI<br>
 the trick is to cause an NMI but don't ackowledge it<br>
 Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)<br>
@@ -398,5 +451,14 @@ Registers modified: A<br>
 Changes the IRQ source to VIC raster interrupt<br>
 Turns off the CIA IRQ source<br>
 IRQ routine must acknowledge the IRQ source<br>
+<br>
+<b>memset <i>start_addr</i> <i>end_adder</i> <i>fillvalue</i></b><br>
+Fills the memory area between start_addr and end_adder with the byte fillvalue<br>
+Registers modified: A<br>
+<br>
+<b>decimal_flag_to_N</b><br>
+Copies the decimal flag into the negative flag to detect if decimal mode is on<br>
+Macro alsways returns with a cleared Carry<br>
+Registers modified: A<br>
 </body>
 </html>
