@@ -1,6 +1,6 @@
 ; <h1>LAMAlib - Lightweight Assembler MAcro library for cc65</h1>
-; Version: 0.14
-; Date: 2020-09-16
+; Version: 0.20
+; Date: 2021-02-18
 ; Author: Wil Elmenreich (wilfried at gmx dot at)
 ; License: The Unlicense (public domain)
 ;
@@ -8,10 +8,11 @@
 ; To use LAMAlib you need to have cc65 installed. Get it at https://cc65.github.io
 ;
 ; <h3>Possibility 1: Install in cc65</h3>
-; <ul><li>Copy all LAMAlib*.inc files into directory <tt>asminc</tt> of your cc65 installation.
-; <li>Copy the file LAMAlib.lib into directory <tt>lib</tt> of your cc65 installation.
-; <li>Move LAMAlibdoc.html (the file you are currently viewing) either to the html directory of cc65 or to some other place where you want to conveniently keep the documentation.
-; </ul>You don't need to keep the original folder of LAMAlib
+; There is a script <tt>install_lamalib.bat</tt> included which does the following:
+; <ul><li>Copies all LAMAlib*.inc files into directory <tt>asminc</tt> of your cc65 installation.
+; <li>Copies the file LAMAlib.lib into directory <tt>lib</tt> of your cc65 installation.
+; </ul>
+; </ul>You don't need to keep the original folder of LAMAlib, but but probably want to keep a copy of the documentation, LAMAlibdoc.html
 ;
 ;
 ; In your programs,
