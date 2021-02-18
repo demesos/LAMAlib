@@ -1,6 +1,9 @@
-zpbase=$22        ;not used by cc65, used by BASIC for temporary ptrs and results, so do we
-multiplier = zpbase	;initialized by A/X
-multiplicand = zpbase+2
+.importzp _llzp_word1,_llzp_word2
+
+multiplier:= _llzp_word1
+multiplicand:=_llzp_word2
+
+.code
 
 .include "../LAMAlib-macros16.inc"
 

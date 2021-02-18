@@ -1,3 +1,8 @@
+; macros for store/restore, if-else-endif, for-next, do-loop, and switch
+; i.o.w structured programming in assembler
+; part of LAMAlib
+; by Wil 2021
+
 ; auxiliary defintions for long branches, basically a copy of macro package longbranch
 ; but with other names, since we don't know if the user will use the macro package
 .macro  longbeq     Target
@@ -358,6 +363,7 @@
       .endif
     .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-4
       ldax #start
+      .ident(.sprintf("for_start%d", ::nesting_level/10))=start
       .if start<32768
         .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=1
       .else
@@ -514,8 +520,10 @@
           jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
-        cpx #>.ident(.sprintf("for_end%d", ::nesting_level/10))
-        longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+        .if (>.ident(.sprintf("for_start%d", ::nesting_level/10))) <> (>.ident(.sprintf("for_end%d", ::nesting_level/10)))
+          cpx #>.ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+        .endif
         cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))     
         longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
       .endif

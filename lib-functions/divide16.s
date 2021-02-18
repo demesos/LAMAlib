@@ -1,8 +1,11 @@
-zpbase=$22        ;not used by cc65, used by BASIC for temporary ptrs and results, so do we
-dividend = zpbase ;initialized with values from A/X
-divisor = zpbase+2	
-remainder = zpbase+4
-result = dividend ;given back in A/X
+.importzp _llzp_word1,_llzp_word2,_llzp_word3
+
+dividend = _llzp_word1  ;initialized with values from A/X
+divisor = _llzp_word2	;to be set by calling program with the number we are dividing by
+remainder = _llzp_word3
+result = dividend       ;given back in A/X
+
+.code
 
 .include "../LAMAlib-macros16.inc"
 
