@@ -30,8 +30,6 @@
 ;
 ; <h2>Points to remember</h2>
 ; Please note that the zero flag for 16/24/32 bit operations is not properly set for most macros except CMP. For example after a 16 bit calculation, a CMPAX #00 is necessary to test for zero in AX.
-; Some of the more complex functions like division and multiplication use zero page addresses $22-$2a as temporary memory. This area is also used by BASIC for temporary ptrs and results, but borrowing these addresses seem not to interfere severely with the system. Using $22-2A further plays well with cc65 parts written in C and leaves the well-known free ZP addresses at $FB to $FE to the user.
-;
 ; Instead of zero page variable , the library functions uses self-contained self-modifying codeblocks whenever possible, but some of the more complex functions like division and multiplication use zero page addresses, they are reserved in the segment "ZEROPAGE". 
 ; 
 ;
