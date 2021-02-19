@@ -147,6 +147,18 @@
   ::nesting_levelY .set ::nesting_levelY/10 + 1
 .endmacro
 
+.macro inc_nesting_level_switch
+  .if .defined(::nesting_level_switch)
+    ::nesting_level_switch .set ::nesting_level_switch*100
+  .else
+    ::nesting_level_switch .set 100
+  .endif
+.endmacro
+
+.macro dec_nesting_level_switch
+  ::nesting_level_switch .set ::nesting_level_switch/100 + 1
+.endmacro
+
 ;; <h2>Structured Programming</h2>
 ;; These commands allow you to use constructs like <i>if .. else .. endif</i>, <i>do...loop</i>, <i>for...next</i>, and <i>switch...case</i> in assembly language! The structures can even be nested. The implementation of these structures is basically as efficient as a a handcoded composure of branches, jumps as labels, while it is much easier to write and read.
 ;; All macros can be nested.
@@ -262,13 +274,13 @@
 ;; 
 ;; When the loop variable is an 8 bit register, <i>start</i>, <i>end</i>, and <i>step</i> are a single byte (or a memory reference to a single byte)
 ;; When the loop variable is a 16 bit register (AX) or a 16 bit memory address, <i>start</i>, <i>end</i>, and <i>step</i> are a 16 bit value (or a memory reference to a 16 bit value)
-;; If memory references can also go to zero page the zero page addressing mode is used which speeds up the code a bit
+;; Memory references can also go to zero page. In this case the zero page addressing mode is used which speeds up the code.
 ;; When <i>step</i> is larger than 1 or no constant, loops that count down can are limited to a 7 bit (for single register loops) or a 15 bit range
 ;; It is possible to nest multiple for loops but each <b>for</b> must be followed by exactly one corresponding <i>next</i> later in the code.
 ;;
 ;; Within a for loop, the macros <i>break</i> and <i>continue</i> can be used to exit the loop or go to next iteration.
 ;;
-;; Registers modified: the loop register, or the accu otherwise
+;; Registers modified: the loop register and A for indirectly given step values
 ;;
 ;; Code example that outputs '9876543210':
 ;; <code>
@@ -1041,29 +1053,109 @@
   dec_nesting_level
 .endmacro
 
-;; switch A|X|Y|AX
-;; case|case_eq|case_lt|case_ge num1
+;; switch [A|X|Y|AX]
+;; <b>[case|case_eq|case_lt|case_ge]</b> <i>num1</i>
 ;;   ...
-;; [break]
-;; case num2
+;; <b>[break]</b>
+;; <b>[case|case_eq|case_lt|case_ge]</b> <i>num2</i>
 ;;   ...
-;; [break]
-;; case num3
+;; <b>[break]</b>
+;; <b>[case|case_eq|case_lt|case_ge]</b> <i>num3</i>
 ;;   ...
-;; [break]
-;; default
-;; endswitch
 ;;   ...
+;; <b>[break]</b>
+;; <b>[default]</b>
+;; <b>endswitch</b>
 ;; Defines a selection mechanism to allow the value of a register to change the control flow
 ;; <b>case</b> and <b>case_eq</b> are the same function, they trigger if the register value and the comparison value are identical
 ;; <b>case_lt</b> ("less than") triggers if the register value is smaller than the comparison value 
 ;; <b>case_ge</b> ("greater or equal") triggers if the register value is greater or equal than the comparison value 
 ;; <b>break</b> jumps out of the structure. If break is omitted, the next comparison is done
-;; <b>default</b> performs no comparison but triggers always
+;; <b>default</b> performs no comparison but triggers always, there is no need for a break command at the end of default
 ;;
 ;; Registers modified: none
 ;;
 
 .macro switch reg
-
+  inc_nesting_level
+  inc_nesting_level_switch
+  .if .xmatch ({reg}, {A})
+    .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-1
+  .elseif .xmatch ({reg}, {X})
+    .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-2
+  .elseif .xmatch ({reg}, {Y})
+    .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-3
+  .elseif .xmatch ({reg}, {AX})
+    .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-4
+  .else
+    .error "switch register nees to be A, X, Y, or AX!"
+  .endif
 .endmacro
+
+.macro case num
+  .ident(.sprintf("case_label%d", ::nesting_level_switch/10)):
+  ::nesting_level_switch .set ::nesting_level_switch + 10
+  .if .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-1      ;A
+    cmp #num
+    bne .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+  .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-2  ;X
+    cpx #num
+    bne .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+  .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-3  ;Y
+    cpy #num
+    bne .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+  .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-4  ;AX
+    cmpax #num
+    bne .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+  .endif
+.endmacro
+
+.macro case_lt num
+  .ident(.sprintf("case_label%d", ::nesting_level_switch/10)):
+  ::nesting_level_switch .set ::nesting_level_switch + 10
+  .if .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-1      ;A
+    cmp #num
+    bcs .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+  .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-2  ;X
+    cpx #num
+    bcs .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+  .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-3  ;Y
+    cpy #num
+    bcs .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+  .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-4  ;AX
+    cmpax #num
+    bcs .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+  .endif
+.endmacro
+
+.macro case_ge num
+  .ident(.sprintf("case_label%d", ::nesting_level_switch/10)):
+  ::nesting_level_switch .set ::nesting_level_switch + 10
+  .if .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-1      ;A
+    cmp #num
+    bcc .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+  .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-2  ;X
+    cpx #num
+    bcc .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+  .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-3  ;Y
+    cpy #num
+    bcc .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+  .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-4  ;AX
+    cmpax #num
+    bcc .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+  .endif
+.endmacro
+
+
+.macro default
+  .ident(.sprintf("case_label%d", ::nesting_level_switch/10)):
+  ::nesting_level_switch .set ::nesting_level_switch + 10
+.endmacro
+
+.macro endswitch
+  .ident(.sprintf("case_label%d", ::nesting_level_switch/10)):
+  dec_nesting_level_switch
+  .ident(.sprintf("end_loop%d", ::nesting_level/10)):
+  dec_nesting_level
+.endmacro
+

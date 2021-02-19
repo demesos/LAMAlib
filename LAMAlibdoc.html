@@ -271,13 +271,13 @@ Counting variable can be an 8-bit register (A,X,Y), a 16 bit register (AX) or a 
 <br>
 When the loop variable is an 8 bit register, <i>start</i>, <i>end</i>, and <i>step</i> are a single byte (or a memory reference to a single byte)<br>
 When the loop variable is a 16 bit register (AX) or a 16 bit memory address, <i>start</i>, <i>end</i>, and <i>step</i> are a 16 bit value (or a memory reference to a 16 bit value)<br>
-If memory references can also go to zero page the zero page addressing mode is used which speeds up the code a bit<br>
+Memory references can also go to zero page. In this case the zero page addressing mode is used which speeds up the code.<br>
 When <i>step</i> is larger than 1 or no constant, loops that count down can are limited to a 7 bit (for single register loops) or a 15 bit range<br>
 It is possible to nest multiple for loops but each <b>for</b> must be followed by exactly one corresponding <i>next</i> later in the code.<br>
 <br>
 Within a for loop, the macros <i>break</i> and <i>continue</i> can be used to exit the loop or go to next iteration.<br>
 <br>
-Registers modified: the loop register, or the accu otherwise<br>
+Registers modified: the loop register and A for indirectly given step values<br>
 <br>
 Code example that outputs '9876543210':<br>
 <code><br>
@@ -309,25 +309,25 @@ do<br>
 loop until eq<br>
 </code><br>
 <br>
-<b>switch <i>A|X|Y|AX</i></b><br>
-case|case_eq|case_lt|case_ge num1<br>
+<b>switch <i>[A|X|Y|AX]</i></b><br>
+<b>[case|case_eq|case_lt|case_ge]</b> <i>num1</i><br>
 ...<br>
-[break]<br>
-case num2<br>
+<b>[break]</b><br>
+<b>[case|case_eq|case_lt|case_ge]</b> <i>num2</i><br>
 ...<br>
-[break]<br>
-case num3<br>
+<b>[break]</b><br>
+<b>[case|case_eq|case_lt|case_ge]</b> <i>num3</i><br>
 ...<br>
-[break]<br>
-default<br>
-endswitch<br>
 ...<br>
+<b>[break]</b><br>
+<b>[default]</b><br>
+<b>endswitch</b><br>
 Defines a selection mechanism to allow the value of a register to change the control flow<br>
 <b>case</b> and <b>case_eq</b> are the same function, they trigger if the register value and the comparison value are identical<br>
 <b>case_lt</b> ("less than") triggers if the register value is smaller than the comparison value<br>
 <b>case_ge</b> ("greater or equal") triggers if the register value is greater or equal than the comparison value<br>
 <b>break</b> jumps out of the structure. If break is omitted, the next comparison is done<br>
-<b>default</b> performs no comparison but triggers always<br>
+<b>default</b> performs no comparison but triggers always, there is no need for a break command at the end of default<br>
 <br>
 Registers modified: none<br>
 <br>
@@ -343,7 +343,7 @@ Result is returned in A<br>
 Registers modified: A<br>
 <br>
 <b>rand16</b><br>
-<b>rand16_setseed</b> <i>arg</i><br><br>
+<b>rand16_setseed</b> [<i>arg</i>]<br><br>
 Fast 16-bit pseudo-random number generator with period of 65535<br>
 seed must never be 32755, so setseed modifies this value it this is the case<br>
 Seed is a 16 bit value, setting seed is optional. When no argument is given, the current value in A/X is used as the seed<br>
@@ -393,7 +393,15 @@ Registers modified: A,Y,X<br>
 <b>newline</b><br>
 Prints a newline character<br>
 KERNAL ROM needs to be enabled when using this function<br>
-Registers modified: A,Y,X<br>
+Registers modified: A<br>
+<br>
+<b>lowercase_mode</b><br>
+Switches charset to upper/lowercase (text mode) setting and locks the CBM+Shift switch<br>
+Registers modified: A<br>
+<br>
+<b>PETSCII_mode</b><br>
+Switches charset to uppercase plus graphical characters (graphics mode) setting and locks the CBM+Shift switch<br>
+Registers modified: A<br>
 <br>
 <b>clrscr</b><br>
 Clears the screen<br>
@@ -458,6 +466,16 @@ Registers modified: A<br>
 <b>decimal_flag_to_N</b><br>
 Copies the decimal flag into the negative flag to detect if decimal mode is on<br>
 Macro alsways returns with a cleared Carry<br>
+Registers modified: A<br>
+<h2>Special Macros for C128</h2>
+<br>
+<b>shadowIRQ <i>off|on</i></b><br>
+The C128 IRQ routine copies the values of the shadow registers $11D6-$11E6<br>
+into VIC registers $D000-$D010 that control the positions of sprites on the<br>
+screen. It further handles the BASIC commands SOUND, PLAY, and SPRITE. To<br>
+avoid this, the macro  shadowIRQ off puts a 0 into memory address $0A04,<br>
+telling the Kernal that BASIC has not been initialized yet.<br>
+Cutting the IRQ routine provides a speed gain of about 2.5%<br>
 Registers modified: A<br>
 </body>
 </html>

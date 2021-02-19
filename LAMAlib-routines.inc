@@ -26,7 +26,7 @@
 .endmacro
 
 ;; rand16
-;; <b>rand16_setseed</b> <i>arg</i><br>
+;; <b>rand16_setseed</b> [<i>arg</i>]<br>
 ;; Fast 16-bit pseudo-random number generator with period of 65535
 ;; seed must never be 32755, so setseed modifies this value it this is the case
 ;; Seed is a 16 bit value, setting seed is optional. When no argument is given, the current value in A/X is used as the seed
@@ -231,13 +231,38 @@ setx:		ldx #00
 ;; newline
 ;; Prints a newline character
 ;; KERNAL ROM needs to be enabled when using this function
-;; Registers modified: A,Y,X
+;; Registers modified: A
 .macro  newline
 .scope
 		lda #$0d
                 jsr CHROUT
 .endscope
 .endmacro
+
+;; lowercase_mode
+;; Switches charset to upper/lowercase (text mode) setting and locks the CBM+Shift switch
+;; Registers modified: A
+.macro  lowercase_mode
+.scope
+		lda #$08
+                jsr CHROUT
+		lda #$0E
+                jsr CHROUT
+.endscope
+.endmacro
+
+;; PETSCII_mode
+;; Switches charset to uppercase plus graphical characters (graphics mode) setting and locks the CBM+Shift switch
+;; Registers modified: A
+.macro  PETSCII_mode
+.scope
+		lda #$08
+                jsr CHROUT
+		lda #$8E
+                jsr CHROUT
+.endscope
+.endmacro
+
 
 ;; clrscr
 ;; Clears the screen

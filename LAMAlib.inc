@@ -41,4 +41,5 @@
 .include "LAMAlib-gfx.inc"
 .include "LAMAlib-structured.inc"
 .include "LAMAlib-routines.inc"
+.include "LAMAlib-C128only.inc"
 
