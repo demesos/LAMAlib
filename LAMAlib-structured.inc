@@ -397,6 +397,13 @@
 .endmacro
 
 .macro next
+  .if .paramcount = 1
+    .if .xmatch ({cond}, {:}) ;user tried to make a label
+      .proc next  ;trick assembler into creating a label named loop instead of expanding the loop macro
+      .endproc    ;close proc, we just needed it for the label
+      .exitmacro
+    .endif
+  .endif
 .ident(.sprintf("continue_point%d", ::nesting_level/10)):
   .if .ident(.sprintf("for_dir%d", ::nesting_level/10))>0   ;--- incrementing loops ---
     .if .ident(.sprintf("for_var%d", ::nesting_level/10))=-2   ;--- next X ---
@@ -1000,10 +1007,24 @@
 .endmacro
 
 .macro break
+  .if .paramcount = 1
+    .if .xmatch ({cond}, {:}) ;user tried to make a label
+      .proc break  ;trick assembler into creating a label named loop instead of expanding the loop macro
+      .endproc     ;close proc, we just needed it for the label
+      .exitmacro
+    .endif
+  .endif
   jmp .ident(.sprintf("end_loop%d", ::nesting_level/10))
 .endmacro
 
 .macro continue
+  .if .paramcount = 1
+    .if .xmatch ({cond}, {:}) ;user tried to make a label
+      .proc continue  ;trick assembler into creating a label named loop instead of expanding the loop macro
+      .endproc        ;close proc, we just needed it for the label
+      .exitmacro
+    .endif
+  .endif
   jmp .ident(.sprintf("continue_point%d", ::nesting_level/10))
 .endmacro
 
@@ -1011,6 +1032,11 @@
   .if .paramcount = 0
     jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
   .elseif .paramcount = 1
+    .if .xmatch ({cond}, {:}) ;user tried to make a label
+      .proc loop  ;trick assembler into creating a label named loop instead of expanding the loop macro
+      .endproc    ;close proc, we just needed it for the label
+      .exitmacro
+    .endif
     .if ((.xmatch ({cond}, {until eq})) || (.xmatch ({cond}, {until zero})))
       longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif (.xmatch ({cond}, {until neq}))
