@@ -1,4 +1,4 @@
-;; <h2>Hires Graphics Functions</h2>
+;; <h2>Hires Graphics Functions - CURRENTLY UNDER DEVELOPMENT</h2>
 
 ;; blank_screen
 ;; Blanks the screen and shows only the border color

@@ -1,6 +1,6 @@
 .if .def(__C128__)
 
-;; <h2>Special Macros for C128</h2>
+;; <h2>Special Macros for C128 in C128 Mode</h2>
 
 ;; shadowIRQ off|on
 ;; The C128 IRQ routine copies the values of the shadow registers $11D6-$11E6

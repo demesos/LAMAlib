@@ -260,7 +260,7 @@
   dec_nesting_level
 .endmacro
 
-;; for X|Y|A|AX|addr,start,to|downto,end,step
+;; for </i><b>X|Y|A|AX</b><i>|addr,start,</i><b>to|downto</b><i>,end,step
 ;;   ...
 ;; <b>next</b>
 ;; For loop structure
@@ -1053,7 +1053,7 @@
   dec_nesting_level
 .endmacro
 
-;; switch [A|X|Y|AX]
+;; switch </i><b>[A|X|Y|AX]</b><i>
 ;; <b>[case|case_eq|case_lt|case_ge]</b> <i>num1</i>
 ;;   ...
 ;; <b>[break]</b>

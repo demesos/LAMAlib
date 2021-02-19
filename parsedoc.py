@@ -10,15 +10,16 @@
 
 def printformatmacroname(m):
    cmds=m.split(";")
+   print( "<b>", end='')
    sep=''
    for cmd in cmds:
       w=cmd.lstrip(' ').split(' ')
       if len(w)<=1:
-          print( m, end='')
+          print( m+"</b>", end='')
       else:
           for c in w:
               if c==w[0]:
-                  print(sep+c, end='')
+                  print(sep+c+"</b>", end='')
               else:
                   print(sep+"<i>"+c+"</i>", end='')
               sep=' '
@@ -72,9 +73,8 @@ for l in lines[lc:]:
     if l[0:2]==";;":
         if lastline=='':
             print ("<br>")
-            print ("<b>", end = '')
             printformatmacroname(l2)
-            print ("</b><br>")
+            print ("<br>")
         else:
             print (l2+"<br>")
     lastline=l
