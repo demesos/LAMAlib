@@ -1,5 +1,33 @@
 ;; <h2>Useful Routines</h2>
 
+;; decimal_flag_to_N
+;; Copies the decimal flag into the negative flag to detect if decimal mode is on
+;; Macro always returns with a cleared Carry
+;; Registers modified: A 
+.macro  decimal_flag_to_N
+        lda #$42
+        adc #$38        ;this will result in $80 in decimal mode, but not in normal mode
+.endmacro
+
+;; toggle_carry
+;; Toggles the carry 
+;; Registers modified: none
+.macro  toggle_carry
+        rol
+        eor #$01
+        ror
+.endmacro
+
+;; neg
+;; Negate A
+;; Registers modified: A
+.macro  neg
+	eor #$FF
+	sec
+	adc #0
+.endmacro
+
+
 ;; rand8
 ;; <b>rand8_setseed</b> [<i>arg</i>]<br>
 ;; based on the 8-bit pseudo-random number generator from White Flame 
@@ -18,10 +46,10 @@
 
 .macro rand8_setseed arg
 .scope
-	.if .paramcount = 1
-	   lda #arg
-	.endif 
-	sta _rand8_seed
+        .if .paramcount = 1
+           lda #arg
+        .endif 
+        sta _rand8_seed
 .endscope
 .endmacro
 
@@ -42,14 +70,14 @@
 
 .macro rand16_setseed arg
 .scope
-	.if .paramcount = 1
-	   ldax #arg
-	.endif 
-	cmpax #32755	;this is the one seed we need to avoid
-	bne ok
-	and #$FE ;make it 32754
-ok:	sta _rand16_seed
-	stx _rand16_seed+1
+        .if .paramcount = 1
+           ldax #arg
+        .endif 
+        cmpax #32755    ;this is the one seed we need to avoid
+        bne ok
+        and #$FE ;make it 32754
+ok:     sta _rand16_seed
+        stx _rand16_seed+1
 .endscope
 .endmacro
 
@@ -67,16 +95,16 @@ ok:	sta _rand16_seed
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
             ldy     #<(.right (.tcount ({arg})-1, {arg}))
-	    sty	_mul16_arg
+            sty _mul16_arg
             ldy     #>(.right (.tcount ({arg})-1, {arg}))
             sty _mul16_arg+1
         .else
             ; assume absolute or zero page
             ldy     arg
-	    sty	_mul16_arg
+            sty _mul16_arg
             ldy     1+(arg)
             sty _mul16_arg+1
-        .endif	
+        .endif  
         jsr _mul16_sr ;mul16 subroutine
 .endscope
 .endmacro
@@ -89,16 +117,16 @@ ok:	sta _rand16_seed
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
             ldy     #<(.right (.tcount ({arg})-1, {arg}))
-	    sty	_fastmul16_arg
+            sty _fastmul16_arg
             ldy     #>(.right (.tcount ({arg})-1, {arg}))
             sty _fastmul16_arg+1
         .else
             ; assume absolute or zero page
             ldy     arg
-	    sty	_fastmul16_arg
+            sty _fastmul16_arg
             ldy     1+(arg)
             sty _fastmul16_arg+1
-        .endif	
+        .endif  
         jsr _fastmul16_sr ;fastmul16 subroutine
 .endscope
 .endmacro
@@ -117,16 +145,16 @@ ok:	sta _rand16_seed
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
             ldy     #<(.right (.tcount ({arg})-1, {arg}))
-	    sty	_div16_arg
+            sty _div16_arg
             ldy     #>(.right (.tcount ({arg})-1, {arg}))
             sty _div16_arg+1
         .else
             ; assume absolute or zero page
             ldy     arg
-	    sty	_div16_arg
+            sty _div16_arg
             ldy     1+(arg)
             sty _div16_arg+1
-        .endif	
+        .endif  
          jsr _div16_sr ;div16 subroutine
 .endscope
 .endmacro
@@ -142,13 +170,13 @@ ok:	sta _rand16_seed
       .exitmacro
   .endif
 .scope
-	.if (.xmatch ({arg1}, {AX}))			;print AX as number
+        .if (.xmatch ({arg1}, {AX}))                    ;print AX as number
            printax
-       .elseif (.xmatch ({arg1}, {A}))			;print akku as number
-	   ldx #00
+       .elseif (.xmatch ({arg1}, {A}))                  ;print akku as number
+           ldx #00
            printax
-       .elseif (.match (.left (1, {arg1}), #))		;immediate number
-	    iarg=(.right (.tcount ({arg1})-1, {arg1}))
+       .elseif (.match (.left (1, {arg1}), #))          ;immediate number
+            iarg=(.right (.tcount ({arg1})-1, {arg1}))
             .if .const(iarg) .and (<iarg = >iarg)
                lda     #<iarg
                tax
@@ -156,18 +184,18 @@ ok:	sta _rand16_seed
                lda     #<iarg
                ldx     #>iarg
             .endif
-	    printax
-	.elseif (.match (.left (1, {arg1}), {(})) .and (.match (.right (1, {arg1}), {)}))	;argument in brackets
-	    ldax .mid (1, .tcount ({arg1})-2, {arg1})
-	    printax
-	.else
-	    primm arg1
+            printax
+        .elseif (.match (.left (1, {arg1}), {(})) .and (.match (.right (1, {arg1}), {)}))       ;argument in brackets
+            ldax .mid (1, .tcount ({arg1})-2, {arg1})
+            printax
+        .else
+            primm arg1
        .endif
 .endscope
-	.if .paramcount > 1
-		;macro calls itself recursely to process remaining arguments
-	        print arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
-	.endif
+        .if .paramcount > 1
+                ;macro calls itself recursely to process remaining arguments
+                print arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+        .endif
 .endmacro
 
 
@@ -189,9 +217,9 @@ ok:	sta _rand16_seed
 ;; Registers modified: A,Y,X
 .macro  printax
 .scope
-		sta setx +1	;we need to switch A and X
-		txa
-setx:		ldx #00
+                sta setx +1     ;we need to switch A and X
+                txa
+setx:           ldx #00
                 jsr LINPRT
 .endscope
 .endmacro
@@ -202,16 +230,16 @@ setx:		ldx #00
 ;; Registers modified: A,Y,X
 .macro  printax_signed
 .scope
-		cpx #$80	;is it a negative number?
-		bcc positive
-		negax		;negate number
-		pha
-		lda #'-'	;write out minus sign
-		jsr CHROUT
-		pla
-positive:	sta setx +1	;we need to switch A and X
-		txa
-setx:		ldx #00
+                cpx #$80        ;is it a negative number?
+                bcc positive
+                negax           ;negate number
+                pha
+                lda #'-'        ;write out minus sign
+                jsr CHROUT
+                pla
+positive:       sta setx +1     ;we need to switch A and X
+                txa
+setx:           ldx #00
                 jsr LINPRT
 .endscope
 .endmacro
@@ -234,7 +262,7 @@ setx:		ldx #00
 ;; Registers modified: A
 .macro  newline
 .scope
-		lda #$0d
+                lda #$0d
                 jsr CHROUT
 .endscope
 .endmacro
@@ -244,9 +272,9 @@ setx:		ldx #00
 ;; Registers modified: A
 .macro  lowercase_mode
 .scope
-		lda #$08
+                lda #$08
                 jsr CHROUT
-		lda #$0E
+                lda #$0E
                 jsr CHROUT
 .endscope
 .endmacro
@@ -256,9 +284,9 @@ setx:		ldx #00
 ;; Registers modified: A
 .macro  PETSCII_mode
 .scope
-		lda #$08
+                lda #$08
                 jsr CHROUT
-		lda #$8E
+                lda #$8E
                 jsr CHROUT
 .endscope
 .endmacro
@@ -283,9 +311,9 @@ setx:		ldx #00
 .import _delay_ms_sr
 .scope
        .if (.xmatch ({arg1}, AX))
-	    jsr _delay_ms_sr
+            jsr _delay_ms_sr
        .else
-	    ldax #arg
+            ldax #arg
             jsr _delay_ms_sr
        .endif
 .endscope
@@ -297,7 +325,7 @@ setx:		ldx #00
 ;; Registers modified: A
 .import _waitkey_sr
 .macro waitkey
-	jsr _waitkey_sr
+        jsr _waitkey_sr
 .endmacro
 
 
@@ -307,7 +335,7 @@ setx:		ldx #00
 ;; Registers modified: A
 .import _waitkeyreleased_sr
 .macro waitkeyreleased
-	jsr _waitkeyreleased_sr
+        jsr _waitkeyreleased_sr
 .endmacro
 
 
@@ -318,7 +346,7 @@ setx:		ldx #00
 ;; Registers modified: A,X
 .import _readWASDspace_sr
 .macro readWASDspace
-	jsr _readWASDspace_sr
+        jsr _readWASDspace_sr
 .endmacro
 
 
@@ -330,9 +358,9 @@ setx:		ldx #00
 .macro  makesys linenumber,text
        .byte $0b,$08
        .if .paramcount > 0
-	    .byte <linenumber,>linenumber
+            .byte <linenumber,>linenumber
        .else
-	    .byte <2020,>2020
+            .byte <2020,>2020
        .endif
        .byte $9e   ;SYS token
        ;.byte $30+2 ;systarget/1000
@@ -342,7 +370,7 @@ setx:		ldx #00
        .if .paramcount = 2
             systarget=BASICSTART+$0c+.strlen(text)
             .byte .sprintf ("%d", systarget)
-	    .asciiz text
+            .asciiz text
        .else
             systarget=BASICSTART+$0c
             .asciiz .sprintf ("%d", systarget)
@@ -369,9 +397,9 @@ setx:		ldx #00
 .macro identify_SID address
 .scope
        .if .paramcount > 0
-	    SIDbaseaddress=address
+            SIDbaseaddress=address
        .else
-	    SIDbaseaddress=$d400
+            SIDbaseaddress=$d400
        .endif
        sei
        lda #$ff
@@ -404,40 +432,162 @@ waitraster:
 ;; Turns off the CIA IRQ source
 ;; IRQ routine must acknowledge the IRQ source
 .macro set_raster_irq rasterline
-	lda #$7f
-	sta $dc0d	; disable timer interrupts
-	sta $dd0d
+        lda #$7f
+        sta $dc0d       ; disable timer interrupts
+        sta $dd0d
 
-	and $D011	; accu is still $7f
-	.if rasterline>255
-	ora #$80
+        and $D011       ; accu is still $7f
+        .if rasterline>255
+        ora #$80
+        .endif
+        sta $D011       ; Clear most significant bit in VIC's raster register
+
+        lda $dc0d       ; acknowledge CIA interrupts
+
+        lda #<rasterline
+        sta $D012       ; Set the raster line number where interrupt should occur 
+
+        lda #01
+        sta $D01A       ; set raster interrupt
+.endmacro
+
+
+;; memcopy src_addr,target_addr,length
+;;
+;; memcopy_from [AX|addr]
+;; memcopy_to   [AX|addr]
+;; memcopy [AX|length]
+;; Copies the memory area src_addr to src_addr+length over target_addr
+;; If the areas are overlapping, then target_addr must be < src_addr
+;; The three parameter version takes three constant numbers
+;; Alternatively, the function can be configured parameter by parameter, either with AX or a constant
+;; Registers modified: A,X,Y
+.macro  memcopy src_addr,target_addr,length
+        .scope
+.import _memcopy_sr
+.importzp _source_ptr,_target_ptr
+        .if .paramcount = 3
+          yinit=<($100-<length)
+          pokew _source_ptr,src_addr - yinit
+          pokew _target_ptr,target_addr - yinit
+  
+          ldx #1+>(length-1)
+          ldy #yinit
+	.elseif .paramcount = 1
+          .if (.xmatch ({src_addr}, {AX}))          ;AX is used as length
+            tay
+            beq skip_adjust
+
+	    pha
+	    clc
+            adc _source_ptr
+	    sta _source_ptr
+            dec _source_ptr+1
+            pla
+	    clc
+            adc _target_ptr
+	    sta _target_ptr
+            dec _target_ptr+1
+
+	    neg
+            tay
+            inx
+skipadjust:
+          .else                                     ;length is given as constant parameter
+            yinit=<($100-<length)
+            ldx #1+>(length-1)
+            ldy #yinit
+	    .if yinit>0
+              lda #<length
+              clc
+              adc _source_ptr
+              sta _source_ptr
+              dec _source_ptr+1
+              lda #<length
+              clc
+              adc _target_ptr
+              sta _target_ptr
+              dec _target_ptr+1
+            .endif
+          .endif
+	.else
+	  .error "Wrong number of parameters for memcopy!"
 	.endif
-	sta $D011 	; Clear most significant bit in VIC's raster register
-
-	lda $dc0d	; acknowledge CIA interrupts
-
-	lda #<rasterline
-	sta $D012 	; Set the raster line number where interrupt should occur 
-
-	lda #01
-	sta $D01A 	; set raster interrupt
+        jsr _memcopy_sr
+        .endscope
 .endmacro
 
-;; memset start_addr end_adder fillvalue
+.macro memcopy_from src_addr
+        .scope
+.importzp _source_ptr
+        .if (.xmatch ({src_addr}, {AX}))          ;AX is used as address
+          sta _source_ptr
+          stx _source_ptr+1
+        .else
+          lda #<src_addr
+          sta _source_ptr
+          lda #>src_addr
+          stx _source_ptr+1
+        .endif
+        .endscope
+.endmacro
+
+.macro memcopy_to target_addr
+        .scope
+.importzp _target_ptr
+        .if (.xmatch ({target_addr}, {AX}))          ;AX is used as address
+          sta _target_ptr
+          stx _target_ptr+1
+        .else
+          lda #<target_addr
+          sta _target_ptr
+          lda #>target_addr
+          stx _target_ptr+1
+        .endif
+        .endscope
+.endmacro
+
+;; memset start_addr,end_addr,fillvalue
 ;; Fills the memory area between start_addr and end_adder with the byte fillvalue
-;; Registers modified: A
-.macro  memset start_addr,end_adder,fillvalue
+;; Registers modified: A,X,Y
+.macro  memset start_addr,end_addr,fillvalue
 .import _memset_sr
-       jsr _memset_sr
+.importzp _target_ptr
+        .scope
+        length = end_addr - start_addr + 1
+        yinit=<($100-<length)
+        pokew _target_ptr,start_addr - yinit
+
+        ldx #1+>(length-1)
+        ldy #yinit
+        lda #fillvalue
+        jsr _memset_sr
+        .endscope
 .endmacro
 
-;; decimal_flag_to_N
-;; Copies the decimal flag into the negative flag to detect if decimal mode is on
-;; Macro alsways returns with a cleared Carry
-;; Registers modified: A 
-.macro  decimal_flag_to_N
-	lda #$42
-	adc #$38	;this will result in $80 in decimal mode, but not in normal mode
+;; is_in_range lower,higher
+;; Tests if value in Accu is between the values <i>lower</i> and <i>higher</i>
+;; If the value was inside, the Carry is set, otherwise the Carry is cleared
+;; Registers modified: A
+.macro is_in_range lower,higher
+        clc
+        adc #$ff - higher
+        adc #higher - lower + 1
+.endmacro
+
+;; to_screencode
+;; If the PETSCII value in A belongs to a printable character, it is converted to the corresponding screencode and returned in A
+;; Control codes will lead to an arbitrary byte.
+;; Registers modified: A
+.macro to_screencode
+        .scope
+        cmp #$60
+        bcc L1+1
+        ora #$40
+        and #$7f
+L1:
+        bit $3f29    ;contains command AND #$3f 
+        .endscope
 .endmacro
 
 

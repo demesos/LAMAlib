@@ -147,16 +147,34 @@
   ::nesting_levelY .set ::nesting_levelY/10 + 1
 .endmacro
 
-.macro inc_nesting_level_switch
-  .if .defined(::nesting_level_switch)
-    ::nesting_level_switch .set ::nesting_level_switch*100
+
+; the switch case macro is using an extra nesting_level counter 
+.macro inc_nesting_level_case
+  .if .defined(::nesting_level_case)
+    ::nesting_level_case .set ::nesting_level_case*100
   .else
-    ::nesting_level_switch .set 100
+    ::nesting_level_case .set 100
   .endif
 .endmacro
 
-.macro dec_nesting_level_switch
-  ::nesting_level_switch .set ::nesting_level_switch/100 + 1
+.macro dec_nesting_level_case
+  ::nesting_level_case .set ::nesting_level_case/100 + 1
+.endmacro
+
+; the if function is using its own nesting level
+.macro inc_nesting_level_if
+  .if .defined(::nesting_level_if)
+    ::nesting_level_if .set ::nesting_level_if*10
+    .if ::nesting_level_if = 90
+      ::nesting_level_if .set ::nesting_level_if*10
+    .endif
+  .else
+    ::nesting_level_if .set 10
+  .endif
+.endmacro
+
+.macro dec_nesting_level_if
+  ::nesting_level_if .set ::nesting_level_if/10 + 1
 .endmacro
 
 ;; <h2>Structured Programming</h2>
@@ -223,23 +241,23 @@
 ;; Registers modified: none
 
 .macro if cond
-  inc_nesting_level
+  inc_nesting_level_if
   .if ((.xmatch ({cond}, {eq})) || (.xmatch ({cond}, {zero})))
-    bne .ident(.sprintf("else_or_end%d", ::nesting_level/10))
+    bne .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
   .elseif (.xmatch ({cond}, {neq}))
-    beq .ident(.sprintf("else_or_end%d", ::nesting_level/10))
+    beq .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
   .elseif (.xmatch ({cond}, {minus}))
-    bpl .ident(.sprintf("else_or_end%d", ::nesting_level/10))
+    bpl .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
   .elseif (.xmatch ({cond}, {plus}))
-    bmi .ident(.sprintf("else_or_end%d", ::nesting_level/10))
+    bmi .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
   .elseif ((.xmatch ({cond}, {c_clr})) || (.xmatch ({cond}, {lt})))
-    bcs .ident(.sprintf("else_or_end%d", ::nesting_level/10))
+    bcs .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
   .elseif ((.xmatch ({cond}, {c_set})) || (.xmatch ({cond}, {ge})))
-    bcc .ident(.sprintf("else_or_end%d", ::nesting_level/10))
+    bcc .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
   .elseif (.xmatch ({cond}, {v_clr}))
-    bvs .ident(.sprintf("else_or_end%d", ::nesting_level/10))
+    bvs .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
   .elseif (.xmatch ({cond}, {v_set}))
-    bvc .ident(.sprintf("else_or_end%d", ::nesting_level/10))
+    bvc .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
   .else
     .error  "Condition for if undefined!"
   .endif
@@ -248,16 +266,16 @@
 ; future extension: add a version iflong with long branches
 
 .macro else
-  jmp .ident(.sprintf("end_of_if%d", ::nesting_level/10))
-  .ident(.sprintf("else_or_end%d", ::nesting_level/10)):
+  jmp .ident(.sprintf("end_of_if%d", ::nesting_level_if/10))
+  .ident(.sprintf("else_or_end%d", ::nesting_level_if/10)):
 .endmacro
 
 .macro endif
-  .ifndef .ident(.sprintf("else_or_end%d", ::nesting_level/10))
-    .ident(.sprintf("else_or_end%d", ::nesting_level/10)):
+  .ifndef .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
+    .ident(.sprintf("else_or_end%d", ::nesting_level_if/10)):
   .endif
-  .ident(.sprintf("end_of_if%d", ::nesting_level/10)):
-  dec_nesting_level
+  .ident(.sprintf("end_of_if%d", ::nesting_level_if/10)):
+  dec_nesting_level_if
 .endmacro
 
 ;; for </i><b>X|Y|A|AX</b><i>|addr,start,</i><b>to|downto</b><i>,end,step
@@ -387,9 +405,9 @@
       .else
         .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=0
       .endif
-      lda #<start
+      lda #<(start)
       sta .ident(.sprintf("for_var%d", ::nesting_level/10))
-      lda #>start
+      lda #>(start)
       sta .ident(.sprintf("for_var%d", ::nesting_level/10))+1
     .endif
   .endif
@@ -1104,7 +1122,7 @@
 
 .macro switch reg
   inc_nesting_level
-  inc_nesting_level_switch
+  inc_nesting_level_case
   .if .xmatch ({reg}, {A})
     .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-1
   .elseif .xmatch ({reg}, {X})
@@ -1119,68 +1137,68 @@
 .endmacro
 
 .macro case num
-  .ident(.sprintf("case_label%d", ::nesting_level_switch/10)):
-  ::nesting_level_switch .set ::nesting_level_switch + 10
+  .ident(.sprintf("case_label%d", ::nesting_level_case/10)):
+  ::nesting_level_case .set ::nesting_level_case + 10
   .if .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-1      ;A
     cmp #num
-    bne .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+    bne .ident(.sprintf("case_label%d", ::nesting_level_case/10))
   .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-2  ;X
     cpx #num
-    bne .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+    bne .ident(.sprintf("case_label%d", ::nesting_level_case/10))
   .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-3  ;Y
     cpy #num
-    bne .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+    bne .ident(.sprintf("case_label%d", ::nesting_level_case/10))
   .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-4  ;AX
     cmpax #num
-    bne .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+    bne .ident(.sprintf("case_label%d", ::nesting_level_case/10))
   .endif
 .endmacro
 
 .macro case_lt num
-  .ident(.sprintf("case_label%d", ::nesting_level_switch/10)):
-  ::nesting_level_switch .set ::nesting_level_switch + 10
+  .ident(.sprintf("case_label%d", ::nesting_level_case/10)):
+  ::nesting_level_case .set ::nesting_level_case + 10
   .if .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-1      ;A
     cmp #num
-    bcs .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+    bcs .ident(.sprintf("case_label%d", ::nesting_level_case/10))
   .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-2  ;X
     cpx #num
-    bcs .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+    bcs .ident(.sprintf("case_label%d", ::nesting_level_case/10))
   .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-3  ;Y
     cpy #num
-    bcs .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+    bcs .ident(.sprintf("case_label%d", ::nesting_level_case/10))
   .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-4  ;AX
     cmpax #num
-    bcs .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+    bcs .ident(.sprintf("case_label%d", ::nesting_level_case/10))
   .endif
 .endmacro
 
 .macro case_ge num
-  .ident(.sprintf("case_label%d", ::nesting_level_switch/10)):
-  ::nesting_level_switch .set ::nesting_level_switch + 10
+  .ident(.sprintf("case_label%d", ::nesting_level_case/10)):
+  ::nesting_level_case .set ::nesting_level_case + 10
   .if .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-1      ;A
     cmp #num
-    bcc .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+    bcc .ident(.sprintf("case_label%d", ::nesting_level_case/10))
   .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-2  ;X
     cpx #num
-    bcc .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+    bcc .ident(.sprintf("case_label%d", ::nesting_level_case/10))
   .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-3  ;Y
     cpy #num
-    bcc .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+    bcc .ident(.sprintf("case_label%d", ::nesting_level_case/10))
   .elseif .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-4  ;AX
     cmpax #num
-    bcc .ident(.sprintf("case_label%d", ::nesting_level_switch/10))
+    bcc .ident(.sprintf("case_label%d", ::nesting_level_case/10))
   .endif
 .endmacro
 
 
 .macro default
-  .ident(.sprintf("case_label%d", ::nesting_level_switch/10)):
-  ::nesting_level_switch .set ::nesting_level_switch + 10
+  .ident(.sprintf("case_label%d", ::nesting_level_case/10)):
+  ::nesting_level_case .set ::nesting_level_case + 10
 .endmacro
 
 .macro endswitch
-  .ident(.sprintf("case_label%d", ::nesting_level_switch/10)):
-  dec_nesting_level_switch
+  .ident(.sprintf("case_label%d", ::nesting_level_case/10)):
+  dec_nesting_level_case
   .ident(.sprintf("end_loop%d", ::nesting_level/10)):
   dec_nesting_level
 .endmacro
