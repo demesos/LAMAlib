@@ -189,7 +189,7 @@ arg1 will be filled with low byte of arg2<br>
 arg2 will be filled with high byte of arg2<br>
 arg1, arg2 can be both constants or one can be AX and the other a constant<br>
 Regs changed: A, Y (in case AX is used as address)<br>
-<h2>Hires Graphics Functions</h2>
+<h2>Hires Graphics Functions - CURRENTLY UNDER DEVELOPMENT</h2>
 <br>
 <b>blank_screen</b><br>
 Blanks the screen and shows only the border color<br>
@@ -288,7 +288,7 @@ next<br>
 <br>
 <b>do</b><br>
 ...<br>
-<b>until</b>|<b>while</b> <i>cond</i><br>
+[<b>until</b>|<b>while</b> <i>cond</i>]<br>
 ...<br>
 <b>loop</b> [<b>until</b>|<b>while</b> <i>cond</i>]<br>
 Defines a loop that is exit based on a while or until condition<br>
@@ -332,6 +332,19 @@ Defines a selection mechanism to allow the value of a register to change the con
 Registers modified: none<br>
 <br>
 <h2>Useful Routines</h2>
+<br>
+<b>decimal_flag_to_N</b><br>
+Copies the decimal flag into the negative flag to detect if decimal mode is on<br>
+Macro always returns with a cleared Carry<br>
+Registers modified: A<br>
+<br>
+<b>toggle_carry</b><br>
+Toggles the carry<br>
+Registers modified: none<br>
+<br>
+<b>neg</b><br>
+Negate A<br>
+Registers modified: A<br>
 <br>
 <b>rand8</b><br>
 <b>rand8_setseed</b> [<i>arg</i>]<br><br>
@@ -459,13 +472,29 @@ Changes the IRQ source to VIC raster interrupt<br>
 Turns off the CIA IRQ source<br>
 IRQ routine must acknowledge the IRQ source<br>
 <br>
-<b>memset</b> <i>start_addr</i> <i>end_adder</i> <i>fillvalue</i><br>
+<b>memcopy</b> <i>src_addr,target_addr,length</i><br>
+<br>
+memcopy_from [AX|addr]<br>
+memcopy_to   [AX|addr]<br>
+memcopy [AX|length]<br>
+Copies the memory area src_addr to src_addr+length over target_addr<br>
+If the areas are overlapping, then target_addr must be < src_addr<br>
+The three parameter version takes three constant numbers<br>
+Alternatively, the function can be configured parameter by parameter, either with AX or a constant<br>
+Registers modified: A,X,Y<br>
+<br>
+<b>memset</b> <i>start_addr,end_addr,fillvalue</i><br>
 Fills the memory area between start_addr and end_adder with the byte fillvalue<br>
+Registers modified: A,X,Y<br>
+<br>
+<b>is_in_range</b> <i>lower,higher</i><br>
+Tests if value in Accu is between the values <i>lower</i> and <i>higher</i><br>
+If the value was inside, the Carry is set, otherwise the Carry is cleared<br>
 Registers modified: A<br>
 <br>
-<b>decimal_flag_to_N</b><br>
-Copies the decimal flag into the negative flag to detect if decimal mode is on<br>
-Macro alsways returns with a cleared Carry<br>
+<b>to_screencode</b><br>
+If the PETSCII value in A belongs to a printable character, it is converted to the corresponding screencode and returned in A<br>
+Control codes will lead to an arbitrary byte.<br>
 Registers modified: A<br>
 <h2>Special Macros for C128 in C128 Mode</h2>
 <br>
