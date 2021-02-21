@@ -953,7 +953,7 @@
 
 ;; do
 ;;   ...
-;; <b>until</b>|<b>while</b> <i>cond</i>
+;; [<b>until</b>|<b>while</b> <i>cond</i>]
 ;;   ...
 ;; <b>loop</b> [<b>until</b>|<b>while</b> <i>cond</i>]
 ;; Defines a loop that is exit based on a while or until condition
