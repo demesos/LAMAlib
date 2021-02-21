@@ -298,8 +298,25 @@ This corresponds to assembler commands BEQ, BNE, BMI, BPL, BCC, BCS, BVC, BVS<br
 <b>until</b> and <b>while</b> can be used on a seperate line or after <b>loop</b><br>
 There can be any number of <b>until</b> or <b>while</b> conditions, also none, which defines an endless loop<br>
 Within a do...loop, the macros <i>break</i> and <i>continue</i> can be used to exit the loop or go to next iteration.<br>
+Any line with a until, while, loop until, or while until will be typically preceded with code that sets the respective processor flags, in many cases this<br>
+will be a compare instruction. For example the C code while loop:<br>
+<code><br>
+while(i>1) {<br>
+&nbsp;  do_something()<br>
+&nbsp;  i--;<br>
+}<br>
+</code><br>
+would translate into<br>
+<code><br>
+do<br>
+&nbsp;  cpy #2 ;1+1<br>
+&nbsp;  while ge<br>
+&nbsp;  jsr do_something<br>
+&nbsp;  dey<br>
+loop<br>
+</code><br>
 <br>
-Registers modified: none<br>
+Registers modified: A, if the loop variable is X or Y also the respective X or Y register<br>
 <br>
 Code example that waits for joystick 2 button pressed:<br>
 <code><br>

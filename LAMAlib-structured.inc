@@ -963,8 +963,25 @@
 ;; <b>until</b> and <b>while</b> can be used on a seperate line or after <b>loop</b>
 ;; There can be any number of <b>until</b> or <b>while</b> conditions, also none, which defines an endless loop
 ;; Within a do...loop, the macros <i>break</i> and <i>continue</i> can be used to exit the loop or go to next iteration.
+;; Any line with a until, while, loop until, or while until will be typically preceded with code that sets the respective processor flags, in many cases this
+;; will be a compare instruction. For example the C code while loop:
+;; <code>
+;; while(i>1) {
+;; &nbsp;  do_something()
+;; &nbsp;  i--;
+;; }
+;; </code>
+;; would translate into
+;; <code>
+;; do
+;; &nbsp;  cpy #2 ;1+1
+;; &nbsp;  while ge
+;; &nbsp;  jsr do_something
+;; &nbsp;  dey
+;; loop
+;; </code>
 ;;
-;; Registers modified: none
+;; Registers modified: A, if the loop variable is X or Y also the respective X or Y register
 ;;
 ;; Code example that waits for joystick 2 button pressed:
 ;; <code>
