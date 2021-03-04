@@ -427,28 +427,35 @@ waitraster:
        jsr _disable_NMI_sr
 .endmacro
 
-;; set_raster_irq
+;; set_raster_irq rasterline
 ;; Changes the IRQ source to VIC raster interrupt
 ;; Turns off the CIA IRQ source
 ;; IRQ routine must acknowledge the IRQ source
 .macro set_raster_irq rasterline
+	.scope
+	.ifblank rasterline
+	  rline:=0
+	.else
+	  rline:=rasterline
+	.endif
         lda #$7f
         sta $dc0d       ; disable timer interrupts
         sta $dd0d
 
         and $D011       ; accu is still $7f
-        .if rasterline>255
+        .if rline>255
         ora #$80
         .endif
         sta $D011       ; Clear most significant bit in VIC's raster register
 
         lda $dc0d       ; acknowledge CIA interrupts
 
-        lda #<rasterline
+        lda #<rline
         sta $D012       ; Set the raster line number where interrupt should occur 
 
         lda #01
         sta $D01A       ; set raster interrupt
+	.endscope
 .endmacro
 
 
