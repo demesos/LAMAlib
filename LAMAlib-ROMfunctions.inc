@@ -8,6 +8,8 @@ LINPRT= $BDCD ;outputs number in A/X
 CURSORX=$D3
 CURSORY=$D6
 
+TEXTCOLOR_ADDR=646
+
 CLRSCR= $E544 ;clear screen
 
 SCINIT= $FF81 ;Initialize VIC, clear screen
@@ -74,6 +76,8 @@ LINPRT= $8E32 ;outputs number in A/X
 CLRSCR= $C142 ;clear screen
 INITVIC = $E170
 INITVEC = $E056 
+
+TEXTCOLOR_ADDR=$F1
 
 SCINIT= $FF81 ;Initialize VIC, clear screen
 IOINIT= $FF84 ;Initialize CIAs, SID volume; setup memory configuration; set and start interrupt timer

@@ -267,6 +267,60 @@ setx:           ldx #00
 .endscope
 .endmacro
 
+;; textcolor color
+;; sets the text color
+.macro  textcolor color
+.scope
+                poke TEXTCOLOR_ADDR,color
+.endscope
+.endmacro
+
+
+
+;; set_cursor_pos line,column
+;; place the cursor at screen position line,column (counted in characters)
+;; 0,0 is upper left corner, 24,39 the lower right corner
+;; arguments can be constants or registers
+.macro  set_cursor_pos   line,column
+.scope
+	.if ( .not .xmatch ({line}, {X}) )
+	  .if .xmatch ({line}, {Y})
+            sty to_x
+            xvalue:=0
+          .elseif .xmatch ({line}, {A})
+	    sta to_x
+            xvalue:=0
+          .else
+            xvalue:=line
+          .endif
+        .endif 
+
+	.if ( .not .xmatch ({column}, {Y}) )
+	  .if .xmatch ({column}, {X})
+            stx to_y
+            yvalue:=0
+          .elseif .xmatch ({column}, {A})
+	    sty to_y
+            yvalue:=0
+          .else
+            yvalue:=column
+          .endif
+          to_y=*+1
+          ldy #yvalue
+        .endif 
+
+	.if ( .not .xmatch ({line}, {X}) )
+	  to_x=*+1
+          ldx #xvalue
+        .endif
+
+	clc
+	jsr PLOT
+.endscope
+.endmacro
+
+
+
 ;; lowercase_mode
 ;; Switches charset to upper/lowercase (text mode) setting and locks the CBM+Shift switch
 ;; Registers modified: A
