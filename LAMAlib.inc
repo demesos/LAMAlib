@@ -12,7 +12,7 @@
 ; <ul><li>Copies all LAMAlib*.inc files into directory <tt>asminc</tt> of your cc65 installation.
 ; <li>Copies the file LAMAlib.lib into directory <tt>lib</tt> of your cc65 installation.
 ; </ul>
-; </ul>You don't need to keep the original folder of LAMAlib, but but probably want to keep a copy of the documentation, LAMAlibdoc.html
+; </ul>You don't need to keep the original folder of LAMAlib, but you probably want to keep a copy of the documentation, LAMAlibdoc.html
 ;
 ;
 ; In your programs,

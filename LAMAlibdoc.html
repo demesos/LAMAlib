@@ -14,7 +14,7 @@ There is a script <tt>install_lamalib.bat</tt> included which does the following
 <ul><li>Copies all LAMAlib*.inc files into directory <tt>asminc</tt> of your cc65 installation.<br>
 <li>Copies the file LAMAlib.lib into directory <tt>lib</tt> of your cc65 installation.<br>
 </ul>
-</ul>You don't need to keep the original folder of LAMAlib, but but probably want to keep a copy of the documentation, LAMAlibdoc.html<br>
+</ul>You don't need to keep the original folder of LAMAlib, but you probably want to keep a copy of the documentation, LAMAlibdoc.html<br>
 <br>
 <br>
 In your programs,<br>
@@ -250,9 +250,10 @@ Registers modified: the restoreed register<br>
 [<b>else</b>]<br>
 ...<br>
 <b>endif</b><br>
-Structure for conditionals.<br>
+This is a structure for conditional execution<br>
 <i>cond</i> can be <i>eq</i>, <i>neq</i>, <i>minus</i>, <i>plus</i>, <i>c_clr</i>, <i>c_set</i>, <i>v_clr</i>, <i>v_set</i>, <i>lt</i>, <i>ge</i><br>
 This corresponds to assembler commands BEQ, BNE, BMI, BPL, BCC, BCS, BVC, BVS<br>
+Therefore the amount of code between if and else must not exceed the range of a branch instruction (127 byte for a forward branch)<br>
 <i>lt</i> (less than) is equal to <i>c_clr</i> (BCC), <i>ge</i> (greater or equal) is equal to <i>c_set</i> (BCS)<br>
 using else is optional<br>
 Registers modified: none<br>
@@ -260,7 +261,7 @@ Registers modified: none<br>
 <b>for</b> <i></i><b>X|Y|A|AX</b><i>|addr,start,</i><b>to|downto</b><i>,end,step</i><br>
 ...<br>
 <b>next</b><br>
-For loop structure<br>
+The for loop iterates from the start value to the end value, inclusive. This is similar to the behavior of FOR in BASIC<br>
 Counting variable can be an 8-bit register (A,X,Y), a 16 bit register (AX) or a 16 bit memory address (in parentheses)<br>
 <i>start</i> can be a constant or a memory address pointing to the value<br>
 <i>end</i> can be a constant or a memory address pointing to the value. The loop is continued including an iteration reaching the <i>end</i> value<br>
@@ -318,7 +319,7 @@ loop<br>
 <br>
 Registers modified: A, if the loop variable is X or Y also the respective X or Y register<br>
 <br>
-Code example that waits for joystick 2 button pressed:<br>
+Code example that waits for joystick 2 button to be pressed:<br>
 <code><br>
 lda #$10<br>
 do<br>
@@ -425,6 +426,14 @@ Prints a newline character<br>
 KERNAL ROM needs to be enabled when using this function<br>
 Registers modified: A<br>
 <br>
+<b>textcolor</b> <i>color</i><br>
+sets the text color<br>
+<br>
+<b>set_cursor_pos</b> <i>line,column</i><br>
+place the cursor at screen position line,column (counted in characters)<br>
+0,0 is upper left corner, 24,39 the lower right corner<br>
+arguments can be constants or registers<br>
+<br>
 <b>lowercase_mode</b><br>
 Switches charset to upper/lowercase (text mode) setting and locks the CBM+Shift switch<br>
 Registers modified: A<br>
@@ -484,7 +493,7 @@ the trick is to cause an NMI but don't ackowledge it<br>
 Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)<br>
 Registers modified: A<br>
 <br>
-<b>set_raster_irq</b><br>
+<b>set_raster_irq</b> <i>rasterline</i><br>
 Changes the IRQ source to VIC raster interrupt<br>
 Turns off the CIA IRQ source<br>
 IRQ routine must acknowledge the IRQ source<br>

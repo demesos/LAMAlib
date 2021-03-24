@@ -233,9 +233,10 @@
 ;; [<b>else</b>]
 ;;   ...
 ;; <b>endif</b>
-;; Structure for conditionals.
+;; This is a structure for conditional execution
 ;; <i>cond</i> can be <i>eq</i>, <i>neq</i>, <i>minus</i>, <i>plus</i>, <i>c_clr</i>, <i>c_set</i>, <i>v_clr</i>, <i>v_set</i>, <i>lt</i>, <i>ge</i>
 ;; This corresponds to assembler commands BEQ, BNE, BMI, BPL, BCC, BCS, BVC, BVS
+;; Therefore the amount of code between if and else must not exceed the range of a branch instruction (127 byte for a forward branch)
 ;; <i>lt</i> (less than) is equal to <i>c_clr</i> (BCC), <i>ge</i> (greater or equal) is equal to <i>c_set</i> (BCS)
 ;; using else is optional
 ;; Registers modified: none
@@ -281,7 +282,7 @@
 ;; for </i><b>X|Y|A|AX</b><i>|addr,start,</i><b>to|downto</b><i>,end,step
 ;;   ...
 ;; <b>next</b>
-;; For loop structure
+;; The for loop iterates from the start value to the end value, inclusive. This is similar to the behavior of FOR in BASIC
 ;; Counting variable can be an 8-bit register (A,X,Y), a 16 bit register (AX) or a 16 bit memory address (in parentheses)
 ;; <i>start</i> can be a constant or a memory address pointing to the value
 ;; <i>end</i> can be a constant or a memory address pointing to the value. The loop is continued including an iteration reaching the <i>end</i> value
@@ -306,6 +307,7 @@
 ;; &nbsp;  jsr $ffd2
 ;; next
 ;; </code>
+
 
 .macro for var,start,dir,end,step
   inc_nesting_level
@@ -983,7 +985,7 @@
 ;;
 ;; Registers modified: A, if the loop variable is X or Y also the respective X or Y register
 ;;
-;; Code example that waits for joystick 2 button pressed:
+;; Code example that waits for joystick 2 button to be pressed:
 ;; <code>
 ;; lda #$10
 ;; do
