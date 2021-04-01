@@ -10,6 +10,10 @@
 ;; telling the Kernal that BASIC has not been initialized yet.
 ;; Cutting the IRQ routine provides a speed gain of about 2.5%
 ;; Registers modified: A
+.macro  shadowirq arg  ;version with all lowercase
+	shadowIRQ arg
+.endmacro
+
 .macro shadowIRQ arg
 .scope
         .if .xmatch ({arg}, {off}) 

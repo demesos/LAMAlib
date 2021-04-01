@@ -4,6 +4,10 @@
 ;; Copies the decimal flag into the negative flag to detect if decimal mode is on
 ;; Macro always returns with a cleared Carry
 ;; Registers modified: A 
+.macro  decimal_flag_to_n   ;version with all lowercase
+	decimal_flag_to_N
+.endmacro
+
 .macro  decimal_flag_to_N
         lda #$42
         adc #$38        ;this will result in $80 in decimal mode, but not in normal mode
@@ -399,6 +403,11 @@ setx:           ldx #00
 ;; Function works independly of IRQ or ROM
 ;; Registers modified: A,X
 .import _readWASDspace_sr
+.macro readwasdspace   ;version with all lowercase
+        readWASDspace
+.endmacro
+
+
 .macro readWASDspace
         jsr _readWASDspace_sr
 .endmacro
@@ -435,6 +444,10 @@ setx:           ldx #00
 ;; check_C128
 ;; Detects if we are on a C128 in C64 mode
 ;; returns with carry set for C128
+.macro  check_c128   ;version with all lowercase
+	check_C128
+.endmacro
+
 .macro check_C128
      lda $d030
      cmp #$ff
@@ -448,6 +461,10 @@ setx:           ldx #00
 ;; Overwrites register A
 ;; Result is returned in carry
 ;; Carry flag is set for 6581, and clear for 8580
+.macro  identify_sid address   ;version with all lowercase
+	identify_SID address
+.endmacro
+
 .macro identify_SID address
 .scope
        .if .paramcount > 0
@@ -476,6 +493,10 @@ waitraster:
 ;; the trick is to cause an NMI but don't ackowledge it
 ;; Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)
 ;; Registers modified: A
+.macro  disable_nmi   ;version with all lowercase
+	disable_NMI
+.endmacro
+
 .macro  disable_NMI
 .import _disable_NMI_sr
        jsr _disable_NMI_sr
