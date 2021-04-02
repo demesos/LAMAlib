@@ -441,9 +441,16 @@
           longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
-        .repeat .ident(.sprintf("for_inc%d", ::nesting_level/10))
-        inx
-        .endrep
+        .if .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 5
+          txa
+          clc
+          adc #.ident(.sprintf("for_inc%d", ::nesting_level/10))
+          tax
+        .else
+          .repeat .ident(.sprintf("for_inc%d", ::nesting_level/10))
+          inx
+          .endrep
+        .endif
         .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
           cpx .ident(.sprintf("for_end%d", ::nesting_level/10))
           longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -475,9 +482,16 @@
           longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
-        .repeat .ident(.sprintf("for_inc%d", ::nesting_level/10))
-        iny
-        .endrep
+        .if .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 5
+          tya
+          clc
+          adc #.ident(.sprintf("for_inc%d", ::nesting_level/10))
+          tay
+        .else
+          .repeat .ident(.sprintf("for_inc%d", ::nesting_level/10))
+          iny
+          .endrep
+        .endif
         .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
           cpy .ident(.sprintf("for_end%d", ::nesting_level/10))
           longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -655,9 +669,16 @@
           longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
-        .repeat .ident(.sprintf("for_inc%d", ::nesting_level/10))
-        dex
-        .endrep
+        .if .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 5
+          txa
+          sec
+          sbc #.ident(.sprintf("for_inc%d", ::nesting_level/10))
+          tax
+        .else
+          .repeat .ident(.sprintf("for_inc%d", ::nesting_level/10))
+          dex
+          .endrep
+        .endif
         .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
           cpx .ident(.sprintf("for_end%d", ::nesting_level/10))
           longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -712,9 +733,16 @@
           longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
-        .repeat .ident(.sprintf("for_inc%d", ::nesting_level/10))
-        dey
-        .endrep
+        .if .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 5
+          tya
+          sec
+          sbc #.ident(.sprintf("for_inc%d", ::nesting_level/10))
+          tay
+        .else
+          .repeat .ident(.sprintf("for_inc%d", ::nesting_level/10))
+          dey
+          .endrep
+        .endif
         .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
           cpy .ident(.sprintf("for_end%d", ::nesting_level/10))
           longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
