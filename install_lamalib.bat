@@ -5,8 +5,8 @@
 @rem Usage: install_lamalib
 @rem cc65 tools need to be installed on your system and to be in your path
 @rem
-@rem Version: 0.2
-@rem Date: 2020-05-11
+@rem Version: 0.3
+@rem Date: 2021-04-04
 @rem Author: Wil Elmenreich (wilfried at gmx dot at)
 @rem License: The Unlicense (public domain)
 
