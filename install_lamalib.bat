@@ -1,4 +1,4 @@
-@rem makelib.bat
+@rem install_lamalib
 @rem an MSDOS batch file (runs on Windows) to reassemble all parts of the library for the LAMAlib project
 @rem and to install it in cc65 
 @rem 
