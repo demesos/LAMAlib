@@ -51,6 +51,7 @@ echo Installing library into $installdir
 
 cp LAMAlib*.inc "$installdir/asminc"
 cp LAMAlib.lib "$installdir/lib"
+cp ass.sh "$installdir/bin/ass"
 cp c64-basicfriendly-asm.cfg "$installdir/cfg"
 
 echo -e $green
