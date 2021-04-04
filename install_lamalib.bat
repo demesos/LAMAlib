@@ -1,20 +1,22 @@
-@rem install_lamalib
-@rem an MSDOS batch file (runs on Windows) to reassemble all parts of the library for the LAMAlib project
-@rem and to install it in cc65 
-@rem 
-@rem Usage: install_lamalib
-@rem cc65 tools need to be installed on your system and to be in your path
-@rem
-@rem Version: 0.3
-@rem Date: 2021-04-04
-@rem Author: Wil Elmenreich (wilfried at gmx dot at)
-@rem License: The Unlicense (public domain)
+:: install_lamalib
+:: an MSDOS batch file (runs on Windows) to reassemble all parts of the library for the LAMAlib project
+:: and to install it in cc65 
+::
+:: Usage: install_lamalib
+:: cc65 tools need to be installed on your system and to be in your path
+::
+:: Version: 0.3
+:: Date: 2021-04-04
+:: Author: Wil Elmenreich (wilfried at gmx dot at)
+:: License: The Unlicense (public domain)
 
 @echo off
 setlocal ENABLEDELAYEDEXPANSION
 
-rem  Define some useful colorcode vars:
-for /F "delims=#" %%E in ('"prompt #$E# & for %%E in (1) do rem"') do set "ESCchar=%%E"
+
+:: Define some useful colorcode vars
+for /F "delims=#" %%E in ('"prompt #$E# & for %%E in (1) do rem "') do set "ESCchar=%%E"
+
 set "red=%ESCchar%[91m"
 set "green=%ESCchar%[92m"
 set "yellow=%ESCchar%[93m"
@@ -25,7 +27,7 @@ set "black=%ESCchar%[30m"
 set "nocolor=%ESCchar%[0m"
 set "bold=%ESCchar%[1m"
 
-where cc65.exe 2> nul
+where cc65.exe 2>nul
 if errorlevel 1 (
   echo %red%cc65 installation not found. Please install cc65 and run this script again^^!%nocolor%
   pause
@@ -47,7 +49,7 @@ for %%f in (*.o) do (
 echo Library has been created with %count% modules in it.
 cd ..
 
-rem find cc65 directory
+:: find cc65 directory
 for /F %%I in ('where cc65.exe') do (
   for %%J in ("%%I\..\..") do set "CC65PATH=%%~fJ"
 )
