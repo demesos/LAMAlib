@@ -7,6 +7,7 @@
 # Date: 2020-09-16
 # Author: Wil Elmenreich (wilfried at gmx dot at)
 # License: The Unlicense (public domain)
+from __future__ import print_function
 
 def printformatmacroname(m):
    cmds=m.split(";")
