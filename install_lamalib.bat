@@ -13,6 +13,25 @@
 @echo off
 setlocal ENABLEDELAYEDEXPANSION
 
+rem  Define some useful colorcode vars:
+for /F "delims=#" %%E in ('"prompt #$E# & for %%E in (1) do rem"') do set "ESCchar=%%E"
+set "red=%ESCchar%[91m"
+set "green=%ESCchar%[92m"
+set "yellow=%ESCchar%[93m"
+set "magenta=%ESCchar%[95m"
+set "cyan=%ESCchar%[96m"
+set "white=%ESCchar%[97m"
+set "black=%ESCchar%[30m"
+set "reset=%ESCchar%[0m"
+set "bold=%ESCchar%[1m"
+
+where cc65.exe 2> nul
+if errorlevel 1 (
+  echo %red%cc65 installation not found. Please install cc65 and run this script again^^!%white%
+  pause
+  exit /b
+)
+
 cd lib-functions
 set count=0
 for %%f in (*.s) do (
@@ -35,18 +54,6 @@ for /F %%I in ('where cc65.exe') do (
 
 @copy LAMAlib*.inc "%CC65PATH%\asminc"
 @copy LAMAlib.lib "%CC65PATH%\lib"
-
-
-rem  Define some useful colorcode vars:
-for /F "delims=#" %%E in ('"prompt #$E# & for %%E in (1) do rem"') do set "ESCchar=%%E"
-set "green=%ESCchar%[92m"
-set "yellow=%ESCchar%[93m"
-set "magenta=%ESCchar%[95m"
-set "cyan=%ESCchar%[96m"
-set "white=%ESCchar%[97m"
-set "black=%ESCchar%[30m"
-set "reset=%ESCchar%[0m"
-set "bold=%ESCchar%[1m"
 
 echo %white%
 echo *********************************************************************************************
