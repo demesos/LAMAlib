@@ -22,12 +22,12 @@ set "magenta=%ESCchar%[95m"
 set "cyan=%ESCchar%[96m"
 set "white=%ESCchar%[97m"
 set "black=%ESCchar%[30m"
-set "reset=%ESCchar%[0m"
+set "nocolor=%ESCchar%[0m"
 set "bold=%ESCchar%[1m"
 
 where cc65.exe 2> nul
 if errorlevel 1 (
-  echo %red%cc65 installation not found. Please install cc65 and run this script again^^!%white%
+  echo %red%cc65 installation not found. Please install cc65 and run this script again^^!%nocolor%
   pause
   exit /b
 )
@@ -63,6 +63,6 @@ echo * To use it,                                                               
 echo * add the line %cyan%.include "LAMAlib.inc"%white% at the top of your assembler file                     *
 echo * and assemble with command %cyan%cl65 yourprog.s -lib LAMAlib.lib -C c64-asm.cfg -o yourprog.prg%white% *
 echo * There is no overhead to your assembled program for unused functions                       *
-echo *********************************************************************************************%reset%
+echo *********************************************************************************************%nocolor%
 
 pause
