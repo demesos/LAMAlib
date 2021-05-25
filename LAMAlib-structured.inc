@@ -457,8 +457,8 @@
           longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
           .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
-            .if .not .ident(.sprintf("for_end%d", ::nesting_level/10))=0
-              cpx #.ident(.sprintf("for_end%d", ::nesting_level/10))
+            .if .not <.ident(.sprintf("for_end%d", ::nesting_level/10))=0
+              cpx #<.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif
             longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
@@ -498,8 +498,8 @@
           longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
           .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
-            .if .not .ident(.sprintf("for_end%d", ::nesting_level/10))=0
-              cpy #.ident(.sprintf("for_end%d", ::nesting_level/10))
+            .if .not <.ident(.sprintf("for_end%d", ::nesting_level/10))=0
+              cpy #<.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif
             longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
@@ -539,8 +539,8 @@
           .endif
         .else
           .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
-            .if .not .ident(.sprintf("for_end%d", ::nesting_level/10))=0
-              cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))
+            .if .not <.ident(.sprintf("for_end%d", ::nesting_level/10))=0
+              cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif
             longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
