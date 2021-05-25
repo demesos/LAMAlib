@@ -87,7 +87,7 @@
 ;; This macro does not adjust the VIC bank, see set_VIC_bank
 .macro set_VIC_screen addr
 	lda $D018
-	and #$f0
+	and #$0f
 	ora #((addr & $3C00)/$40)
 	sta $D018
 .endmacro
