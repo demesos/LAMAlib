@@ -379,7 +379,7 @@ setx:           ldx #00
 
 ;; waitkey
 ;; Waits until a key is pressed
-;; Function works independly of IRQ
+;; Function works independly of IRQ routine
 ;; Registers modified: A
 .import _waitkey_sr
 .macro waitkey
@@ -389,7 +389,7 @@ setx:           ldx #00
 
 ;; waitkeyreleased
 ;; Waits until all keys are released
-;; Function works independly of IRQ
+;; Function works independly of IRQ routine
 ;; Registers modified: A
 .import _waitkeyreleased_sr
 .macro waitkeyreleased
@@ -400,7 +400,7 @@ setx:           ldx #00
 ;; readWASDspace
 ;; Checks the keyboard for keypresses of W, A ,S, D and Space
 ;; Output is a byte in A in the same format as a joystick value
-;; Function works independly of IRQ or ROM
+;; Function works independly of IRQ routine
 ;; Registers modified: A,X
 .import _readWASDspace_sr
 .macro readwasdspace   ;version with all lowercase
@@ -531,6 +531,29 @@ waitraster:
         lda #01
         sta $D01A       ; set raster interrupt
 	.endscope
+.endmacro
+
+;; wait_for_rasterline rasterline
+;; Macro inserting code doing busy waiting until the given rasterline is reached
+;; rasterline can be a value between 0 and 311 (for PAL systems) or 261 for NTSC systems, respectively
+;; The routine does not turn off the IRQ, so an IRQ might make it miss the rasterline it is waiting for.
+;; Registers modified: A
+.macro wait_for_rasterline rasterline
+	.scope
+restart:
+        lda #<(rasterline)
+waitraster:
+        cmp $D012    		;wait until lobyte matches
+        bne waitraster
+        .if rasterline>255
+          lda $D011		;check highbyte to be set
+          bpl restart
+        .endif
+        .if rasterline<56
+          lda $D011		;check highbyte to be cleared
+          bmi restart
+        .endif
+        .endscope
 .endmacro
 
 
@@ -672,4 +695,159 @@ L1:
         .endscope
 .endmacro
 
+;; loadprg filename[,devicenr[,loadaddr]]
+;; Wrapper around ROM load function, prg means that the file is assumed to have a two-byte load address at its start
+;; if device number is 0 or not stated, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default
+;; if loadaddr is omitted, the load address is defined by the first two bytes of the file
+;; Return value in carry, if carry is set, an error has happened and error code is returned in A:
+;;  A = $05 (DEVICE NOT PRESENT)
+;;  A = $04 (FILE NOT FOUND)
+;;  A = $1D (LOAD ERROR)
+;;  A = $00 (BREAK, RUN/STOP has been pressed during loading)
+;; Registers modified: A,X,Y
+.macro loadprg filename,devicenr,loadaddr
+        .scope
+        lda #endfilename-beginfilename
+	ldx #<beginfilename
+	ldy #>beginfilename
+	jsr SETNAM
+	
+	.ifblank devicenr
+	  devno:=0
+	.else
+	  devno:=devicenr
+	.endif
 
+	.if devno = 0
+	  ldx $BA
+	  bne :+
+	  ldx #$08	;use address 8 as default
+:	  
+	.else
+	  ldx #devno
+	.endif
+	lda #$01
+	.if .paramcount < 3
+	  ldy #$01	;load file to address defined in file
+	.else
+	  ldy #$00	;load file to specified address
+	.endif
+	jsr SETLFS
+
+	lda #$00	;load (instead of verify)
+	.if .paramcount = 3
+	  ldx #<loadaddr
+	  ldy #>loadaddr
+	.endif
+	jsr LOAD
+
+	jmp endfilename	;hop over filename data
+beginfilename:
+	.byte filename
+endfilename:
+        .endscope
+.endmacro
+
+;; saveprg filename,devicenr,startaddr,endaddr
+;; Saves the memory from startaddr to endaddr (including the endaddr) using the CBM ROM save function.
+;; The file will have a two-byte load address at its start
+;; if device number is 0, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default
+;; Return value in carry, if carry is set, an error has happened and error code is returned in A, for example
+;;  A = $05 (DEVICE NOT PRESENT)
+;;  A = $00 (BREAK, RUN/STOP has been pressed during saving)
+;; Registers modified: A,X,Y
+.macro saveprg filename,devicenr,startaddr,endaddr
+        .scope
+        lda #endfilename-beginfilename
+	ldx #<beginfilename
+	ldy #>beginfilename
+	jsr SETNAM
+
+	.if devicenr = 0
+	  ldx $BA
+	  bne :+
+	  ldx #$08	;use address 8 as default
+:	  
+	.else
+	  ldx #devicenr
+	.endif
+.importzp _llzp_word1
+	pokew _llzp_word1,startaddr
+	lda #_llzp_word1
+	ldx #<(endaddr+1)
+	ldy #>(endaddr+1)
+	jsr SAVE
+
+	jmp endfilename	;hop over filename data
+beginfilename:
+	.byte filename
+endfilename:
+        .endscope
+.endmacro
+
+;; scramble startaddr,endaddr
+;; Scrambles/unscrambles a memory area. To unscramble, call scramble with the same parameters again
+.macro scramble startaddr,endaddr
+	.scope
+.importzp _llzp_word1,_llzp_byte1,_llzp_byte2
+	checksum_eor startaddr,endaddr
+	sta _llzp_byte1
+
+	;now do the scrambling
+	pokew _llzp_word1,startaddr
+	ldy #0
+	sty _llzp_byte2
+loop:
+	;generate next byte from a pseudo random sequence
+sm:	lda _llzp_byte1
+	beq doEor
+        asl
+	beq noEor
+        bcc noEor
+doEor:	eor #$e7
+noEor:  sta _llzp_byte1
+	pha
+	eor (_llzp_word1),y
+	sta (_llzp_word1),y
+	pla
+
+	eor _llzp_byte2
+	sta _llzp_byte2
+
+	inc16 _llzp_word1
+	ldax _llzp_word1
+	cmpax #endaddr
+
+	bne loop
+
+	;the last eor byte will be chosen to match the same eor checksum
+
+	lda _llzp_byte2
+	eor (_llzp_word1),y
+	sta (_llzp_word1),y
+
+        .endscope
+.endmacro
+
+;; checksum_eor startaddr,endaddr
+;; Returns an 8-bit checksum calculated by EOR-conjunction over all bytes
+.macro checksum_eor startaddr,endaddr
+	.scope
+.importzp _llzp_word1
+	pokew _llzp_word1,startaddr
+	ldy #0
+	tya
+	pha
+loop:
+	pla
+	eor (_llzp_word1),y
+	pha
+	inc16 _llzp_word1
+	ldax _llzp_word1
+	cmpax #endaddr+1
+	bne loop
+	pla
+        .endscope
+.endmacro
+
+	
