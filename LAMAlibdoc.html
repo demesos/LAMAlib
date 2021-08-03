@@ -216,13 +216,18 @@ Sets pixel at position x=AX, y=Y<br>
 where AX is the 16 bit value in registers A and X and Y is the Y register<br>
 <br>
 <b>set_VIC_charset</b> <i>addr</i><br>
-Sets VIC register $D018 to display the charset at the given address<br>
+Sets VIC register $D018 to have the charset at the given address<br>
 addr must be a constant that is a multiple of $800<br>
 This macro does not adjust the VIC bank, see set_VIC_bank<br>
 <br>
 <b>set_VIC_screen</b> <i>addr</i><br>
 Sets VIC register $D018 to have the screen RAM at the given address<br>
 addr must be a constant that is a multiple of $400<br>
+This macro does not adjust the VIC bank, see set_VIC_bank<br>
+<br>
+<b>set_VIC_addr</b> <i>screen_addr,charset_addr</i><br>
+Sets VIC register $D018 to have the screen RAM and the charset at the given addresses<br>
+screen_addr must be a constant that is a multiple of $400, charset_addr a multiple of $800<br>
 This macro does not adjust the VIC bank, see set_VIC_bank<br>
 <br>
 <b>set_VIC_bank</b> <i>addr</i><br>
@@ -455,18 +460,18 @@ Registers modified: A,X<br>
 <br>
 <b>waitkey</b><br>
 Waits until a key is pressed<br>
-Function works independly of IRQ<br>
+Function works independly of IRQ routine<br>
 Registers modified: A<br>
 <br>
 <b>waitkeyreleased</b><br>
 Waits until all keys are released<br>
-Function works independly of IRQ<br>
+Function works independly of IRQ routine<br>
 Registers modified: A<br>
 <br>
 <b>readWASDspace</b><br>
 Checks the keyboard for keypresses of W, A ,S, D and Space<br>
 Output is a byte in A in the same format as a joystick value<br>
-Function works independly of IRQ or ROM<br>
+Function works independly of IRQ routine<br>
 Registers modified: A,X<br>
 <br>
 <b>makesys</b> <i>[linenumber[,text]]</i><br>
@@ -498,6 +503,12 @@ Changes the IRQ source to VIC raster interrupt<br>
 Turns off the CIA IRQ source<br>
 IRQ routine must acknowledge the IRQ source<br>
 <br>
+<b>wait_for_rasterline</b> <i>rasterline</i><br>
+Macro inserting code doing busy waiting until the given rasterline is reached<br>
+rasterline can be a value between 0 and 311 (for PAL systems) or 261 for NTSC systems, respectively<br>
+The routine does not turn off the IRQ, so an IRQ might make it miss the rasterline it is waiting for.<br>
+Registers modified: A<br>
+<br>
 <b>memcopy</b> <i>src_addr,target_addr,length</i><br>
 <br>
 memcopy_from [AX|addr]<br>
@@ -522,6 +533,32 @@ Registers modified: A<br>
 If the PETSCII value in A belongs to a printable character, it is converted to the corresponding screencode and returned in A<br>
 Control codes will lead to an arbitrary byte.<br>
 Registers modified: A<br>
+<br>
+<b>loadprg</b> <i>filename[,devicenr[,loadaddr]]</i><br>
+Wrapper around ROM load function, prg means that the file is assumed to have a two-byte load address at its start<br>
+if device number is 0 or not stated, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default<br>
+if loadaddr is omitted, the load address is defined by the first two bytes of the file<br>
+Return value in carry, if carry is set, an error has happened and error code is returned in A:<br>
+A = $05 (DEVICE NOT PRESENT)<br>
+A = $04 (FILE NOT FOUND)<br>
+A = $1D (LOAD ERROR)<br>
+A = $00 (BREAK, RUN/STOP has been pressed during loading)<br>
+Registers modified: A,X,Y<br>
+<br>
+<b>saveprg</b> <i>filename,devicenr,startaddr,endaddr</i><br>
+Saves the memory from startaddr to endaddr (including the endaddr) using the CBM ROM save function.<br>
+The file will have a two-byte load address at its start<br>
+if device number is 0, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default<br>
+Return value in carry, if carry is set, an error has happened and error code is returned in A, for example<br>
+A = $05 (DEVICE NOT PRESENT)<br>
+A = $00 (BREAK, RUN/STOP has been pressed during saving)<br>
+Registers modified: A,X,Y<br>
+<br>
+<b>scramble</b> <i>startaddr,endaddr</i><br>
+Scrambles/unscrambles a memory area. To unscramble, call scramble with the same parameters again<br>
+<br>
+<b>checksum_eor</b> <i>startaddr,endaddr</i><br>
+Returns an 8-bit checksum calculated by EOR-conjunction over all bytes<br>
 <h2>Special Macros for C128 in C128 Mode</h2>
 <br>
 <b>shadowIRQ</b> <i>off|on</i><br>

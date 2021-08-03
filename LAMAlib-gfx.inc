@@ -96,7 +96,7 @@
 ;; Sets VIC register $D018 to have the screen RAM and the charset at the given addresses
 ;; screen_addr must be a constant that is a multiple of $400, charset_addr a multiple of $800
 ;; This macro does not adjust the VIC bank, see set_VIC_bank
-.macro set_VIC_addr addr
+.macro set_VIC_addr screen_addr,charset_addr
 	lda #((screen_addr & $3C00)/$40) | ((charset_addr & $3800)/$400)
 	sta $D018
 .endmacro
