@@ -6,8 +6,8 @@
 # Usage: install_lamalib
 # cc65 tools need to be installed on your system and to be in your path
 #
-# Version: 0.2
-# Date: 2020-05-11
+# Version: 0.3
+# Date: 2021-10-05
 # Author: Wil Elmenreich (wilfried at gmx dot at)
 # License: The Unlicense (public domain)
 
@@ -23,11 +23,15 @@ nocolor='\033[0m'
 
 
 which cc65 >/dev/null
-#retval=$?
-#echo $retval
 if [ $? -ne 0 ]; then
   echo -e ${red}'cc65 installation not found. Please install cc65 and run this script again!'${nocolor}
   exit 1
+fi
+cc65dir=$(which cc65)
+if [ $cc65dir == "/usr/bin/cc65" ]; then
+  installdir=/usr/share/cc65
+else
+  installdir=$(dirname $(dirname $(which cc65)))
 fi
 
 cd lib-functions
@@ -46,13 +50,22 @@ echo Library has been created with $count modules in it.
 cd ..
 
 # find cc65 directory
-installdir=$(dirname $(dirname $(which cc65)))
 echo Installing library into $installdir
 
 cp LAMAlib*.inc "$installdir/asminc"
 cp LAMAlib.lib "$installdir/lib"
 cp ass.sh "$installdir/bin/ass"
 cp c64-basicfriendly-asm.cfg "$installdir/cfg"
+if [ $? -ne 0 ]; then
+  echo -e $red
+  echo -e "*******************************************************************************"
+  echo -e "* Could not install LAMAlib!                                                  *"
+  echo -e "*                                                                             *"
+  echo -e "* Please run the install script with superuser rights:                        *"
+  echo -e "* ${cyan}sudo ./install_lamalib.sh $red                                                  *"
+  echo -e "*******************************************************************************${nocolor}"
+  exit 1
+fi
 
 echo -e $green
 echo -e "*******************************************************************************"
