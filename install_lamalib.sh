@@ -30,8 +30,10 @@ fi
 cc65dir=$(which cc65)
 if [ $cc65dir == "/usr/bin/cc65" ]; then
   installdir=/usr/share/cc65
+  installbindir=/usr/bin
 else
   installdir=$(dirname $(dirname $(which cc65)))
+  installbindir=$installdir/bin
 fi
 
 cd lib-functions
@@ -54,7 +56,7 @@ echo Installing library into $installdir
 
 cp LAMAlib*.inc "$installdir/asminc"
 cp LAMAlib.lib "$installdir/lib"
-cp ass.sh "$installdir/bin/ass"
+cp ass.sh "$installbindir/ass"
 cp c64-basicfriendly-asm.cfg "$installdir/cfg"
 if [ $? -ne 0 ]; then
   echo -e $red
