@@ -785,6 +785,126 @@ endfilename:
         .endscope
 .endmacro
 
+;; scratchfile filename[,devicenr]
+;; Deletes a file on disk. If device number is not stated or 0, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default.
+;; Registers modified: A,X,Y
+.macro scratchfile filename,devicenr
+	.if .paramcount = 1
+          scratchfile filename,0
+          .exitmacro
+        .endif
+
+	.scope
+	lda #$0f
+	tay		;open 15,x,15
+	.if devicenr = 0
+	  ldx $BA
+	  bne :+
+	  ldx #$08	;use address 8 as default
+:	  
+	.else
+	  ldx #devicenr
+	.endif
+	jsr SETLFS
+
+        lda #endfilename-beginfilename
+	ldx #<beginfilename
+	ldy #>beginfilename
+	jsr SETNAM
+
+	jsr OPEN
+	lda #$0f
+	jsr CLOSE
+	jmp endfilename	;hop over filename data
+
+beginfilename:
+	.byte "s:"
+	.byte filename
+endfilename:
+	.endscope
+.endmacro
+
+; diskstatus devicenr
+;; Returns the disk status error message number in A
+;; This code only reads the number without further text
+;; Error codes (listed in decimal) are:
+;;  0   OK, no error exists
+;;  1   Files scratched response. Not an error condition
+;;  20  Block header not found on disk
+;;  21  Sync character not found
+;;  22  Data block not present
+;;  23  Checksum error in data
+;;  24  Byte decoding error
+;;  25  Write-verify error
+;;  26  Attempt to write with write protect on
+;;  27  Checksum error in header
+;;  28  Data extends into next block
+;;  29  Disk id mismatch
+;;  30  General syntax error
+;;  31  Invalid command
+;;  32  Long line
+;;  33  Invalid filename
+;;  34  No file given
+;;  39  Command file not found
+;;  50  Record not present
+;;  51  Overflow in record
+;;  52  File too large
+;;  60  File open for write
+;;  61  File not open
+;;  62  File not found
+;;  63  File exists
+;;  64  File type mismatch
+;;  65  No block
+;;  66  Illegal track or sector
+;;  67  Illegal system track or sector
+;;  70  No channels available
+;;  71  Directory error
+;;  72  Disk full or directory full
+;;  73  Power up message, or write attempt with DOS Mismatch
+;;  74  Drive not ready
+.macro diskstatus devicenr
+;ToDo - this should be a library routine with a short macro stub instead of a long macro
+	.scope
+        lda #0
+	jsr SETNAM	;no parameter
+	lda #$0f
+	tay		;open 15,x,15
+	.if devicenr = 0
+	  ldx $BA
+	  bne :+
+	  ldx #$08	;use address 8 as default
+:	  
+	.else
+	  ldx #devicenr
+	.endif
+	jsr SETLFS
+	jsr OPEN
+	ldx #$0f
+	jsr CHKIN
+	jsr CHRIN	;read tens digit
+	sec
+	sbc #$30
+	asl
+	sta sm_tens
+	asl
+	asl
+sm_tens=*+1
+	adc #00
+	sta sm_to_add
+	jsr CHRIN	;read ones digit
+	sec
+	sbc #$30
+	clc
+sm_to_add=*+1
+	adc #00	
+	pha
+	jsr CLRCHN
+	lda #$0f
+	jsr CLOSE
+	pla
+	.endscope
+.endmacro
+
 ;; scramble startaddr,endaddr
 ;; Scrambles/unscrambles a memory area. To unscramble, call scramble with the same parameters again
 .macro scramble startaddr,endaddr
