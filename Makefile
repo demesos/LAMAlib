@@ -20,10 +20,19 @@ clean:
 	rm -f lib-functions/*.o
 
 install:	all
-	mkdir -p $(CC65LIBDIR) $(CC65ASMINCDIR) $(CC65CFGDIR)
-	cp LAMAlib.lib $(CC65LIBDIR)
-	cp LAMAlib*.inc $(CC65ASMINCDIR)
-	cp c64-basicfriendly-asm.cfg $(CC65CFGDIR)
+	echo mkdir -p $(CC65LIBDIR) $(CC65ASMINCDIR) $(CC65CFGDIR)
+	echo cp LAMAlib.lib $(CC65LIBDIR)
+	echo cp LAMAlib*.inc $(CC65ASMINCDIR)
+	echo cp c64-basicfriendly-asm.cfg $(CC65CFGDIR)
+	echo -e $green
+	echo -e "*******************************************************************************"
+	echo -e "* Congratulations, LAMAlib has been installed!                                *"
+	echo -e "*                                                                             *"
+	echo -e "* To use it, add the line                                                     *"
+	echo -e "* \033[0;36m.include "LAMAlib.inc"${green} to the top of your assembler file and assemble with    *"
+	echo -e "* \033[0;36mcl65 yourprog.s -lib LAMAlib.lib -C c64-asm.cfg -o yourprog.prg${green}             *"
+	echo -e "* There is no overhead to your assembled program for unused functions         *"
+	echo -e "*******************************************************************************${nocolor}"
 
 uninstall:
 	rm -f $(CC65LIBDIR)/LAMAlib.lib
