@@ -36,20 +36,9 @@ else
   installbindir=$installdir/bin
 fi
 
-cd lib-functions
-count=0
-for f in *.s; do
-    ca65 -t c64 $f
-    count=$[$count +1]
-done
-
-for f in *.o; do
-    ar65 d ../LAMAlib.lib $f
-    ar65 a ../LAMAlib.lib $f
-done
-
-echo Library has been created with $count modules in it.
-cd ..
+pushd lib-functions
+make
+popd
 
 # find cc65 directory
 echo Installing library into $installdir

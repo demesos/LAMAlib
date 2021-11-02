@@ -438,7 +438,7 @@ setx:           ldx #00
             systarget=BASICSTART+$0c
             .asciiz .sprintf ("%d", systarget)
        .endif
-       .byte $00,$00,$00
+       .byte $00,$00
 .endmacro
 
 ;; check_C128
