@@ -4,37 +4,52 @@
 
 .export _gfx_init_sr := gfx_init
 
-gfx_init:
+gfx_init:  
 	ldx #00
 loopx:	txa
 	and #$F8
-	sta gfx_xtable,x
+	sta gfx_xtablelo,x
 	inx
 	bne loopx
 	
-	lda #<bitmap
-	sta gfx_ytablelow
-	lda #>bitmap
-	sta gfx_ytablehi
+	lda #<(bitmap)
+	sta gfx_ytablelo
+	ldy #>(bitmap)
+	sty gfx_ytablehi
 
-	ldx #00 ;x is already 0 because of previous loop
+	;ldx #00 ;x is already 0 because of previous loop
 	clc
+
 loopy:	
-	lda gfx_ytablehi,x
-	tay
-	lda gfx_ytablelow,x
-	adc #<320
+	txa 
+	and #07
+	eor #07
+	beq next_charline
+	lda gfx_ytablelo,x
+	clc
+	adc #01
 	inx
-	sta gfx_ytablelow,x
+	sta gfx_ytablelo,x
 	tya
-	adc #>320
 	sta gfx_ytablehi,x
+	bne loopy	;unconditional jump
+
+next_charline:
+	lda gfx_ytablelo,x
+	adc #<313
+	inx
+	sta gfx_ytablelo,x
+	tya
+	adc #>313
+	sta gfx_ytablehi,x
+	tay
 	cpx #200
 	bne loopy
 
+; initialize gfx_masks
 	lda #01
 	ldx #07
-loopm:  sta gfx_masks,x
+loopm:  sta gfx_mask_or,x
 	asl
 	dex
 	bpl loopm

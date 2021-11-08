@@ -59,11 +59,9 @@
 .endmacro
 
 ;; gfx_plot 
-;; Sets pixel at position x=AX, y=Y
-;; where AX is the 16 bit value in registers A and X and Y is the Y register
+;; Sets pixel at position x=X register (Carry indicating values > 255), y=Y register
 .import _gfx_plot_sr
 .macro gfx_plot
-	cpx #01	;set carry if X>0
 	jsr _gfx_plot_sr
 	.ifnref _gfx_init_sr 
 	.warning "The function gfx_plot requires the function gfx_init to be called beforehand, are you sure you have done this?"

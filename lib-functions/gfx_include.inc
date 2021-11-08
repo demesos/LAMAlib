@@ -5,10 +5,10 @@ bitmap=$2000
 
 gfxtables=$9000
 
-gfx_xtable   = gfxtables
-gfx_ytablelow= gfxtables + $100
+gfx_xtablelo = gfxtables
+gfx_ytablelo = gfxtables + $100
+gfx_mask_or  = gfx_ytablelo + 200 ;no bug, decimal 200 here!
 gfx_ytablehi = gfxtables + $200
-gfx_masks    = gfx_ytablelow + 200 ;no bug, decimal 200 here!
 
 ; ZP allocation for graphics routines
 
