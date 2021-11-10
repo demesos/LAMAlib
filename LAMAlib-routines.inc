@@ -33,14 +33,10 @@
 
 
 ;; rand8
-;; <b>rand8_setseed</b> [<i>arg</i>]<br>
-;; based on the 8-bit pseudo-random number generator from White Flame 
-;; https://codebase64.org/doku.php?id=base:small_fast_8-bit_prng
-;; Simple but very fast random generator with a period of 256
-;; Seed is an 8 bit value, setting seed is optional. When no argument is given, the current value in the Accumulator is used as the seed
-;; Result is returned in A
+;; Generate a random number between 0 and 255 which is returned in A.
+;; Good and fast random generator for 8bit values based on the X ABC pseudo-random number generator from EternityForest, slight modification by Wil.
 ;; Registers modified: A
-.import _rand8_sr, _rand8_seed
+.import _rand8_sr, _rand_seed1, _rand_seed2, _rand_seed3, _rand_seed4
 
 .macro rand8
 .scope
@@ -48,40 +44,51 @@
 .endscope
 .endmacro
 
-.macro rand8_setseed arg
-.scope
-        .if .paramcount = 1
-           lda #arg
-        .endif 
-        sta _rand8_seed
-.endscope
-.endmacro
 
 ;; rand16
-;; <b>rand16_setseed</b> [<i>arg</i>]<br>
-;; Fast 16-bit pseudo-random number generator with period of 65535
-;; seed must never be 32755, so setseed modifies this value it this is the case
-;; Seed is a 16 bit value, setting seed is optional. When no argument is given, the current value in A/X is used as the seed
-;; Result is returned in A/X
+;; Get a random number in AX betwenn 0 and 0xFFFF
+;; This function uses the same routine as rand8, therefore calling rand16 wil change the state of rand8 as well
 ;; Registers modified: A,X
 .import _rand16_sr, _rand16_seed
 
 .macro rand16
 .scope
-         jsr _rand16_sr
+        jsr _rand8_sr
+	ldx _rand_seed3
 .endscope
 .endmacro
 
-.macro rand16_setseed arg
+
+;; <b>rand_setseed</b> [[[[<i>arg1], arg2], arg3], arg4</i>]
+;; Seed is four 8 bit values. Arguments can be numbers or registers. Specifying seed is optional. When no argument is given, the default value for this seed byte is used.
+;; Registers modified: A
+.macro rand_setseed arg1,arg2,arg3,arg4
 .scope
-        .if .paramcount = 1
-           ldax #arg
+        .if .paramcount >= 1
+           poke _rand_seed1,arg1
+        .else
+           poke _rand_seed1,$00
+	.endif
+
+	if .paramcount >= 2
+           poke _rand_seed2,arg2
+	.else
+           poke _rand_seed2,$11
+	.endif
+
+	.if .paramcount >= 3
+           poke _rand_seed3,arg3
+	.else
+           poke _rand_seed3,$37
         .endif 
-        cmpax #32755    ;this is the one seed we need to avoid
-        bne ok
-        and #$FE ;make it 32754
-ok:     sta _rand16_seed
-        stx _rand16_seed+1
+
+	.if .paramcount = 4
+           poke _rand_seed4,arg4
+	.else
+           poke _rand_seed4,$c2
+        .endif 
+
+        sta _rand8_seed
 .endscope
 .endmacro
 

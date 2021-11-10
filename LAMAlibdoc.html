@@ -212,8 +212,7 @@ This macro needs to be called once before using gfx_plot or any function that us
 Uses all registers and overwrites memory area $9000 - $92C7<br>
 <br>
 <b>gfx_plot</b><br>
-Sets pixel at position x=AX, y=Y<br>
-where AX is the 16 bit value in registers A and X and Y is the Y register<br>
+Sets pixel at position x=X register (Carry indicating values > 255), y=Y register<br>
 <br>
 <b>set_VIC_charset</b> <i>addr</i><br>
 Sets VIC register $D018 to have the charset at the given address<br>
@@ -370,21 +369,18 @@ Negate A<br>
 Registers modified: A<br>
 <br>
 <b>rand8</b><br>
-<b>rand8_setseed</b> [<i>arg</i>]<br><br>
-based on the 8-bit pseudo-random number generator from White Flame<br>
-https://codebase64.org/doku.php?id=base:small_fast_8-bit_prng<br>
-Simple but very fast random generator with a period of 256<br>
-Seed is an 8 bit value, setting seed is optional. When no argument is given, the current value in the Accumulator is used as the seed<br>
-Result is returned in A<br>
+Generate a random number between 0 and 255 which is returned in A.<br>
+Good and fast random generator for 8bit values based on the X ABC pseudo-random number generator from EternityForest, slight modification by Wil.<br>
 Registers modified: A<br>
 <br>
 <b>rand16</b><br>
-<b>rand16_setseed</b> [<i>arg</i>]<br><br>
-Fast 16-bit pseudo-random number generator with period of 65535<br>
-seed must never be 32755, so setseed modifies this value it this is the case<br>
-Seed is a 16 bit value, setting seed is optional. When no argument is given, the current value in A/X is used as the seed<br>
-Result is returned in A/X<br>
+Get a random number in AX betwenn 0 and 0xFFFF<br>
+This function uses the same routine as rand8, therefore calling rand16 wil change the state of rand8 as well<br>
 Registers modified: A,X<br>
+<br>
+<b><b>rand_setseed</b></b> <i>[[[[<i>arg1],</i> <i>arg2],</i> <i>arg3],</i> <i>arg4</i>]</i><br>
+Seed is four 8 bit values. Arguments can be numbers or registers. Specifying seed is optional. When no argument is given, the default value for this seed byte is used.<br>
+Registers modified: A<br>
 <br>
 <b>mul16</b> <i>addr</i><br>
 Multiplies the unsigned 16 bit value in A/X with the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
@@ -553,6 +549,47 @@ Return value in carry, if carry is set, an error has happened and error code is 
 A = $05 (DEVICE NOT PRESENT)<br>
 A = $00 (BREAK, RUN/STOP has been pressed during saving)<br>
 Registers modified: A,X,Y<br>
+<br>
+<b>scratchfile</b> <i>filename[,devicenr]</i><br>
+Deletes a file on disk. If device number is not stated or 0, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default.<br>
+Registers modified: A,X,Y<br>
+Returns the disk status error message number in A<br>
+This code only reads the number without further text<br>
+Error codes (listed in decimal) are:<br>
+0   OK, no error exists<br>
+1   Files scratched response. Not an error condition<br>
+20  Block header not found on disk<br>
+21  Sync character not found<br>
+22  Data block not present<br>
+23  Checksum error in data<br>
+24  Byte decoding error<br>
+25  Write-verify error<br>
+26  Attempt to write with write protect on<br>
+27  Checksum error in header<br>
+28  Data extends into next block<br>
+29  Disk id mismatch<br>
+30  General syntax error<br>
+31  Invalid command<br>
+32  Long line<br>
+33  Invalid filename<br>
+34  No file given<br>
+39  Command file not found<br>
+50  Record not present<br>
+51  Overflow in record<br>
+52  File too large<br>
+60  File open for write<br>
+61  File not open<br>
+62  File not found<br>
+63  File exists<br>
+64  File type mismatch<br>
+65  No block<br>
+66  Illegal track or sector<br>
+67  Illegal system track or sector<br>
+70  No channels available<br>
+71  Directory error<br>
+72  Disk full or directory full<br>
+73  Power up message, or write attempt with DOS Mismatch<br>
+74  Drive not ready<br>
 <br>
 <b>scramble</b> <i>startaddr,endaddr</i><br>
 Scrambles/unscrambles a memory area. To unscramble, call scramble with the same parameters again<br>
