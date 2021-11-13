@@ -368,7 +368,7 @@ setx:           ldx #00
 .endmacro
 
 ;; delay_ms arg
-;; Waits for arg milliseconds using a busy waiting loop
+;; Delays for arg milliseconds using a busy waiting loop. This does not account for interrupts or stolen cycles by VIC badlines.
 ;; When AX is given as argument it waits as many ms as the 16 bit value in A/X
 ;; When a number (1-65536) is given as argument it waits this long
 ;; Registers modified: A,X
@@ -383,6 +383,59 @@ setx:           ldx #00
        .endif
 .endscope
 .endmacro
+
+;; delay_cycles arg
+;; Delays for arg cycles using a busy waiting approach.  This does not account for interrupts or stolen cycles by VIC badlines.
+;; arg must be a constant >=2
+;; Registers modified: A,X
+.macro  delay_cycles arg
+       .if arg=0
+            .exitmacro
+       .endif
+       .if (arg)=1
+            .error "cannot delay a single cycle, since the shortest command takes 2 cycles"
+            .exitmacro
+       .endif
+       .if ((arg)=256*5+1) .or ((arg)>256*5+2)
+            ldx #0
+:
+            dex
+            bne :-
+            delay_cycles ((arg)-256*5-1)
+            .exitmacro
+       .endif
+       .if (arg)>7
+            .if (arg) .mod 5 = 2
+              ldx #(arg-3)/5
+:
+              dex
+              bne :-
+              delay_cycles ((arg)-((arg-3)/5)*5-1)
+            .else
+              ldx #(arg-1)/5
+:
+              dex
+              bne :-
+              delay_cycles ((arg)-((arg-1)/5)*5-1)
+            .endif
+            .exitmacro
+       .endif
+       .if ((arg) & 1 = 1) .or ((arg)=6)
+            ldx $42
+            delay_cycles ((arg)-3)
+            .exitmacro
+       .endif
+       .if (arg)=4
+            ldx $4242
+            .exitmacro
+       .endif
+       .if (arg)=2
+            nop
+            .exitmacro
+       .endif
+       .error "cycle-exact count did not work"
+.endmacro
+
 
 ;; waitkey
 ;; Waits until a key is pressed

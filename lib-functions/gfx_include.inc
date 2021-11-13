@@ -8,6 +8,7 @@ gfxtables=$9000
 gfx_xtablelo = gfxtables
 gfx_ytablelo = gfxtables + $100
 gfx_mask_or  = gfx_ytablelo + 200 ;no bug, decimal 200 here!
+gfx_mask_andi= gfx_mask_or+8
 gfx_ytablehi = gfxtables + $200
 
 ; ZP allocation for graphics routines

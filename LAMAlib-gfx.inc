@@ -58,13 +58,23 @@
 	jsr _gfx_init_sr
 .endmacro
 
-;; gfx_plot 
+;; gfx_pset 
 ;; Sets pixel at position x=X register (Carry indicating values > 255), y=Y register
-.import _gfx_plot_sr
-.macro gfx_plot
-	jsr _gfx_plot_sr
+.import _gfx_pset_sr
+.macro gfx_pset
+	jsr _gfx_pset_sr
 	.ifnref _gfx_init_sr 
-	.warning "The function gfx_plot requires the function gfx_init to be called beforehand, are you sure you have done this?"
+	.warning "The function gfx_pset requires the function gfx_init to be called beforehand, are you sure you have done this?"
+	.endif
+.endmacro
+
+;; gfx_pclr 
+;; Clears pixel at position x=X register (Carry indicating values > 255), y=Y register
+.import _gfx_pclr_sr
+.macro gfx_pclr
+	jsr _gfx_pclr_sr
+	.ifnref _gfx_init_sr 
+	.warning "The function gfx_pclr requires the function gfx_init to be called beforehand, are you sure you have done this?"
 	.endif
 .endmacro
 

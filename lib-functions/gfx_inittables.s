@@ -50,6 +50,9 @@ next_charline:
 	lda #01
 	ldx #07
 loopm:  sta gfx_mask_or,x
+	eor #$ff
+	sta gfx_mask_andi,x
+	eor #$ff
 	asl
 	dex
 	bpl loopm

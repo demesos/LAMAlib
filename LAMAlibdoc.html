@@ -211,8 +211,11 @@ Initializes the look up tables used by the gfx_plot function<br>
 This macro needs to be called once before using gfx_plot or any function that uses gfx_plot (e.g. gfx_line)<br>
 Uses all registers and overwrites memory area $9000 - $92C7<br>
 <br>
-<b>gfx_plot</b><br>
+<b>gfx_pset</b><br>
 Sets pixel at position x=X register (Carry indicating values > 255), y=Y register<br>
+<br>
+<b>gfx_pclr</b><br>
+Clears pixel at position x=X register (Carry indicating values > 255), y=Y register<br>
 <br>
 <b>set_VIC_charset</b> <i>addr</i><br>
 Sets VIC register $D018 to have the charset at the given address<br>
