@@ -234,10 +234,10 @@
 ;;   ...
 ;; <b>endif</b>
 ;; This is a structure for conditional execution
-;; <i>cond</i> can be <i>eq</i>, <i>neq</i>, <i>minus</i>, <i>plus</i>, <i>c_clr</i>, <i>c_set</i>, <i>v_clr</i>, <i>v_set</i>, <i>lt</i>, <i>ge</i>
+;; <i>cond</i> can be <i>eq</i>, <i>ne</i>, <i>mi</i>, <i>pl</i>, <i>cc</i>, <i>cs</i>, <i>vc</i>, <i>vs</i>, <i>lt</i>, <i>ge</i>
 ;; This corresponds to assembler commands BEQ, BNE, BMI, BPL, BCC, BCS, BVC, BVS
 ;; Therefore the amount of code between if and else must not exceed the range of a branch instruction (127 byte for a forward branch)
-;; <i>lt</i> (less than) is equal to <i>c_clr</i> (BCC), <i>ge</i> (greater or equal) is equal to <i>c_set</i> (BCS)
+;; <i>lt</i> (less than) is equal to <i>cc</i> (BCC), <i>ge</i> (greater or equal) is equal to <i>cs</i> (BCS)
 ;; using else is optional
 ;; Registers modified: none
 
@@ -245,19 +245,19 @@
   inc_nesting_level_if
   .if ((.xmatch ({cond}, {eq})) || (.xmatch ({cond}, {zero})))
     bne .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
-  .elseif (.xmatch ({cond}, {neq}))
+  .elseif (.xmatch ({cond}, {ne}))
     beq .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
-  .elseif (.xmatch ({cond}, {minus}))
+  .elseif (.xmatch ({cond}, {mi}))
     bpl .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
-  .elseif (.xmatch ({cond}, {plus}))
+  .elseif (.xmatch ({cond}, {pl}))
     bmi .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
-  .elseif ((.xmatch ({cond}, {c_clr})) || (.xmatch ({cond}, {lt})))
+  .elseif ((.xmatch ({cond}, {cc})) || (.xmatch ({cond}, {lt})))
     bcs .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
-  .elseif ((.xmatch ({cond}, {c_set})) || (.xmatch ({cond}, {ge})))
+  .elseif ((.xmatch ({cond}, {cs})) || (.xmatch ({cond}, {ge})))
     bcc .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
-  .elseif (.xmatch ({cond}, {v_clr}))
+  .elseif (.xmatch ({cond}, {vc}))
     bvs .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
-  .elseif (.xmatch ({cond}, {v_set}))
+  .elseif (.xmatch ({cond}, {vs}))
     bvc .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
   .else
     .error  "Condition for if undefined!"
@@ -987,9 +987,9 @@
 ;;   ...
 ;; <b>loop</b> [<b>until</b>|<b>while</b> <i>cond</i>]
 ;; Defines a loop that is exit based on a while or until condition
-;; <i>cond</i> can be <i>eq</i>, <i>neq</i>, <i>minus</i>, <i>plus</i>, <i>c_clr</i>, <i>c_set</i>, <i>v_clr</i>, <i>v_set</i>, <i>lt</i>, <i>ge</i>
+;; <i>cond</i> can be <i>eq</i>, <i>ne</i>, <i>mi</i>, <i>pl</i>, <i>cc</i>, <i>cs</i>, <i>vc</i>, <i>vs</i>, <i>lt</i>, <i>ge</i>
 ;; This corresponds to assembler commands BEQ, BNE, BMI, BPL, BCC, BCS, BVC, BVS
-;; <i>lt</i> (less than) is equal to <i>c_clr</i> (BCC), <i>ge</i> (greater or equal) is equal to <i>c_set</i> (BCS)
+;; <i>lt</i> (less than) is equal to <i>cc</i> (BCC), <i>ge</i> (greater or equal) is equal to <i>cs</i> (BCS)
 ;; <b>until</b> and <b>while</b> can be used on a seperate line or after <b>loop</b>
 ;; There can be any number of <b>until</b> or <b>while</b> conditions, also none, which defines an endless loop
 ;; Within a do...loop, the macros <i>break</i> and <i>continue</i> can be used to exit the loop or go to next iteration.
@@ -1030,19 +1030,19 @@
 .macro until cond
   .if ((.xmatch ({cond}, {eq})) || (.xmatch ({cond}, {zero})))
     beq .ident(.sprintf("end_loop%d", ::nesting_level/10))
-  .elseif (.xmatch ({cond}, {neq}))
+  .elseif (.xmatch ({cond}, {ne}))
     bne .ident(.sprintf("end_loop%d", ::nesting_level/10))
-  .elseif (.xmatch ({cond}, {minus}))
+  .elseif (.xmatch ({cond}, {mi}))
     bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
-  .elseif (.xmatch ({cond}, {plus}))
+  .elseif (.xmatch ({cond}, {pl}))
     bpl .ident(.sprintf("end_loop%d", ::nesting_level/10))
-  .elseif ((.xmatch ({cond}, {c_clr})) || (.xmatch ({cond}, {lt})))
+  .elseif ((.xmatch ({cond}, {cc})) || (.xmatch ({cond}, {lt})))
     bcc .ident(.sprintf("end_loop%d", ::nesting_level/10))
-  .elseif ((.xmatch ({cond}, {c_set})) || (.xmatch ({cond}, {ge})))
+  .elseif ((.xmatch ({cond}, {cs})) || (.xmatch ({cond}, {ge})))
     bcs .ident(.sprintf("end_loop%d", ::nesting_level/10))
-  .elseif (.xmatch ({cond}, {v_clr}))
+  .elseif (.xmatch ({cond}, {vc}))
     bvc .ident(.sprintf("end_loop%d", ::nesting_level/10))
-  .elseif (.xmatch ({cond}, {v_set}))
+  .elseif (.xmatch ({cond}, {vs}))
     bvs .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .else
     .error  "Syntax error in until condition"
@@ -1052,19 +1052,19 @@
 .macro while cond
   .if ((.xmatch ({cond}, {eq})) || (.xmatch ({cond}, {zero})))
     bne .ident(.sprintf("end_loop%d", ::nesting_level/10))
-  .elseif (.xmatch ({cond}, {neq}))
+  .elseif (.xmatch ({cond}, {ne}))
     beq .ident(.sprintf("end_loop%d", ::nesting_level/10))
-  .elseif (.xmatch ({cond}, {minus}))
+  .elseif (.xmatch ({cond}, {mi}))
     bpl .ident(.sprintf("end_loop%d", ::nesting_level/10))
-  .elseif (.xmatch ({cond}, {plus}))
+  .elseif (.xmatch ({cond}, {pl}))
     bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
-  .elseif ((.xmatch ({cond}, {c_clr})) || (.xmatch ({cond}, {lt})))
+  .elseif ((.xmatch ({cond}, {cc})) || (.xmatch ({cond}, {lt})))
     bcs .ident(.sprintf("end_loop%d", ::nesting_level/10))
-  .elseif ((.xmatch ({cond}, {c_set})) || (.xmatch ({cond}, {ge})))
+  .elseif ((.xmatch ({cond}, {cs})) || (.xmatch ({cond}, {ge})))
     bcc .ident(.sprintf("end_loop%d", ::nesting_level/10))
-  .elseif (.xmatch ({cond}, {v_clr}))
+  .elseif (.xmatch ({cond}, {vc}))
     bvs .ident(.sprintf("end_loop%d", ::nesting_level/10))
-  .elseif (.xmatch ({cond}, {v_set}))
+  .elseif (.xmatch ({cond}, {vs}))
     bvc .ident(.sprintf("end_loop%d", ::nesting_level/10))
   .else
     .error  "Syntax error in while condition"
@@ -1104,35 +1104,35 @@
     .endif
     .if ((.xmatch ({cond}, {until eq})) || (.xmatch ({cond}, {until zero})))
       longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-    .elseif (.xmatch ({cond}, {until neq}))
+    .elseif (.xmatch ({cond}, {until ne}))
       longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-    .elseif (.xmatch ({cond}, {until minus}))
+    .elseif (.xmatch ({cond}, {until mi}))
       longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-    .elseif (.xmatch ({cond}, {until plus}))
+    .elseif (.xmatch ({cond}, {until pl}))
       longbmi .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-    .elseif ((.xmatch ({cond}, {until c_clr})) || (.xmatch ({cond}, {lt})))
+    .elseif ((.xmatch ({cond}, {until cc})) || (.xmatch ({cond}, {lt})))
       longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-    .elseif ((.xmatch ({cond}, {until c_set})) || (.xmatch ({cond}, {ge})))
+    .elseif ((.xmatch ({cond}, {until cs})) || (.xmatch ({cond}, {ge})))
       longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-    .elseif (.xmatch ({cond}, {until v_clr}))
+    .elseif (.xmatch ({cond}, {until vc}))
       longbvs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-    .elseif (.xmatch ({cond}, {until v_set}))
+    .elseif (.xmatch ({cond}, {until vs}))
       longbvc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .elseif ((.xmatch ({cond}, {while eq})) || (.xmatch ({cond}, {while zero})))
       longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-    .elseif (.xmatch ({cond}, {while neq}))
+    .elseif (.xmatch ({cond}, {while ne}))
       longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-    .elseif (.xmatch ({cond}, {while minus}))
+    .elseif (.xmatch ({cond}, {while mi}))
       longbmi .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-    .elseif (.xmatch ({cond}, {while plus}))
+    .elseif (.xmatch ({cond}, {while pl}))
       longbpl .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-    .elseif ((.xmatch ({cond}, {while c_clr})) || (.xmatch ({cond}, {while lt})))
+    .elseif ((.xmatch ({cond}, {while cc})) || (.xmatch ({cond}, {while lt})))
       longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-    .elseif ((.xmatch ({cond}, {while c_set})) || (.xmatch ({cond}, {while ge})))
+    .elseif ((.xmatch ({cond}, {while cs})) || (.xmatch ({cond}, {while ge})))
       longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-    .elseif (.xmatch ({cond}, {while v_clr}))
+    .elseif (.xmatch ({cond}, {while vc}))
       longbvc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-    .elseif (.xmatch ({cond}, {while v_set}))
+    .elseif (.xmatch ({cond}, {while vs}))
       longbvs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     .else
       .error "Syntax error in loop condition"

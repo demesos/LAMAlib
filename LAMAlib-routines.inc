@@ -385,57 +385,41 @@ setx:           ldx #00
 .endmacro
 
 ;; delay_cycles arg
-;; Delays for arg cycles using a busy waiting approach.  This does not account for interrupts or stolen cycles by VIC badlines.
+;; Delays for arg cycles using a busy waiting approach. This does not account for interrupts or stolen cycles by VIC badlines.
 ;; arg must be a constant >=2
-;; Registers modified: A,X
+;; generated code does not need to be aligned, but requires around 0.3 bytes/cycle in memory
+;; Registers modified: none (but flags may be messed up)
 .macro  delay_cycles arg
-       .if arg=0
+       .if (arg)=0
             .exitmacro
        .endif
        .if (arg)=1
-            .error "cannot delay a single cycle, since the shortest command takes 2 cycles"
+            .error "cannot delay a single cycle since the shortest command takes 2 cycles"
             .exitmacro
        .endif
-       .if ((arg)=256*5+1) .or ((arg)>256*5+2)
-            ldx #0
-:
-            dex
-            bne :-
-            delay_cycles ((arg)-256*5-1)
+       .if (arg)=7 .or (arg)>8
+	    pha
+            pla
+            delay_cycles ((arg)-7)
+	    .exitmacro
+       .endif
+       .if (arg)=6 .or (arg)=8
+            cmp ($42,X)
+            delay_cycles ((arg)-6)
             .exitmacro
        .endif
-       .if (arg)>7
-            .if (arg) .mod 5 = 2
-              ldx #(arg-3)/5
-:
-              dex
-              bne :-
-              delay_cycles ((arg)-((arg-3)/5)*5-1)
-            .else
-              ldx #(arg-1)/5
-:
-              dex
-              bne :-
-              delay_cycles ((arg)-((arg-1)/5)*5-1)
-            .endif
-            .exitmacro
-       .endif
-       .if ((arg) & 1 = 1) .or ((arg)=6)
-            ldx $42
+       .if (arg)=3 .or (arg)=5
+            bit $42
             delay_cycles ((arg)-3)
             .exitmacro
        .endif
-       .if (arg)=4
-            ldx $4242
-            .exitmacro
-       .endif
-       .if (arg)=2
+       .if (arg)=2 .or (arg)=4
             nop
+            delay_cycles ((arg)-2)
             .exitmacro
        .endif
        .error "cycle-exact count did not work"
 .endmacro
-
 
 ;; waitkey
 ;; Waits until a key is pressed
@@ -567,30 +551,28 @@ waitraster:
 ;; Turns off the CIA IRQ source
 ;; IRQ routine must acknowledge the IRQ source
 .macro set_raster_irq rasterline
-	.scope
 	.ifblank rasterline
-	  rline:=0
+	  rline_value .set 0
 	.else
-	  rline:=rasterline
+	  rline_value .set rasterline
 	.endif
         lda #$7f
         sta $dc0d       ; disable timer interrupts
         sta $dd0d
 
         and $D011       ; accu is still $7f
-        .if rline>255
+        .if rline_value>255
         ora #$80
         .endif
         sta $D011       ; Clear most significant bit in VIC's raster register
 
         lda $dc0d       ; acknowledge CIA interrupts
 
-        lda #<rline
+        lda #<rline_value
         sta $D012       ; Set the raster line number where interrupt should occur 
 
         lda #01
         sta $D01A       ; set raster interrupt
-	.endscope
 .endmacro
 
 ;; wait_for_rasterline rasterline
