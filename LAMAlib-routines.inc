@@ -581,21 +581,21 @@ waitraster:
 ;; The routine does not turn off the IRQ, so an IRQ might make it miss the rasterline it is waiting for.
 ;; Registers modified: A
 .macro wait_for_rasterline rasterline
-	.scope
-restart:
+.if rasterline>255 .or rasterline<56
+:
+.endif
         lda #<(rasterline)
-waitraster:
+:
         cmp $D012    		;wait until lobyte matches
-        bne waitraster
+        bne :-
         .if rasterline>255
           lda $D011		;check highbyte to be set
-          bpl restart
+          bpl :--
         .endif
         .if rasterline<56
           lda $D011		;check highbyte to be cleared
-          bmi restart
+          bmi :--
         .endif
-        .endscope
 .endmacro
 
 
