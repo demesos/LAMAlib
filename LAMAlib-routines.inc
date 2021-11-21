@@ -397,6 +397,30 @@ setx:           ldx #00
             .error "cannot delay a single cycle since the shortest command takes 2 cycles"
             .exitmacro
        .endif
+       .if (arg)=53 .or (arg)>54
+	    .import _delay_53cycles
+	    jsr _delay_53cycles
+            delay_cycles ((arg)-53)
+            .exitmacro
+       .endif
+       .if (arg)=47 .or (arg)>48
+	    .import _delay_47cycles
+	    jsr _delay_47cycles
+            delay_cycles ((arg)-47)
+            .exitmacro
+       .endif
+       .if (arg)=43 .or (arg)>44
+	    .import _delay_43cycles
+	    jsr _delay_43cycles
+            delay_cycles ((arg)-43)
+            .exitmacro
+       .endif
+       .if (arg)=31 .or (arg)>32
+	    .import _delay_31cycles
+	    jsr _delay_31cycles
+            delay_cycles ((arg)-31)
+            .exitmacro
+       .endif
        .if (arg)=7 .or (arg)>8
 	    pha
             pla

@@ -42,9 +42,10 @@ for %%f in (*.s) do (
 )
 
 for %%f in (*.o) do (
-    ar65 d ..\LAMAlib.lib %%f
-    ar65 a ..\LAMAlib.lib %%f
+    ar65 a LAMAlib.lib %%f
 )
+
+move /y LAMAlib.lib ..
 
 echo Library has been created with %count% modules in it.
 cd ..
