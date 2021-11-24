@@ -35,6 +35,15 @@
 ; 
 ;
 ; <h1>Command documentation</h1>
+;
+; <h2>Switches</h2>
+;
+; <b>USE_BASIC_ROM</b> .set [0|1]
+; This switch tells LAMAlib if it should use calls into BASIC ROM or not. If USE_BASIC_ROM ist set to 0, LAMAlib uses its own implementations for printstr and print number.
+; The LAMAlib implementations are also faster, so USE_BASIC_ROM can also be set to 0 if you would like to increase performance.
+; USE_BASIC_ROM does not actually change the ROM configuration.
+; The switch can be changed multiple times to create program parts using the ROM and parts that do not.
+
 
 .include "LAMAlib-macros16.inc"
 .include "LAMAlib-ROMfunctions.inc"

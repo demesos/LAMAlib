@@ -7,8 +7,8 @@
 set TARGET=c64
 
 if "%1"=="" (
-  echo Usage: %0 asmfile [startaddr]
-  echo Calls the cl65 assembler and linker and creates an executable .PRG for C64
+  echo Usage: %0 [-128] asmfile [startaddr]
+  echo Calls the cl65 assembler and linker and creates an executable .PRG for C64, unless -128 is specified, then result is for C128
   exit /b
 )
 if "%1"=="-128" (
@@ -38,15 +38,15 @@ if "%2"=="" (
   echo assembling %1 for target %TARGET%...
   >nul findstr /c:"makesys" %1 && (
     @echo on
-    cl65 "%1" -lib LAMAlib.lib -t %TARGET% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -o "%~n1.prg"
+    cl65 -t %TARGET% "%1" -lib LAMAlib.lib -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -o "%~n1.prg"
   ) || (
     @echo on
-    cl65 "%1" -lib LAMAlib.lib -t %TARGET% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -u __EXEHDR__ -o "%~n1.prg"
+    cl65 -t %TARGET% "%1" -lib LAMAlib.lib -t %TARGET% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -u __EXEHDR__ -o "%~n1.prg"
   )
 ) else (
   echo assembling %1 to start address %2 for target %TARGET%...
   @echo on
-  cl65 "%1" -lib LAMAlib.lib -t %TARGET% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" --start-addr %2 -o "%~n1.prg"
+  cl65 -t %TARGET% "%1" -lib LAMAlib.lib -t %TARGET% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" --start-addr %2 -o "%~n1.prg"
 )
 @echo done.
 

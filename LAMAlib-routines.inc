@@ -228,10 +228,15 @@
 ;; Registers modified: A,Y,X
 .macro  printax
 .scope
+	.if ::USE_BASIC_ROM>0
                 sta setx +1     ;we need to switch A and X
                 txa
 setx:           ldx #00
                 jsr LINPRT
+	.else
+		.import _printax_sr
+		jsr _printax_sr
+	.endif
 .endscope
 .endmacro
 
@@ -248,10 +253,17 @@ setx:           ldx #00
                 lda #'-'        ;write out minus sign
                 jsr CHROUT
                 pla
-positive:       sta setx +1     ;we need to switch A and X
+positive:       
+
+	.if ::USE_BASIC_ROM>0
+                sta setx +1     ;we need to switch A and X
                 txa
 setx:           ldx #00
                 jsr LINPRT
+	.else
+		.import _printax_sr
+		jsr _printax_sr
+	.endif
 .endscope
 .endmacro
 
@@ -260,11 +272,14 @@ setx:           ldx #00
 ;; BASIC and KERNAL ROM need to be enabled when using this function
 ;; Registers modified: A,Y,X
 .macro  printstr   addr
-.scope
                 lda #<addr
                 ldy #>addr
+	.if USE_BASIC_ROM>0
                 jsr STROUT
-.endscope
+	.else
+		.import _strout_sr
+		jsr _strout_sr
+	.endif
 .endmacro
 
 ;; newline
@@ -761,7 +776,7 @@ L1:
         .endscope
 .endmacro
 
-;; loadprg filename[,devicenr[,loadaddr]]
+;; load_prg filename[,devicenr[,loadaddr]]
 ;; Wrapper around ROM load function, prg means that the file is assumed to have a two-byte load address at its start
 ;; if device number is 0 or not stated, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default
 ;; if loadaddr is omitted, the load address is defined by the first two bytes of the file
@@ -771,7 +786,7 @@ L1:
 ;;  A = $1D (LOAD ERROR)
 ;;  A = $00 (BREAK, RUN/STOP has been pressed during loading)
 ;; Registers modified: A,X,Y
-.macro loadprg filename,devicenr,loadaddr
+.macro load_prg filename,devicenr,loadaddr
         .scope
         lda #endfilename-beginfilename
 	ldx #<beginfilename
@@ -814,7 +829,7 @@ endfilename:
         .endscope
 .endmacro
 
-;; saveprg filename,devicenr,startaddr,endaddr
+;; save_prg filename,devicenr,startaddr,endaddr
 ;; Saves the memory from startaddr to endaddr (including the endaddr) using the CBM ROM save function.
 ;; The file will have a two-byte load address at its start
 ;; if device number is 0, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default
@@ -822,7 +837,7 @@ endfilename:
 ;;  A = $05 (DEVICE NOT PRESENT)
 ;;  A = $00 (BREAK, RUN/STOP has been pressed during saving)
 ;; Registers modified: A,X,Y
-.macro saveprg filename,devicenr,startaddr,endaddr
+.macro save_prg filename,devicenr,startaddr,endaddr
         .scope
         lda #endfilename-beginfilename
 	ldx #<beginfilename
@@ -851,12 +866,12 @@ endfilename:
         .endscope
 .endmacro
 
-;; scratchfile filename[,devicenr]
+;; scratch_file filename[,devicenr]
 ;; Deletes a file on disk. If device number is not stated or 0, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default.
 ;; Registers modified: A,X,Y
-.macro scratchfile filename,devicenr
+.macro scratch_file filename,devicenr
 	.if .paramcount = 1
-          scratchfile filename,0
+          scratch_file filename,0
           .exitmacro
         .endif
 

@@ -2,6 +2,8 @@
 
 .if .def(__C64__)
 
+USE_BASIC_ROM .set 1  ;add USE_BASIC_ROM=0 to your code to make LAMAlib generate code without calls to BASIC ROM
+
 STROUT= $AB1E ;outputs a string at addr A/Y
 LINPRT= $BDCD ;outputs number in A/X
 
@@ -70,7 +72,9 @@ CRB= CIABASE+$F ;Control Timer B
 
 .elseif .def(__C128__)
 
-STROUT= $AB1E ;outputs a string at addr A/Y
+USE_BASIC_ROM .set 1  ;add USE_BASIC_ROM=0 to your code to make LAMAlib generate code without calls to BASIC ROM
+
+STROUT= $55E2 ;outputs a string at addr A/Y
 LINPRT= $8E32 ;outputs number in A/X
 
 CLRSCR= $C142 ;clear screen
@@ -147,6 +151,8 @@ CRA= CIABASE+$E ;Control Timer A
 CRB= CIABASE+$F ;Control Timer B
 
 .elseif .def(__VIC20__)
+
+USE_BASIC_ROM .set 1  ;add USE_BASIC_ROM=0 to your code to make LAMAlib generate code without calls to BASIC ROM
 
 STROUT= $CB1E ;outputs a string at addr A/Y
 LINPRT= $DDCD ;outputs number in A/X
