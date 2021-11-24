@@ -547,7 +547,7 @@ If the PETSCII value in A belongs to a printable character, it is converted to t
 Control codes will lead to an arbitrary byte.<br>
 Registers modified: A<br>
 <br>
-<b>loadprg</b> <i>filename[,devicenr[,loadaddr]]</i><br>
+<b>load_prg</b> <i>filename[,devicenr[,loadaddr]]</i><br>
 Wrapper around ROM load function, prg means that the file is assumed to have a two-byte load address at its start<br>
 if device number is 0 or not stated, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default<br>
 if loadaddr is omitted, the load address is defined by the first two bytes of the file<br>
@@ -558,7 +558,7 @@ A = $1D (LOAD ERROR)<br>
 A = $00 (BREAK, RUN/STOP has been pressed during loading)<br>
 Registers modified: A,X,Y<br>
 <br>
-<b>saveprg</b> <i>filename,devicenr,startaddr,endaddr</i><br>
+<b>save_prg</b> <i>filename,devicenr,startaddr,endaddr</i><br>
 Saves the memory from startaddr to endaddr (including the endaddr) using the CBM ROM save function.<br>
 The file will have a two-byte load address at its start<br>
 if device number is 0, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default<br>
@@ -567,8 +567,8 @@ A = $05 (DEVICE NOT PRESENT)<br>
 A = $00 (BREAK, RUN/STOP has been pressed during saving)<br>
 Registers modified: A,X,Y<br>
 <br>
-<b>scratchfile</b> <i>filename[,devicenr]</i><br>
-Deletes a file on disk. If device number is not stated or 0, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default.<br>
+<b>scratch_file</b> <i>filename[,devicenr]</i><br>
+Deletes a file on disk. If device number is not stated or 0, the last used device number stored in address $BA is used. In case $BA contains 0, 8 is used as default.<br>
 Registers modified: A,X,Y<br>
 Returns the disk status error message number in A<br>
 This code only reads the number without further text<br>

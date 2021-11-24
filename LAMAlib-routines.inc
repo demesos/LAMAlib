@@ -867,7 +867,7 @@ endfilename:
 .endmacro
 
 ;; scratch_file filename[,devicenr]
-;; Deletes a file on disk. If device number is not stated or 0, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default.
+;; Deletes a file on disk. If device number is not stated or 0, the last used device number stored in address $BA is used. In case $BA contains 0, 8 is used as default.
 ;; Registers modified: A,X,Y
 .macro scratch_file filename,devicenr
 	.if .paramcount = 1
