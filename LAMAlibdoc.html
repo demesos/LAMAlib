@@ -225,6 +225,10 @@ Sets pixel at position x=X register (Carry indicating values > 255), y=Y registe
 <b>gfx_pclr</b><br>
 Clears pixel at position x=X register (Carry indicating values > 255), y=Y register<br>
 <br>
+<b>gfx_pget</b><br>
+Reads pixel at position x=X register (Carry indicating values > 255), y=Y register<br>
+Return value (0 or 1) in A<br>
+<br>
 <b>set_VIC_charset</b> <i>addr</i><br>
 Sets VIC register $D018 to have the charset at the given address<br>
 addr must be a constant that is a multiple of $800<br>
@@ -445,6 +449,18 @@ sets the text color<br>
 place the cursor at screen position line,column (counted in characters)<br>
 0,0 is upper left corner, 24,39 the lower right corner<br>
 arguments can be constants or registers<br>
+<br>
+<b>turn_on_cursor</b><br>
+Shows the blinking cursor during program execution<br>
+Requires the KERNAL IRQ routines to be active<br>
+if this function is used on the C128, a bank with visible ROM must be active.<br>
+Turn off cursor briefly before output of a char, otherwise you get inverse character artifacts when blink phase is on<br>
+<br>
+<b>turn_off_cursor</b><br>
+Turns off the blinking cursor and restores the character and color under cursor if necessary.<br>
+Requires the KERNAL IRQ routines to be active<br>
+If this function is used on the C128, a bank with visible ROM must be active.<br>
+Use this before output of a char, otherwise you get inverse character artifacts when blink phase is on<br>
 <br>
 <b>lowercase_mode</b><br>
 Switches charset to upper/lowercase (text mode) setting and locks the CBM+Shift switch<br>

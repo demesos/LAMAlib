@@ -33,6 +33,17 @@ if "%1"=="-64" (
   shift
 )
 
+if "%1"=="-20" (
+  set TARGET=vic20
+  shift
+) else if "%1"=="-vc20" (
+  set TARGET=vic20
+  shift
+) else if "%1"=="-vic20" (
+  set TARGET=vic20
+  shift
+)
+
 
 if "%2"=="" (
   echo assembling %1 for target %TARGET%...

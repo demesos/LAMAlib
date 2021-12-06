@@ -78,6 +78,17 @@
 	.endif
 .endmacro
 
+;; gfx_pget 
+;; Reads pixel at position x=X register (Carry indicating values > 255), y=Y register
+;; Return value (0 or 1) in A
+.import _gfx_pget_sr
+.macro gfx_pget
+	jsr _gfx_pget_sr
+	.ifnref _gfx_init_sr 
+	.warning "The function gfx_pclr requires the function gfx_init to be called beforehand, are you sure you have done this?"
+	.endif
+.endmacro
+
 ;; set_VIC_charset addr
 ;; Sets VIC register $D018 to have the charset at the given address
 ;; addr must be a constant that is a multiple of $800

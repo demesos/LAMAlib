@@ -346,6 +346,35 @@ setx:           ldx #00
 .endmacro
 
 
+;; turn_on_cursor
+;; Shows the blinking cursor during program execution
+;; Requires the KERNAL IRQ routines to be active
+;; if this function is used on the C128, a bank with visible ROM must be active.
+;; Turn off cursor briefly before output of a char, otherwise you get inverse character artifacts when blink phase is on
+.macro turn_on_cursor
+.if .def(__C128__)
+	jsr $CD6F	;Bank 15 needs to be enabled
+.else
+	lda #0
+	sta 204		;cursor visibility switch for C64, VIC20
+.endif
+.endmacro
+
+
+;; turn_off_cursor
+;; Turns off the blinking cursor and restores the character and color under cursor if necessary.
+;; Requires the KERNAL IRQ routines to be active
+;; If this function is used on the C128, a bank with visible ROM must be active.
+;; Use this before output of a char, otherwise you get inverse character artifacts when blink phase is on
+.macro turn_off_cursor
+.if .def(__C128__)
+	jsr $CD9F	;bank 15 needs to be enabled
+.else
+.import _turn_off_cursor_sr
+	jsr _turn_off_cursor_sr
+.endif
+.endmacro	
+
 
 ;; lowercase_mode
 ;; Switches charset to upper/lowercase (text mode) setting and locks the CBM+Shift switch
@@ -1050,5 +1079,3 @@ loop:
 	pla
         .endscope
 .endmacro
-
-	

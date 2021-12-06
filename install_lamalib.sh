@@ -46,7 +46,7 @@ echo Installing library into $installdir
 cp LAMAlib*.inc "$installdir/asminc"
 cp LAMAlib.lib "$installdir/lib"
 cp ass.sh "$installbindir/ass"
-cp c64-basicfriendly-asm.cfg "$installdir/cfg"
+cp *-basicfriendly-asm.cfg "$installdir/cfg"
 if [ $? -ne 0 ]; then
   echo -e $red
   echo -e "*******************************************************************************"

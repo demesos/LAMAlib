@@ -2,15 +2,22 @@
 
 .if .def(__C64__)
 
+PRESSED_KEY_MATRIX_CODE=$C5
+MATRIX_CODE_NO_KEY=$40
+
+CHARS_IN_KEYBUF= $C6
+CURSORX        = $D3
+CURSORY        = $D6
+
+TEXTCOLOR_ADDR=646
+PTRSCRHI=$288 ;high byte of pointer to screen memory for screen input/output
+
+BASICSTART=$0801
+
 USE_BASIC_ROM .set 1  ;add USE_BASIC_ROM=0 to your code to make LAMAlib generate code without calls to BASIC ROM
 
 STROUT= $AB1E ;outputs a string at addr A/Y
 LINPRT= $BDCD ;outputs number in A/X
-
-CURSORX=$D3
-CURSORY=$D6
-
-TEXTCOLOR_ADDR=646
 
 CLRSCR= $E544 ;clear screen
 
@@ -57,8 +64,6 @@ IOBASE= $FFF3 ;Fetch CIA #1 base address
 
 INITVIC = $E5A0
 INITVEC = $FD15   
-BASICSTART=$0801
-PTRSCRHI=$288 ;high byte of pointer to screen memory for screen input/output
 
 CIABASE=$DD00
 
@@ -72,6 +77,18 @@ CRB= CIABASE+$F ;Control Timer B
 
 .elseif .def(__C128__)
 
+PRESSED_KEY_MATRIX_CODE=$D4
+MATRIX_CODE_NO_KEY=$58
+
+CHARS_IN_KEYBUF= $D0
+CURSORX        = $EC
+CURSORY        = $EB
+TEXTCOLOR_ADDR = $F1
+
+PTRSCRHI=$a3b ;high byte of pointer to screen memory for screen input/output
+
+BASICSTART=$1C01
+
 USE_BASIC_ROM .set 1  ;add USE_BASIC_ROM=0 to your code to make LAMAlib generate code without calls to BASIC ROM
 
 STROUT= $55E2 ;outputs a string at addr A/Y
@@ -80,8 +97,6 @@ LINPRT= $8E32 ;outputs number in A/X
 CLRSCR= $C142 ;clear screen
 INITVIC = $E170
 INITVEC = $E056 
-
-TEXTCOLOR_ADDR=$F1
 
 SCINIT= $FF81 ;Initialize VIC, clear screen
 IOINIT= $FF84 ;Initialize CIAs, SID volume; setup memory configuration; set and start interrupt timer
@@ -135,11 +150,6 @@ SPLIT= $0A34 ;in split screen mode, contains value for middle raster irq.
 CURMOD=$0A2B ;8563 CURSQR Mode.
 PAUSE= $0A21 ;scroll flag (in effect = $13)
 
-BASICSTART=$1C01
-PTRSCRHI=$a3b ;high byte of pointer to screen memory for screen input/output
-CURSORX=$EC
-CURSORY=$EB
-
 CIABASE=$DD00
 
 TIMERA= CIABASE+4
@@ -153,6 +163,15 @@ CRB= CIABASE+$F ;Control Timer B
 .elseif .def(__VIC20__)
 
 USE_BASIC_ROM .set 1  ;add USE_BASIC_ROM=0 to your code to make LAMAlib generate code without calls to BASIC ROM
+
+PRESSED_KEY_MATRIX_CODE=$C5
+MATRIX_CODE_NO_KEY=$40
+
+CHARS_IN_KEYBUF= $C6
+CURSORX        = $D3
+CURSORY        = $D6
+
+BASICSTART=$1001
 
 STROUT= $CB1E ;outputs a string at addr A/Y
 LINPRT= $DDCD ;outputs number in A/X
@@ -198,8 +217,6 @@ UDTIM = $FFEA ;Increment real-time clock
 SCRORG= $FFED ;Fetch number of screen rows and columns
 PLOT  = $FFF0 ;Save or restore cursor position
 IOBASE= $FFF3 ;Fetch CIA #1 base address
-
-BASICSTART=$1001
 
 VIABASE=$9110
 
