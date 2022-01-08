@@ -805,6 +805,58 @@ L1:
         .endscope
 .endmacro
 
+;; draw_frame
+;; Draws a frame around the window defined by the window parameters
+;; Note that the frame will go around the window, so it is larger than the defined window
+;; Window parameters:
+;; <tt>.import _window_x1,_window_y1,_window_x2,_window_y2</tt>
+;; Further configuration parameters (default is a white frame using PETSCII characters):
+;; <tt> .import _frame_upper_left
+;;  .import _frame_upper_right
+;;  .import _frame_lower_left
+;;  .import _frame_lower_right
+;;  .import _frame_vertical
+;;  .import _frame_horizontal
+;;  .import _frame_color</tt>
+;; For example to change the color of the frame to green, write
+;; <tt>  .import _frame_color
+;;   poke _frame_color,5</tt>
+
+.macro draw_window_frame
+.import _draw_frame_sr
+	jsr _draw_frame_sr
+.endmacro
+
+;; enable_chrout2window
+;; Switches the Kernal chrout vector to a routine that prints within a window
+;; The page of the textscreen (stored in $288 / 648) is used to determine the output screen, but if you change the screen page, <b>enable_chrout2window</b> needs to be called again.
+;; Limitations: no backspace, no insert
+;; Note that control character keypresses in direct mode are not handled via $FFD2, therefore pressing for example CLR/HOME will leave the window in direct mode.
+;; Window parameters:
+;; <tt>.import _window_x1,_window_y1,_window_x2,_window_y2</tt>
+;; For example to set a window starting on column 5, write 
+;; <tt>  .import _window_x1
+;;   poke _window_x1,5</tt>
+
+.macro enable_chrout2window
+.import _enable_chrout2window
+	jsr _enable_chrout2window
+.endmacro
+
+;; clear_window
+;; Clears the window that was defined by the window parametes above. When chrout2window is enabled, the same effect can be achieved by lda #147, jsr $FFD2
+.macro clear_window
+.import _clear_window
+	jsr _clear_window
+.endmacro
+
+;; disable_chrout2window
+;; Restores the original Kernal vector and disables the chrout2window mode
+.macro disable_chrout2window
+.import _disable_chrout2window
+	jsr _disable_chrout2window
+.endmacro
+
 ;; load_prg filename[,devicenr[,loadaddr]]
 ;; Wrapper around ROM load function, prg means that the file is assumed to have a two-byte load address at its start
 ;; if device number is 0 or not stated, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default

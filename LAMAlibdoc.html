@@ -563,6 +563,40 @@ If the PETSCII value in A belongs to a printable character, it is converted to t
 Control codes will lead to an arbitrary byte.<br>
 Registers modified: A<br>
 <br>
+<b>draw_frame</b><br>
+Draws a frame around the window defined by the window parameters<br>
+Note that the frame will go around the window, so it is larger than the defined window<br>
+Window parameters:<br>
+<tt>.import _window_x1,_window_y1,_window_x2,_window_y2</tt><br>
+Further configuration parameters (default is a white frame using PETSCII characters):<br>
+<tt> .import _frame_upper_left<br>
+.import _frame_upper_right<br>
+.import _frame_lower_left<br>
+.import _frame_lower_right<br>
+.import _frame_vertical<br>
+.import _frame_horizontal<br>
+.import _frame_color</tt><br>
+For example to change the color of the frame to green, write<br>
+<tt>  .import _frame_color<br>
+poke _frame_color,5</tt><br>
+<br>
+<b>enable_chrout2window</b><br>
+Switches the Kernal chrout vector to a routine that prints within a window<br>
+The page of the textscreen (stored in $288 / 648) is used to determine the output screen, but if you change the screen page, <b>enable_chrout2window</b> needs to be called again.<br>
+Limitations: no backspace, no insert<br>
+Note that control character keypresses in direct mode are not handled via $FFD2, therefore pressing for example CLR/HOME will leave the window in direct mode.<br>
+Window parameters:<br>
+<tt>.import _window_x1,_window_y1,_window_x2,_window_y2</tt><br>
+For example to set a window starting on column 5, write<br>
+<tt>  .import _window_x1<br>
+poke _window_x1,5</tt><br>
+<br>
+<b>clear_window</b><br>
+Clears the window that was defined by the window parametes above. When chrout2window is enabled, the same effect can be achieved by lda #147, jsr $FFD2<br>
+<br>
+<b>disable_chrout2window</b><br>
+Restores the original Kernal vector and disables the chrout2window mode<br>
+<br>
 <b>load_prg</b> <i>filename[,devicenr[,loadaddr]]</i><br>
 Wrapper around ROM load function, prg means that the file is assumed to have a two-byte load address at its start<br>
 if device number is 0 or not stated, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default<br>
