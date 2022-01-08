@@ -822,7 +822,7 @@ L1:
 ;; <tt>  .import _frame_color
 ;;   poke _frame_color,5</tt>
 
-.macro draw_window_frame
+.macro draw_frame
 .import _draw_frame_sr
 	jsr _draw_frame_sr
 .endmacro
