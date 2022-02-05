@@ -572,3 +572,21 @@ savea:		lda #00
         .endif
 .endscope
 .endmacro
+
+;; jsr_ind addr
+;; Executes a subroutine by a vector stored in addr and returns to the command after jsr_ind upon completion with an rts
+;; arg1 will be a 16 bit address containing the vector to jump to
+;; Regs changed: none 
+
+.macro  jsr_ind addr
+.scope
+	store A
+	lda #>ret
+	pha
+	lda #<ret
+	pha
+	restore A
+ret=*+2		;the jmp () has three bytes, but ret must be decreased by 1
+.endscope
+	jmp (addr)
+.endmacro
