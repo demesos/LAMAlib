@@ -31,30 +31,153 @@
 	adc #0
 .endmacro
 
-
-;; rand8
+;; rand8 [max value-1]
 ;; Generate a random number between 0 and 255 which is returned in A.
+;; The argument is optional and can be a number or the Y register
+;; If an argument is given, the value is caclulated between 0 and given number-1
 ;; Good and fast random generator for 8bit values based on the X ABC pseudo-random number generator from EternityForest, slight modification by Wil.
-;; Registers modified: A
-.import _rand8_sr, _rand_seed1, _rand_seed2, _rand_seed3, _rand_seed4
+;; Registers modified: A,Y (Y is only used when an argument is used)
+.import _rand8_sr, _rand_seed1, _rand_seed2, _rand_seed3, _rand_seed4,_a_mod_y_sr
 
-.macro rand8
+.macro rand8 max
 .scope
-         jsr _rand8_sr
+        .if .paramcount = 1
+	  .if (.xmatch ({max}, {A}))                  ;calc mod A
+	    tay
+	  .elseif (.xmatch ({max}, {X}))              ;calc mod X
+	    txa
+	    tay
+	  .endif
+	.endif
+        jsr _rand8_sr
+        .if .paramcount = 1
+	  .if (.xmatch ({max}, {A}))                  ;calc mod A, value already in Y
+	    jsr a_mod_y_sr
+	  .elseif (.xmatch ({max}, {X}))              ;calc mod X, value already in Y
+	    jsr a_mod_y_sr
+	  .elseif (.xmatch ({max}, {Y}))              ;calc mod Y         
+	    jsr a_mod_y_sr
+	  .elseif max <= 1
+	    and #0
+	  .elseif max = 2
+	    and #1
+	  .elseif max = 4
+	    and #3
+	  .elseif max = 8
+	    and #7
+	  .elseif max = 16
+	    and #15
+	  .elseif max = 32
+	    and #31
+	  .elseif max = 64
+	    and #63
+	  .elseif max = 128
+	    and #127
+	  .else
+	    ldy #max
+	    jsr _a_mod_y_sr
+	  .endif
+	.endif
 .endscope
 .endmacro
 
 
-;; rand16
+;; rand16 [max value-1]
 ;; Get a random number in AX betwenn 0 and 0xFFFF
+;; The argument is optional and can be a number or AX
+;; If an argument is given, the value is caclulated between 0 and given number-1
 ;; This function uses the same routine as rand8, therefore calling rand16 wil change the state of rand8 as well
-;; Registers modified: A,X
-.import _rand16_sr, _rand16_seed
-
-.macro rand16
+;; Registers modified: A,X,Y (Y is only used when an argument is used)
+.import _rand16_sr, _rand16_seed,_ax_mod_zpw1_sr
+.importzp _llzp_word1
+.macro rand16 max
 .scope
+        .if .paramcount = 1
+	  .if (.xmatch ({max}, {AX}))                  ;calc mod AX
+	    stax _llzp_word1
+	  .endif
+	.endif
         jsr _rand8_sr
 	ldx _rand_seed3
+        .if .paramcount = 1
+	  .if (.xmatch ({max}, {AX}))                  ;calc mod AX
+	     jsr _ax_mod_zpw1_sr
+	  .elseif max <= 1
+	    ldx #0
+	    and #0
+	  .elseif max = 2
+	    ldx #0
+	    and #1
+	  .elseif max = 4
+	    ldx #0
+	    and #3
+	  .elseif max = 8
+	    ldx #0
+	    and #7
+	  .elseif max = 16
+	    ldx #0
+	    and #15
+	  .elseif max = 32
+	    ldx #0
+	    and #31
+	  .elseif max = 64
+	    ldx #0
+	    and #63
+	  .elseif max = 128
+	    ldx #0
+	    and #127
+	  .elseif max = 256
+	    ldx #0
+	  .elseif max = 512
+	    pha
+	    txa
+	    and #1
+	    tax
+	    pla
+	  .elseif max = 1024
+	    pha
+	    txa
+	    and #3
+	    tax
+	    pla
+	  .elseif max = 2048
+	    pha
+	    txa
+	    and #7
+	    tax
+	    pla
+	  .elseif max = 4096
+	    pha
+	    txa
+	    and #15
+	    tax
+	    pla
+	  .elseif max = 8192
+	    pha
+	    txa
+	    and #31
+	    tax
+	    pla
+	  .elseif max = 16384
+	    pha
+	    txa
+	    and #63
+	    tax
+	    pla
+	  .elseif max = 32768
+	    pha
+	    txa
+	    and #127
+	    tax
+	    pla
+	  .else
+	    ldy #<max
+	    sty _llzp_word1
+	    ldy #>max
+	    sty _llzp_word1+1
+	    jsr _ax_mod_zpw1_sr
+	  .endif
+	.endif
 .endscope
 .endmacro
 

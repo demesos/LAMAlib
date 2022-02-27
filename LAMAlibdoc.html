@@ -20,10 +20,15 @@ There is a script <tt>install_lamalib.bat</tt> included which does the following
 In your programs,<br>
 <ul><li>add a line <tt>.include "LAMAlib.inc"</tt> at the top of your assembler file<br>
 <li>assemble with command <tt>cl65 yourprog.s -lib LAMAlib.lib -C c64-asm.cfg -u __EXEHDR__ -o yourprog.prg</tt>
+<li>alternatively, use the provided shellscripts ass.bat / ass.sh: <tt>ass yourprog.s</tt>
 </ul>
 <br>
+Usage: <tt>ass [-128] asmfile [startaddr]</tt>
+<br>
+Calls the cl65 assembler and linker and creates an executable <tt>.PRG</tt> for the C64, unless <tt>-128</tt> is specified, then the program will be assembled for C128<br>
+<br>
 <h3>Possibility 2: Keep LAMAlib separately</h3>
-Keep a copy of the LAMAlib folder in a sister directory of your project.<br>
+Keep a copy of the LAMAlib folder in a sister directory of your project. You need then to link to the library via its relative or absolute path.<br>
 <br>
 In your programs,<br>
 <ul><li>add a line <tt>.include "../LAMAlib/LAMAlib.inc"</tt> at the top of your assembler file (the forward slash works on Linux as well as on Linux systems)<br>
@@ -32,8 +37,8 @@ In your programs,<br>
 </ul>
 <br>
 <h2>Points to remember</h2>
-Please note that the zero flag for 16/24/32 bit operations is not properly set for most macros except CMP. For example after a 16 bit calculation, a CMPAX #00 is necessary to test for zero in AX.<br>
-Instead of zero page variable , the library functions uses self-contained self-modifying codeblocks whenever possible, but some of the more complex functions like division and multiplication use zero page addresses, they are reserved in the segment "ZEROPAGE".<br>
+Please note that the zero flag for 16 operations is not properly set for most macros except CMP. For example after a 16 bit calculation, a CMPAX #00 is necessary to test for zero in AX.<br>
+Instead of many zero page variables, the library functions uses self-contained self-modifying codeblocks whenever possible, but some of the more complex functions like division and multiplication use zero page addresses, they are reserved in the segment "ZEROPAGE".<br>
 <br>
 <br>
 <h1>Command documentation</h1>
@@ -197,6 +202,11 @@ arg1 will be filled with low byte of arg2<br>
 arg2 will be filled with high byte of arg2<br>
 arg1, arg2 can be both constants or one can be AX and the other a constant<br>
 Regs changed: A, Y (in case AX is used as address)<br>
+<br>
+<b>jsr_ind</b> <i>addr</i><br>
+Executes a subroutine by a vector stored in addr and returns to the command after jsr_ind upon completion with an rts<br>
+arg1 will be a 16 bit address containing the vector to jump to<br>
+Regs changed: none<br>
 <h2>Hires Graphics Functions - CURRENTLY UNDER DEVELOPMENT</h2>
 <br>
 <b>blank_screen</b><br>
@@ -383,15 +393,19 @@ Registers modified: none<br>
 Negate A<br>
 Registers modified: A<br>
 <br>
-<b>rand8</b><br>
+<b>rand8</b> <i>[max</i> <i>value-1]</i><br>
 Generate a random number between 0 and 255 which is returned in A.<br>
+The argument is optional and can be a number or the Y register<br>
+If an argument is given, the value is caclulated between 0 and given number-1<br>
 Good and fast random generator for 8bit values based on the X ABC pseudo-random number generator from EternityForest, slight modification by Wil.<br>
-Registers modified: A<br>
+Registers modified: A,Y (Y is only used when an argument is used)<br>
 <br>
-<b>rand16</b><br>
+<b>rand16</b> <i>[max</i> <i>value-1]</i><br>
 Get a random number in AX betwenn 0 and 0xFFFF<br>
+The argument is optional and can be a number or AX<br>
+If an argument is given, the value is caclulated between 0 and given number-1<br>
 This function uses the same routine as rand8, therefore calling rand16 wil change the state of rand8 as well<br>
-Registers modified: A,X<br>
+Registers modified: A,X,Y (Y is only used when an argument is used)<br>
 <br>
 <b><b>rand_setseed</b></b> <i>[[[[<i>arg1],</i> <i>arg2],</i> <i>arg3],</i> <i>arg4</i>]</i><br>
 Seed is four 8 bit values. Arguments can be numbers or registers. Specifying seed is optional. When no argument is given, the default value for this seed byte is used.<br>
