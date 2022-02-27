@@ -22,5 +22,5 @@ loop while eq                   ; wait for pressed key
 rts
 ```
 
-Please see the full documentation in `lamalibdoc.html`
+Please see the full documentation in [lamalibdoc.html](https://htmlpreview.github.io/?https://github.com/demesos/LAMAlib/blob/master/LAMAlibdoc.html)
 
