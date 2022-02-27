@@ -21,9 +21,9 @@
 ; <li>alternatively, use the provided shellscripts ass.bat / ass.sh: <tt>ass yourprog.s</tt>
 ; </ul>
 ;
-; Usage: <tt>ass [-128] asmfile [startaddr]</tt>
+; Usage: <tt>ass [-20|-128] asmfile [startaddr]</tt>
 ;
-; Calls the cl65 assembler and linker and creates an executable <tt>.PRG</tt> for the C64, unless <tt>-128</tt> is specified, then the program will be assembled for C128
+; Calls the cl65 assembler and linker and creates an executable <tt>.PRG</tt> for the C64, unless <tt>-20</tt> or <tt>-128</tt> is specified, then the program will be assembled for the VIC20 or C128, respectively.
 ;
 ; <h3>Possibility 2: Keep LAMAlib separately</h3>
 ; Keep a copy of the LAMAlib folder in a sister directory of your project. You need then to link to the library via its relative or absolute path.
