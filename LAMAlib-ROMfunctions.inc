@@ -224,11 +224,6 @@ TIMERAlatch= VIABASE+4
 TIMERAcounter = VIABASE+6
 TIMERBlatch= VIABASE+8
 
-ICR= CIABASE+$D ;Interrupt control reg
-
-CRA= CIABASE+$E ;Control Timer A
-CRB= CIABASE+$F ;Control Timer B
-
 .endif
 
 
