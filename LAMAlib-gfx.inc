@@ -1,15 +1,19 @@
 ;; <h2>Hires Graphics Functions - CURRENTLY UNDER DEVELOPMENT</h2>
 
 ;; blank_screen
-;; Blanks the screen and shows only the border color
+;; Waits until rasterbar is below screen area, then blanks the screen and shows only the border color
 .macro blank_screen
+.scope
+:	lda $D012
+	bpl :-      ;wait until rasterbar is below screen area
 	lda $D011   ;bit 4 off = Screen blanked
 	and #%11101111
 	sta $D011 
+.endscope
 .endmacro
 
 ;; unblank_screen
-;; Blanks the screen and shows only the border color
+;; Shows the screen again after it was blanked, effective with next frame
 .macro unblank_screen
 	lda $D011   ;bit 4 on = Screen visible
 	ora #%00010000
