@@ -397,7 +397,7 @@ setx:           ldx #00
 .macro  printstr   addr
                 lda #<addr
                 ldy #>addr
-	.if USE_BASIC_ROM>0
+	.if ::USE_BASIC_ROM>0
                 jsr STROUT
 	.else
 		.import _strout_sr
