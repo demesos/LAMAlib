@@ -299,6 +299,8 @@
 ;;
 ;; Within a for loop, the macros <i>break</i> and <i>continue</i> can be used to exit the loop or go to next iteration.
 ;;
+;; When used within a .SCOPE or .PROC, you need to have constants used in the macro parameters to be fixed at the time of the macro call. This means, it is necessary to add the :: prefix for global constants.
+;;
 ;; Registers modified: the loop register and A for indirectly given step values
 ;;
 ;; Code example that outputs '9876543210':
