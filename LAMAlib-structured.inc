@@ -283,7 +283,7 @@
 ;;   ...
 ;; <b>next</b>
 ;; The for loop iterates from the start value to the end value, inclusive. This is similar to the behavior of FOR in BASIC
-;; Counting variable can be an 8-bit register (A,X,Y), a 16 bit register (AX) or a 16 bit memory address (in parentheses)
+;; Counting variable can be an 8-bit register (A,X,Y), a 16 bit register (AX) or a 16 bit memory address/label (parentheses are optional)
 ;; <i>start</i> can be a constant or a memory address pointing to the value
 ;; <i>end</i> can be a constant or a memory address pointing to the value. The loop is continued including an iteration reaching the <i>end</i> value
 ;; <i>start</i> can be a constant or a memory address pointing to the value

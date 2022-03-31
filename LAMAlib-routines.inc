@@ -216,15 +216,42 @@
 .endmacro
 
 ;; mul16 addr
+;; compactmul16 addr
 ;; Multiplies the unsigned 16 bit value in A/X with the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)
 ;; Implemented as a subroutinge, link with -lib lamalib.lib
+;; mul16 adds a routine of 51 byte to your program the first time you use it
+;; compactmul16 adds a routine of 32 byte to your program the first time you use it
+;; mul16 is about 20% faster than compactmul, we recommend using mul16 in most cases
 ;; This function is not reentrant, don't use in interrupt and main program simultaneously
 ;; Result is returned in A/X
 ;; Registers modified: A,X,Y
+
+.import _fastmul16_sr
+.importzp _fastmul16_arg
+
+.macro mul16 arg
+.scope
+        .if (.match (.left (1, {arg}), #))
+            ; immediate mode
+            ldy     #<(.right (.tcount ({arg})-1, {arg}))
+            sty _fastmul16_arg
+            ldy     #>(.right (.tcount ({arg})-1, {arg}))
+            sty _fastmul16_arg+1
+        .else
+            ; assume absolute or zero page
+            ldy     arg
+            sty _fastmul16_arg
+            ldy     1+(arg)
+            sty _fastmul16_arg+1
+        .endif  
+        jsr _fastmul16_sr ;fastmul16 subroutine
+.endscope
+.endmacro
+
 .import _mul16_sr
 .importzp _mul16_arg
 
-.macro mul16 arg
+.macro compactmul16 arg
 .scope
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
@@ -243,27 +270,7 @@
 .endscope
 .endmacro
 
-.import _fastmul16_sr
-.importzp _fastmul16_arg
 
-.macro fastmul16 arg
-.scope
-        .if (.match (.left (1, {arg}), #))
-            ; immediate mode
-            ldy     #<(.right (.tcount ({arg})-1, {arg}))
-            sty _fastmul16_arg
-            ldy     #>(.right (.tcount ({arg})-1, {arg}))
-            sty _fastmul16_arg+1
-        .else
-            ; assume absolute or zero page
-            ldy     arg
-            sty _fastmul16_arg
-            ldy     1+(arg)
-            sty _fastmul16_arg+1
-        .endif  
-        jsr _fastmul16_sr ;fastmul16 subroutine
-.endscope
-.endmacro
 
 ;; div16 arg
 ;; Multiplies the unsigned 16 bit value in A/X with an imediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)
@@ -297,6 +304,7 @@
 ;; Prints the arguments as strings or numbers
 ;; An argument in parenthesis will print the 16bit value stored at this address
 ;; uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro
+;; Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)
 ;; Registers modified: A,Y,X
 .macro print arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
   .ifblank arg1

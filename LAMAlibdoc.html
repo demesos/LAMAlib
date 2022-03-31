@@ -291,7 +291,7 @@ Registers modified: none<br>
 ...<br>
 <b>next</b><br>
 The for loop iterates from the start value to the end value, inclusive. This is similar to the behavior of FOR in BASIC<br>
-Counting variable can be an 8-bit register (A,X,Y), a 16 bit register (AX) or a 16 bit memory address (in parentheses)<br>
+Counting variable can be an 8-bit register (A,X,Y), a 16 bit register (AX) or a 16 bit memory address/label (parentheses are optional)<br>
 <i>start</i> can be a constant or a memory address pointing to the value<br>
 <i>end</i> can be a constant or a memory address pointing to the value. The loop is continued including an iteration reaching the <i>end</i> value<br>
 <i>start</i> can be a constant or a memory address pointing to the value<br>
@@ -412,8 +412,12 @@ Seed is four 8 bit values. Arguments can be numbers or registers. Specifying see
 Registers modified: A<br>
 <br>
 <b>mul16</b> <i>addr</i><br>
+compactmul16 addr<br>
 Multiplies the unsigned 16 bit value in A/X with the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
 Implemented as a subroutinge, link with -lib lamalib.lib<br>
+mul16 adds a routine of 51 byte to your program the first time you use it<br>
+compactmul16 adds a routine of 32 byte to your program the first time you use it<br>
+mul16 is about 20% faster than compactmul, we recommend using mul16 in most cases<br>
 This function is not reentrant, don't use in interrupt and main program simultaneously<br>
 Result is returned in A/X<br>
 Registers modified: A,X,Y<br>
@@ -429,6 +433,7 @@ Registers modified: all<br>
 Prints the arguments as strings or numbers<br>
 An argument in parenthesis will print the 16bit value stored at this address<br>
 uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
+Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)<br>
 Registers modified: A,Y,X<br>
 <br>
 <b>primm</b> <i>str</i><br>
