@@ -299,8 +299,6 @@
 ;;
 ;; Within a for loop, the macros <i>break</i> and <i>continue</i> can be used to exit the loop or go to next iteration.
 ;;
-;; When used within a .SCOPE or .PROC, you need to have constants used in the macro parameters to be fixed at the time of the macro call. This means, it is necessary to add the :: prefix for global constants.
-;;
 ;; Registers modified: the loop register and A for indirectly given step values
 ;;
 ;; Code example that outputs '9876543210':
@@ -322,7 +320,8 @@
   .elseif .xmatch ({var}, {AX})
     .ident(.sprintf("for_var%d", ::nesting_level/10))=-4
   .else
-    .ident(.sprintf("for_var%d", ::nesting_level/10))=var
+    .ident(.sprintf("for_var%d", ::nesting_level/10))=-5
+    .ident(.sprintf("for_var_addr%d", ::nesting_level/10))=var
   .endif
 
   .if .xmatch ({dir}, {to}) || .xmatch ({dir}, {TO})
@@ -410,9 +409,9 @@
         .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=0
       .endif
       lda #<(start)
-      sta .ident(.sprintf("for_var%d", ::nesting_level/10))
+      sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
       lda #>(start)
-      sta .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+      sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
     .endif
   .endif
 .ident(.sprintf("begin_loop%d", ::nesting_level/10)):
@@ -585,44 +584,44 @@
     .else   ;--- next (addr) ---
       .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
         clc
-        lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+        lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
         adc .ident(.sprintf("for_inc%d", ::nesting_level/10))
-        sta .ident(.sprintf("for_var%d", ::nesting_level/10))
-        lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+        sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
+        lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
         adc .ident(.sprintf("for_inc%d", ::nesting_level/10))+1
-        sta .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+        sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
         .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
           cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
           longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           bne .ident(.sprintf("end_loop%d", ::nesting_level/10))
           lda .ident(.sprintf("for_end%d", ::nesting_level/10))
-          cmp .ident(.sprintf("for_var%d", ::nesting_level/10))
+          cmp .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
           longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
           cmp #>.ident(.sprintf("for_end%d", ::nesting_level/10))
           longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           bne .ident(.sprintf("end_loop%d", ::nesting_level/10))
-          lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+          lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
           cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))     
           longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
         .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
-          inc16 .ident(.sprintf("for_var%d", ::nesting_level/10))
+          inc16 .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
           .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
-            lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+            lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
             cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
             longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             lda .ident(.sprintf("for_end%d", ::nesting_level/10))
-            cmp .ident(.sprintf("for_var%d", ::nesting_level/10))
+            cmp .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
             longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
-            lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+            lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
             .if (<.ident(.sprintf("for_end%d", ::nesting_level/10)))>0
               cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif 
             longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-            lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+            lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
             .if (>.ident(.sprintf("for_end%d", ::nesting_level/10)))>0
               cmp #>.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif
@@ -630,24 +629,24 @@
           .endif
         .else
           clc
-          lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+          lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
           adc #<.ident(.sprintf("for_inc%d", ::nesting_level/10))
-          sta .ident(.sprintf("for_var%d", ::nesting_level/10))
-          lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+          sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
+          lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
           adc #>.ident(.sprintf("for_inc%d", ::nesting_level/10))
-          sta .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+          sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
           .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
             cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
             longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             bne .ident(.sprintf("end_loop%d", ::nesting_level/10))
             lda .ident(.sprintf("for_end%d", ::nesting_level/10))
-            cmp .ident(.sprintf("for_var%d", ::nesting_level/10))
+            cmp .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
             longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
             cmp #>.ident(.sprintf("for_end%d", ::nesting_level/10))
             longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             bne .ident(.sprintf("end_loop%d", ::nesting_level/10))
-            lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+            lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
             cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))     
             longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .endif
@@ -897,45 +896,45 @@
     .else   ;--- next (addr) ---
       .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
         sec
-        lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+        lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
         sbc .ident(.sprintf("for_inc%d", ::nesting_level/10))
-        sta .ident(.sprintf("for_var%d", ::nesting_level/10))
-        lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+        sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
+        lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
         sbc .ident(.sprintf("for_inc%d", ::nesting_level/10))+1
-        sta .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+        sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
         .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
           cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
           bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
           longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-          lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+          lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
           cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
           longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
           cmp #>(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
           bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
           longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-          lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+          lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
           cmp #<(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
           longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
         .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
-          dec16 .ident(.sprintf("for_var%d", ::nesting_level/10))
+          dec16 .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
           .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
-            lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+            lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
             cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
             bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
             longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-            lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+            lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
             cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
             longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
-            lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+            lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
             .if (<.ident(.sprintf("for_end%d", ::nesting_level/10)))>0
               cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif 
             longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-            lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+            lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
             .if (>.ident(.sprintf("for_end%d", ::nesting_level/10)))>0
               cmp #>.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif
@@ -943,34 +942,34 @@
           .endif
         .else
           sec
-          lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+          lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
           sbc #<.ident(.sprintf("for_inc%d", ::nesting_level/10))
-          sta .ident(.sprintf("for_var%d", ::nesting_level/10))
-          lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+          sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
+          lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
           sbc #>.ident(.sprintf("for_inc%d", ::nesting_level/10))
-          sta .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+          sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
           .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
-            lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+            lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
             cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
             bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
             longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-            lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+            lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
             cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
             longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
             .if .ident(.sprintf("for_end%d", ::nesting_level/10))-.ident(.sprintf("for_inc%d", ::nesting_level/10))>0
-              lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+              lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
               cmp #>.ident(.sprintf("for_end%d", ::nesting_level/10))
               longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-              lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+              lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
               cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))     
               longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             .else
-              lda .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+              lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
               cmp #>(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
               bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
               longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-              lda .ident(.sprintf("for_var%d", ::nesting_level/10))
+              lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
               cmp #<(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
               longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             .endif
