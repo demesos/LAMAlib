@@ -380,125 +380,25 @@ Registers modified: none<br>
 <br>
 <h2>Useful Routines</h2>
 <br>
-<b>decimal_flag_to_N</b><br>
-Copies the decimal flag into the negative flag to detect if decimal mode is on<br>
-Macro always returns with a cleared Carry<br>
-Registers modified: A<br>
-<br>
-<b>toggle_carry</b><br>
-Toggles the carry<br>
-Registers modified: none<br>
-<br>
-<b>neg</b><br>
-Negate A<br>
-Registers modified: A<br>
-<br>
-<b>rand8</b> <i>[max</i> <i>value-1]</i><br>
-Generate a random number between 0 and 255 which is returned in A.<br>
-The argument is optional and can be a number or the Y register<br>
-If an argument is given, the value is caclulated between 0 and given number-1<br>
-Good and fast random generator for 8bit values based on the X ABC pseudo-random number generator from EternityForest, slight modification by Wil.<br>
-Registers modified: A,Y (Y is only used when an argument is used)<br>
-<br>
-<b>rand16</b> <i>[max</i> <i>value-1]</i><br>
-Get a random number in AX betwenn 0 and 0xFFFF<br>
-The argument is optional and can be a number or AX<br>
-If an argument is given, the value is caclulated between 0 and given number-1<br>
-This function uses the same routine as rand8, therefore calling rand16 wil change the state of rand8 as well<br>
-Registers modified: A,X,Y (Y is only used when an argument is used)<br>
-<br>
-<b><b>rand_setseed</b></b> <i>[[[[<i>arg1],</i> <i>arg2],</i> <i>arg3],</i> <i>arg4</i>]</i><br>
-Seed is four 8 bit values. Arguments can be numbers or registers. Specifying seed is optional. When no argument is given, the default value for this seed byte is used.<br>
-Registers modified: A<br>
-<br>
-<b>mul16</b> <i>addr</i><br>
-compactmul16 addr<br>
-Multiplies the unsigned 16 bit value in A/X with the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
-Implemented as a subroutinge, link with -lib lamalib.lib<br>
-mul16 adds a routine of 51 byte to your program the first time you use it<br>
-compactmul16 adds a routine of 32 byte to your program the first time you use it<br>
-mul16 is about 20% faster than compactmul, we recommend using mul16 in most cases<br>
-This function is not reentrant, don't use in interrupt and main program simultaneously<br>
-Result is returned in A/X<br>
-Registers modified: A,X,Y<br>
-<br>
-<b>div16</b> <i>arg</i><br>
-Multiplies the unsigned 16 bit value in A/X with an imediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
-Implemented as a subroutinge, link with -lib lamalib.lib<br>
-This function is not reentrant, don't use in interrupt and main program simultaneously<br>
-Result is returned in A/X<br>
-Registers modified: all<br>
-<br>
-<b>print</b> <i>arg1</i> <i>[arg2</i> <i>...]</i><br>
-Prints the arguments as strings or numbers<br>
-An argument in parenthesis will print the 16bit value stored at this address<br>
-uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
-Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)<br>
-Registers modified: A,Y,X<br>
-<br>
-<b>primm</b> <i>str</i><br>
-Prints the given string, string is inlined in program code<br>
-uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
-Registers modified: A,Y,X<br>
-<br>
-<b>printax</b><br>
-Prints the number in A/X as a 16 bit unsigned decimal number<br>
-BASIC and KERNAL ROM need to be enabled when using this function<br>
-Registers modified: A,Y,X<br>
-<br>
-<b>printax_signed</b><br>
-Prints the number in A/X as a 16 bit signed decimal number<br>
-BASIC and KERNAL ROM need to be enabled when using this function<br>
-Registers modified: A,Y,X<br>
-<br>
-<b>printstr</b> <i>addr</i><br>
-Prints the null-terminated string at addr using the STROUT function<br>
-BASIC and KERNAL ROM need to be enabled when using this function<br>
-Registers modified: A,Y,X<br>
-<br>
-<b>newline</b><br>
-Prints a newline character<br>
-KERNAL ROM needs to be enabled when using this function<br>
-Registers modified: A<br>
-<br>
-<b>textcolor</b> <i>color</i><br>
-sets the text color<br>
-<br>
-<b>set_cursor_pos</b> <i>line,column</i><br>
-place the cursor at screen position line,column (counted in characters)<br>
-0,0 is upper left corner, 24,39 the lower right corner<br>
-arguments can be constants or registers<br>
-<br>
-<b>turn_on_cursor</b><br>
-Shows the blinking cursor during program execution<br>
-Requires the KERNAL IRQ routines to be active<br>
-if this function is used on the C128, a bank with visible ROM must be active.<br>
-Turn off cursor briefly before output of a char, otherwise you get inverse character artifacts when blink phase is on<br>
-<br>
-<b>turn_off_cursor</b><br>
-Turns off the blinking cursor and restores the character and color under cursor if necessary.<br>
-Requires the KERNAL IRQ routines to be active<br>
-If this function is used on the C128, a bank with visible ROM must be active.<br>
-Use this before output of a char, otherwise you get inverse character artifacts when blink phase is on<br>
-<br>
-<b>lowercase_mode</b><br>
-Switches charset to upper/lowercase (text mode) setting and locks the CBM+Shift switch<br>
-Registers modified: A<br>
-<br>
-<b>PETSCII_mode</b><br>
-Switches charset to uppercase plus graphical characters (graphics mode) setting and locks the CBM+Shift switch<br>
-Registers modified: A<br>
+<b>check_C128</b><br>
+Detects if we are on a C128 in C64 mode<br>
+returns with carry set for C128<br>
 <br>
 <b>clrscr</b><br>
 Clears the screen<br>
 KERNAL ROM needs to be enabled when using this function<br>
 Registers modified: A,Y,X<br>
 <br>
-<b>delay_ms</b> <i>arg</i><br>
-Delays for arg milliseconds using a busy waiting loop. This does not account for interrupts or stolen cycles by VIC badlines.<br>
-When AX is given as argument it waits as many ms as the 16 bit value in A/X<br>
-When a number (1-65536) is given as argument it waits this long<br>
-Registers modified: A,X<br>
+<b>checksum_eor</b> <i>startaddr,endaddr</i><br>
+Returns an 8-bit checksum calculated by EOR-conjunction over all bytes<br>
+<br>
+<b>clear_window</b><br>
+Clears the window that was defined by the window parametes above. When chrout2window is enabled, the same effect can be achieved by lda #147, jsr $FFD2<br>
+<br>
+<b>decimal_flag_to_N</b><br>
+Copies the decimal flag into the negative flag to detect if decimal mode is on<br>
+Macro always returns with a cleared Carry<br>
+Registers modified: A<br>
 <br>
 <b>delay_cycles</b> <i>arg</i><br>
 Delays for arg cycles using a busy waiting approach. This does not account for interrupts or stolen cycles by VIC badlines.<br>
@@ -506,139 +406,20 @@ arg must be a constant >=2<br>
 generated code does not need to be aligned, but requires around 0.3 bytes/cycle in memory<br>
 Registers modified: none (but flags may be messed up)<br>
 <br>
-<b>waitkey</b><br>
-Waits until a key is pressed<br>
-Function works independly of IRQ routine<br>
-Registers modified: A<br>
-<br>
-<b>waitkeyreleased</b><br>
-Waits until all keys are released<br>
-Function works independly of IRQ routine<br>
-Registers modified: A<br>
-<br>
-<b>readWASDspace</b><br>
-Checks the keyboard for keypresses of W, A ,S, D and Space<br>
-Output is a byte in A in the same format as a joystick value<br>
-Function works independly of IRQ routine<br>
+<b>delay_ms</b> <i>arg</i><br>
+Delays for arg milliseconds using a busy waiting loop. This does not account for interrupts or stolen cycles by VIC badlines.<br>
+When AX is given as argument it waits as many ms as the 16 bit value in A/X<br>
+When a number (1-65536) is given as argument it waits this long<br>
 Registers modified: A,X<br>
 <br>
-<b>makesys</b> <i>[linenumber[,text]]</i><br>
-Generates the code for a BASIC line with a SYS command and an optional text behind the sys command<br>
-This is similar to the command line option  -u __EXEHDR__<br>
-Difference is that with this function the code segment starts at $801, so .align is off only by 1<br>
-Default line number is 2020<br>
-<br>
-<b>check_C128</b><br>
-Detects if we are on a C128 in C64 mode<br>
-returns with carry set for C128<br>
-<br>
-<b>identify_SID</b> <i>[baseaddress]</i><br>
-Detects the SID soundchip model<br>
-SID detection routine from codebase64 by SounDemon and a tip from Dag Lem<br>
-If no base address is given, the standard base address $d400 is used<br>
-Overwrites register A<br>
-Result is returned in carry<br>
-Carry flag is set for 6581, and clear for 8580<br>
+<b>disable_chrout2window</b><br>
+Restores the original Kernal vector and disables the chrout2window mode<br>
 <br>
 <b>disable_NMI</b><br>
 Executes a short routine to disable the NMI<br>
 the trick is to cause an NMI but don't ackowledge it<br>
 Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)<br>
 Registers modified: A<br>
-<br>
-<b>set_raster_irq</b> <i>rasterline</i><br>
-Changes the IRQ source to VIC raster interrupt<br>
-Turns off the CIA IRQ source<br>
-IRQ routine must acknowledge the IRQ source<br>
-<br>
-<b>wait_for_rasterline</b> <i>rasterline</i><br>
-Macro inserting code doing busy waiting until the given rasterline is reached<br>
-rasterline can be a value between 0 and 311 (for PAL systems) or 261 for NTSC systems, respectively<br>
-The routine does not turn off the IRQ, so an IRQ might make it miss the rasterline it is waiting for.<br>
-Registers modified: A<br>
-<br>
-<b>memcopy</b> <i>src_addr,target_addr,length</i><br>
-<br>
-memcopy_from [AX|addr]<br>
-memcopy_to   [AX|addr]<br>
-memcopy [AX|length]<br>
-Copies the memory area src_addr to src_addr+length over target_addr<br>
-If the areas are overlapping, then target_addr must be < src_addr<br>
-The three parameter version takes three constant numbers<br>
-Alternatively, the function can be configured parameter by parameter, either with AX or a constant<br>
-Registers modified: A,X,Y<br>
-<br>
-<b>memset</b> <i>start_addr,end_addr,fillvalue</i><br>
-Fills the memory area between start_addr and end_adder with the byte fillvalue<br>
-Registers modified: A,X,Y<br>
-<br>
-<b>is_in_range</b> <i>lower,higher</i><br>
-Tests if value in Accu is between the values <i>lower</i> and <i>higher</i><br>
-If the value was inside, the Carry is set, otherwise the Carry is cleared<br>
-Registers modified: A<br>
-<br>
-<b>to_screencode</b><br>
-If the PETSCII value in A belongs to a printable character, it is converted to the corresponding screencode and returned in A<br>
-Control codes will lead to an arbitrary byte.<br>
-Registers modified: A<br>
-<br>
-<b>draw_frame</b><br>
-Draws a frame around the window defined by the window parameters<br>
-Note that the frame will go around the window, so it is larger than the defined window<br>
-Window parameters:<br>
-<tt>.import _window_x1,_window_y1,_window_x2,_window_y2</tt><br>
-Further configuration parameters (default is a white frame using PETSCII characters):<br>
-<tt> .import _frame_upper_left<br>
-.import _frame_upper_right<br>
-.import _frame_lower_left<br>
-.import _frame_lower_right<br>
-.import _frame_vertical<br>
-.import _frame_horizontal<br>
-.import _frame_color</tt><br>
-For example to change the color of the frame to green, write<br>
-<tt>  .import _frame_color<br>
-poke _frame_color,5</tt><br>
-<br>
-<b>enable_chrout2window</b><br>
-Switches the Kernal chrout vector to a routine that prints within a window<br>
-The page of the textscreen (stored in $288 / 648) is used to determine the output screen, but if you change the screen page, <b>enable_chrout2window</b> needs to be called again.<br>
-Limitations: no backspace, no insert<br>
-Note that control character keypresses in direct mode are not handled via $FFD2, therefore pressing for example CLR/HOME will leave the window in direct mode.<br>
-Window parameters:<br>
-<tt>.import _window_x1,_window_y1,_window_x2,_window_y2</tt><br>
-For example to set a window starting on column 5, write<br>
-<tt>  .import _window_x1<br>
-poke _window_x1,5</tt><br>
-<br>
-<b>clear_window</b><br>
-Clears the window that was defined by the window parametes above. When chrout2window is enabled, the same effect can be achieved by lda #147, jsr $FFD2<br>
-<br>
-<b>disable_chrout2window</b><br>
-Restores the original Kernal vector and disables the chrout2window mode<br>
-<br>
-<b>load_prg</b> <i>filename[,devicenr[,loadaddr]]</i><br>
-Wrapper around ROM load function, prg means that the file is assumed to have a two-byte load address at its start<br>
-if device number is 0 or not stated, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default<br>
-if loadaddr is omitted, the load address is defined by the first two bytes of the file<br>
-Return value in carry, if carry is set, an error has happened and error code is returned in A:<br>
-A = $05 (DEVICE NOT PRESENT)<br>
-A = $04 (FILE NOT FOUND)<br>
-A = $1D (LOAD ERROR)<br>
-A = $00 (BREAK, RUN/STOP has been pressed during loading)<br>
-Registers modified: A,X,Y<br>
-<br>
-<b>save_prg</b> <i>filename,devicenr,startaddr,endaddr</i><br>
-Saves the memory from startaddr to endaddr (including the endaddr) using the CBM ROM save function.<br>
-The file will have a two-byte load address at its start<br>
-if device number is 0, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default<br>
-Return value in carry, if carry is set, an error has happened and error code is returned in A, for example<br>
-A = $05 (DEVICE NOT PRESENT)<br>
-A = $00 (BREAK, RUN/STOP has been pressed during saving)<br>
-Registers modified: A,X,Y<br>
-<br>
-<b>scratch_file</b> <i>filename[,devicenr]</i><br>
-Deletes a file on disk. If device number is not stated or 0, the last used device number stored in address $BA is used. In case $BA contains 0, 8 is used as default.<br>
-Registers modified: A,X,Y<br>
 Returns the disk status error message number in A<br>
 This code only reads the number without further text<br>
 Error codes (listed in decimal) are:<br>
@@ -677,11 +458,232 @@ Error codes (listed in decimal) are:<br>
 73  Power up message, or write attempt with DOS Mismatch<br>
 74  Drive not ready<br>
 <br>
+<b>div16</b> <i>arg</i><br>
+Multiplies the unsigned 16 bit value in A/X with an imediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
+Implemented as a subroutinge, link with -lib lamalib.lib<br>
+This function is not reentrant, don't use in interrupt and main program simultaneously<br>
+Result is returned in A/X<br>
+Registers modified: all<br>
+<br>
+<b>draw_frame</b><br>
+Draws a frame around the window defined by the window parameters<br>
+Note that the frame will go around the window, so it is larger than the defined window<br>
+Window parameters:<br>
+<tt>.import _window_x1,_window_y1,_window_x2,_window_y2</tt><br>
+Further configuration parameters (default is a white frame using PETSCII characters):<br>
+<tt> .import _frame_upper_left<br>
+.import _frame_upper_right<br>
+.import _frame_lower_left<br>
+.import _frame_lower_right<br>
+.import _frame_vertical<br>
+.import _frame_horizontal<br>
+.import _frame_color</tt><br>
+For example to change the color of the frame to green, write<br>
+<tt>  .import _frame_color<br>
+poke _frame_color,5</tt><br>
+<br>
+<b>enable_chrout2window</b><br>
+Switches the Kernal chrout vector to a routine that prints within a window<br>
+The page of the textscreen (stored in $288 / 648) is used to determine the output screen, but if you change the screen page, <b>enable_chrout2window</b> needs to be called again.<br>
+Limitations: no backspace, no insert<br>
+Note that control character keypresses in direct mode are not handled via $FFD2, therefore pressing for example CLR/HOME will leave the window in direct mode.<br>
+Window parameters:<br>
+<tt>.import _window_x1,_window_y1,_window_x2,_window_y2</tt><br>
+For example to set a window starting on column 5, write<br>
+<tt>  .import _window_x1<br>
+poke _window_x1,5</tt><br>
+<br>
+<b>identify_SID</b> <i>[baseaddress]</i><br>
+Detects the SID soundchip model<br>
+SID detection routine from codebase64 by SounDemon and a tip from Dag Lem<br>
+If no base address is given, the standard base address $d400 is used<br>
+Overwrites register A<br>
+Result is returned in carry<br>
+Carry flag is set for 6581, and clear for 8580<br>
+<br>
+<b>is_in_range</b> <i>lower,higher</i><br>
+Tests if value in Accu is between the values <i>lower</i> and <i>higher</i><br>
+If the value was inside, the Carry is set, otherwise the Carry is cleared<br>
+Registers modified: A<br>
+<br>
+<b>load_prg</b> <i>filename[,devicenr[,loadaddr]]</i><br>
+Wrapper around ROM load function, prg means that the file is assumed to have a two-byte load address at its start<br>
+if device number is 0 or not stated, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default<br>
+if loadaddr is omitted, the load address is defined by the first two bytes of the file<br>
+Return value in carry, if carry is set, an error has happened and error code is returned in A:<br>
+A = $05 (DEVICE NOT PRESENT)<br>
+A = $04 (FILE NOT FOUND)<br>
+A = $1D (LOAD ERROR)<br>
+A = $00 (BREAK, RUN/STOP has been pressed during loading)<br>
+Registers modified: A,X,Y<br>
+<br>
+<b>lowercase_mode</b><br>
+Switches charset to upper/lowercase (text) mode setting and locks the CBM+Shift switch<br>
+To switch back, use the macro PETSCII_mode<br>
+Registers modified: A<br>
+<br>
+<b>mul16</b> <i>addr</i><br>
+compactmul16 addr<br>
+Multiplies the unsigned 16 bit value in A/X with the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
+Implemented as a subroutinge, link with -lib lamalib.lib<br>
+mul16 adds a routine of 51 byte to your program the first time you use it<br>
+compactmul16 adds a routine of 32 byte to your program the first time you use it<br>
+mul16 is about 20% faster than compactmul, we recommend using mul16 in most cases<br>
+This function is not reentrant, don't use in interrupt and main program simultaneously<br>
+Result is returned in A/X<br>
+Registers modified: A,X,Y<br>
+<br>
+<b>neg</b><br>
+Negate A<br>
+Registers modified: A<br>
+<br>
+<b>newline</b><br>
+Prints a newline character<br>
+KERNAL ROM needs to be enabled when using this function<br>
+Registers modified: A<br>
+<br>
+<b>PETSCII_mode</b><br>
+Switches charset to uppercase plus graphical characters (graphics mode) setting and locks the CBM+Shift switch<br>
+To switch to upper/lowercase (text) mode, use the macro lowercase_mode<br>
+Registers modified: A<br>
+<br>
+<b>primm</b> <i>str</i><br>
+Prints the given string, string is inlined in program code<br>
+uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
+Registers modified: A,Y,X<br>
+<br>
+<b>print</b> <i>arg1</i> <i>[arg2</i> <i>...]</i><br>
+Prints the arguments as strings or numbers<br>
+An argument in parenthesis will print the 16bit value stored at this address<br>
+uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
+Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)<br>
+Registers modified: A,Y,X<br>
+<br>
+<b>printax</b><br>
+Prints the number in A/X as a 16 bit unsigned decimal number<br>
+BASIC and KERNAL ROM need to be enabled when using this function<br>
+Registers modified: A,Y,X<br>
+<br>
+<b>printax_signed</b><br>
+Prints the number in A/X as a 16 bit signed decimal number<br>
+BASIC and KERNAL ROM need to be enabled when using this function<br>
+Registers modified: A,Y,X<br>
+<br>
+<b>printstr</b> <i>addr</i><br>
+Prints the null-terminated string at addr using the STROUT function<br>
+BASIC and KERNAL ROM need to be enabled when using this function<br>
+Registers modified: A,Y,X<br>
+<br>
+<b>rand8</b> <i>[max</i> <i>value-1]</i><br>
+Generate a random number between 0 and 255 which is returned in A.<br>
+The argument is optional and can be a number or the Y register<br>
+If an argument is given, the value is caclulated between 0 and given number-1<br>
+Good and fast random generator for 8bit values based on the X ABC pseudo-random number generator from EternityForest, slight modification by Wil.<br>
+Registers modified: A,Y (Y is only used when an argument is used)<br>
+<br>
+<b>rand16</b> <i>[max</i> <i>value-1]</i><br>
+Get a random number in AX betwenn 0 and 0xFFFF<br>
+The argument is optional and can be a number or AX<br>
+If an argument is given, the value is caclulated between 0 and given number-1<br>
+This function uses the same routine as rand8, therefore calling rand16 wil change the state of rand8 as well<br>
+Registers modified: A,X,Y (Y is only used when an argument is used)<br>
+<br>
+<b><b>rand_setseed</b></b> <i>[[[[<i>arg1],</i> <i>arg2],</i> <i>arg3],</i> <i>arg4</i>]</i><br>
+Seed is four 8 bit values. Arguments can be numbers or registers. Specifying seed is optional. When no argument is given, the default value for this seed byte is used.<br>
+Registers modified: A<br>
+<br>
+<b>set_cursor_pos</b> <i>line,column</i><br>
+place the cursor at screen position line,column (counted in characters)<br>
+0,0 is upper left corner, 24,39 the lower right corner<br>
+arguments can be constants or registers<br>
+<br>
+<b>textcolor</b> <i>color</i><br>
+sets the text color<br>
+<br>
+<b>toggle_carry</b><br>
+Toggles the carry<br>
+Registers modified: none<br>
+<br>
+<b>turn_off_cursor</b><br>
+Turns off the blinking cursor and restores the character and color under cursor if necessary.<br>
+Requires the KERNAL IRQ routines to be active<br>
+If this function is used on the C128, a bank with visible ROM must be active.<br>
+Use this before output of a char, otherwise you get inverse character artifacts when blink phase is on<br>
+<br>
+<b>turn_on_cursor</b><br>
+Shows the blinking cursor during program execution<br>
+Requires the KERNAL IRQ routines to be active<br>
+if this function is used on the C128, a bank with visible ROM must be active.<br>
+Turn off cursor briefly before output of a char, otherwise you get inverse character artifacts when blink phase is on<br>
+<br>
+<b>waitkey</b><br>
+Waits until a key is pressed<br>
+Function works independly of IRQ routine<br>
+Registers modified: A<br>
+<br>
+<b>waitkeyreleased</b><br>
+Waits until all keys are released<br>
+Function works independly of IRQ routine<br>
+Registers modified: A<br>
+<br>
+<b>readWASDspace</b><br>
+Checks the keyboard for keypresses of W, A ,S, D and Space<br>
+Output is a byte in A in the same format as a joystick value<br>
+Function works independly of IRQ routine<br>
+Registers modified: A,X<br>
+<br>
+<b>makesys</b> <i>[linenumber[,text]]</i><br>
+Generates the code for a BASIC line with a SYS command and an optional text behind the sys command<br>
+This is similar to the command line option  -u __EXEHDR__<br>
+Difference is that with this function the code segment starts at $801, so .align is off only by 1<br>
+Default line number is 2020<br>
+<br>
+<b>memcopy</b> <i>src_addr,target_addr,length</i><br>
+<br>
+memcopy_from [AX|addr]<br>
+memcopy_to   [AX|addr]<br>
+memcopy [AX|length]<br>
+Copies the memory area src_addr to src_addr+length over target_addr<br>
+If the areas are overlapping, then target_addr must be < src_addr<br>
+The three parameter version takes three constant numbers<br>
+Alternatively, the function can be configured parameter by parameter, either with AX or a constant<br>
+Registers modified: A,X,Y<br>
+<br>
+<b>memset</b> <i>start_addr,end_addr,fillvalue</i><br>
+Fills the memory area between start_addr and end_adder with the byte fillvalue<br>
+Registers modified: A,X,Y<br>
+<br>
+<b>save_prg</b> <i>filename,devicenr,startaddr,endaddr</i><br>
+Saves the memory from startaddr to endaddr (including the endaddr) using the CBM ROM save function.<br>
+The file will have a two-byte load address at its start<br>
+if device number is 0, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default<br>
+Return value in carry, if carry is set, an error has happened and error code is returned in A, for example<br>
+A = $05 (DEVICE NOT PRESENT)<br>
+A = $00 (BREAK, RUN/STOP has been pressed during saving)<br>
+Registers modified: A,X,Y<br>
+<br>
 <b>scramble</b> <i>startaddr,endaddr</i><br>
 Scrambles/unscrambles a memory area. To unscramble, call scramble with the same parameters again<br>
 <br>
-<b>checksum_eor</b> <i>startaddr,endaddr</i><br>
-Returns an 8-bit checksum calculated by EOR-conjunction over all bytes<br>
+<b>scratch_file</b> <i>filename[,devicenr]</i><br>
+Deletes a file on disk. If device number is not stated or 0, the last used device number stored in address $BA is used. In case $BA contains 0, 8 is used as default.<br>
+Registers modified: A,X,Y<br>
+<br>
+<b>set_raster_irq</b> <i>rasterline</i><br>
+Changes the IRQ source to VIC raster interrupt<br>
+Turns off the CIA IRQ source<br>
+IRQ routine must acknowledge the IRQ source<br>
+<br>
+<b>to_screencode</b><br>
+If the PETSCII value in A belongs to a printable character, it is converted to the corresponding screencode and returned in A<br>
+Control codes will lead to an arbitrary byte.<br>
+Registers modified: A<br>
+<br>
+<b>wait_for_rasterline</b> <i>rasterline</i><br>
+Macro inserting code doing busy waiting until the given rasterline is reached<br>
+rasterline can be a value between 0 and 311 (for PAL systems) or 261 for NTSC systems, respectively<br>
+The routine does not turn off the IRQ, so an IRQ might make it miss the rasterline it is waiting for.<br>
+Registers modified: A<br>
 <h2>Special Macros for C128 in C128 Mode</h2>
 <br>
 <b>shadowIRQ</b> <i>off|on</i><br>
