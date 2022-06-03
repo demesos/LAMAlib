@@ -1099,7 +1099,7 @@ setx:           ldx #00
 .import _memcopy_sr
 .importzp _source_ptr,_target_ptr
         .if .paramcount = 3
-          yinit=<($100-<length)
+          yinit=<($100-<(length))
           pokew _source_ptr,src_addr - yinit
           pokew _target_ptr,target_addr - yinit
   
