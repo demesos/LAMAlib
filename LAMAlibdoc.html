@@ -501,7 +501,37 @@ Overwrites register A<br>
 Result is returned in carry<br>
 Carry flag is set for 6581, and clear for 8580<br>
 <br>
+<b>is_alpha</b><br>
+is_alpha tests if value in Accu is between the values 'a' and 'z' (in lowercase mode).<br>
+Return value: Carry set if value is in range, carry cleared otherwise<br>
+Registers modified: none<br>
+<br>
+<b>is_not_alpha</b><br>
+is_alpha tests if value in Accu is <b>not</b> between the values 'a' and 'z' (in lowercase mode).<br>
+Return value: Carry set if value is outside range, carry cleared otherwise<br>
+Registers modified: none<br>
+<br>
+<b>is_digit</b><br>
+is_digit tests if value in Accu is between the values '0' and '9'.<br>
+Return value: Carry set if value is a digit, carry cleared otherwise<br>
+Registers modified: none<br>
+<br>
+<b>is_not_digit</b><br>
+is_not_digit tests if value in Accu is <b>not</b> between the values '0' and '9'.<br>
+Return value: Carry clear if value is a digit, carry set otherwise<br>
+Registers modified: none<br>
+<br>
 <b>is_in_range</b> <i>lower,higher</i><br>
+Tests if value in Accu is between the values <i>lower</i> and <i>higher</i><br>
+Return value: Carry set if value is in range, carry cleared otherwise<br>
+Registers modified: none<br>
+<br>
+<b>is_not_in_range</b> <i>lower,higher</i><br>
+Tests if value in Accu is outside the values <i>lower</i> and <i>higher</i><br>
+Return value: Carry set if value is outside range, carry cleared otherwise<br>
+Registers modified: none<br>
+<br>
+<b>is_in_range_trash_A</b> <i>lower,higher</i><br>
 Tests if value in Accu is between the values <i>lower</i> and <i>higher</i><br>
 If the value was inside, the Carry is set, otherwise the Carry is cleared<br>
 Registers modified: A<br>
@@ -557,12 +587,17 @@ Prints the arguments as strings or numbers<br>
 An argument in parenthesis will print the 16bit value stored at this address<br>
 uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
 Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)<br>
-Registers modified: A,Y,X<br>
+Registers modified: none<br>
 <br>
 <b>printax</b><br>
 Prints the number in A/X as a 16 bit unsigned decimal number<br>
 BASIC and KERNAL ROM need to be enabled when using this function<br>
 Registers modified: A,Y,X<br>
+<br>
+<b>printa</b><br>
+Prints the number in A as a 8 bit unsigned decimal number<br>
+BASIC and KERNAL ROM need to be enabled when using this function<br>
+Registers modified: A,X<br>
 <br>
 <b>printax_signed</b><br>
 Prints the number in A/X as a 16 bit signed decimal number<br>
@@ -684,6 +719,11 @@ Macro inserting code doing busy waiting until the given rasterline is reached<br
 rasterline can be a value between 0 and 311 (for PAL systems) or 261 for NTSC systems, respectively<br>
 The routine does not turn off the IRQ, so an IRQ might make it miss the rasterline it is waiting for.<br>
 Registers modified: A<br>
+<br>
+<b>wait_screen_off</b><br>
+Waits until raster>255 and turns screen off. Since it is necessary to write to $d011, the high bit of the next raster IRQ will be written.<br>
+The function always sets a 0 has high bit to avoid an unreachable raster irq line.<br>
+<b>screen_on</b> turns the screen back on. Since it is necessary to write to $d011, the high bit of the next raster IRQ will be written (also with a 0)<br>
 <h2>Special Macros for C128 in C128 Mode</h2>
 <br>
 <b>shadowIRQ</b> <i>off|on</i><br>
