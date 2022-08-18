@@ -743,13 +743,13 @@ setx:           ldx #00
 .endmacro
 
 
-;; rand8 [max value-1]
+;; rand8 [maxvalue-1]
 ;; Generate a random number between 0 and 255 which is returned in A.
 ;; The argument is optional and can be a number or the Y register
 ;; If an argument is given, the value is caclulated between 0 and given number-1
 ;; Good and fast random generator for 8bit values based on the X ABC pseudo-random number generator from EternityForest, slight modification by Wil.
 ;; Registers modified: A,Y (Y is only used when an argument is used)
-.import _rand8_sr, _rand_seed1, _rand_seed2, _rand_seed3, _rand_seed4,_a_mod_y_sr
+.import _rand16_sr, _seed_low, _seed_high, _a_mod_y_sr
 
 .macro rand8 max
 .scope
@@ -761,7 +761,7 @@ setx:           ldx #00
 	    tay
 	  .endif
 	.endif
-        jsr _rand8_sr
+        jsr _rand16_sr
         .if .paramcount = 1
 	  .if (.xmatch ({max}, {A}))                  ;calc mod A, value already in Y
 	    jsr a_mod_y_sr
@@ -794,13 +794,13 @@ setx:           ldx #00
 .endmacro
 
 
-;; rand16 [max value-1]
+;; rand16 [maxvalue-1]
 ;; Get a random number in AX betwenn 0 and 0xFFFF
 ;; The argument is optional and can be a number or AX
 ;; If an argument is given, the value is caclulated between 0 and given number-1
 ;; This function uses the same routine as rand8, therefore calling rand16 wil change the state of rand8 as well
 ;; Registers modified: A,X,Y (Y is only used when an argument is used)
-.import _rand16_sr, _rand16_seed,_ax_mod_zpw1_sr
+.import _rand16_sr, _seed_low, _seed_high, _ax_mod_zpw1_sr
 .importzp _llzp_word1
 .macro rand16 max
 .scope
@@ -809,8 +809,8 @@ setx:           ldx #00
 	    stax _llzp_word1
 	  .endif
 	.endif
-        jsr _rand8_sr
-	ldx _rand_seed3
+        jsr _rand16_sr
+	ldx _seed_low
         .if .paramcount = 1
 	  .if (.xmatch ({max}, {AX}))                  ;calc mod AX
 	     jsr _ax_mod_zpw1_sr
@@ -894,34 +894,59 @@ setx:           ldx #00
 .endmacro
 
 
-;; <b>rand_setseed</b> [[[[<i>arg1], arg2], arg3], arg4</i>]
-;; Seed is four 8 bit values. Arguments can be numbers or registers. Specifying seed is optional. When no argument is given, the default value for this seed byte is used.
-;; Registers modified: A
-.macro rand_setseed arg1,arg2,arg3,arg4
+;; <b>rand_setseed</b> AX | [[<i>arg1</i>|A|X|Y], <i>arg2</i>|A|X|Y]
+;; Seed is two 8 bit values. Arguments can be numbers or registers. Specifying seed is optional. When no argument is given, the default value for this seed byte is used.
+;; When setting with AX, there is a check to avoid the seed 0 which would cause the PRNG to lock up. The seed affects both, rand8 and rand16 functions.
+;; Registers modified: normally none, except for the case where lo(AX)==0, then A is set to $FF
+.import _seed_low, _seed_high
+.macro rand_setseed arg1,arg2
 .scope
-        .if .paramcount >= 1
-           poke _rand_seed1,arg1
-        .else
-           poke _rand_seed1,$00
-	.endif
+        .if .paramcount = 0
+	  lda #$33
+	  sta _seed_low
+	  sta _seed_high
+	  .endscope
+          .exitmacro
+	.endif	
 
-	.if .paramcount >= 2
-           poke _rand_seed2,arg2
+        .if .paramcount = 1 .and .xmatch ({arg1}, {AX})
+	    cmp #1		;set carry if value != 0
+	    sbc #0
+	    sta _seed_low
+	    stx _seed_high
+	    
 	.else
-           poke _rand_seed2,$11
-	.endif
+          .if .paramcount >= 1
+	    .if .xmatch ({arg1}, {A})
+	      sta _seed_low
+	    .elseif .xmatch ({arg1}, {X})
+	      stx _seed_low 
+	    .elseif .xmatch ({arg1}, {Y})
+	      sty _seed_low 
+	    .else 
+	      lda #arg1
+	      sta _seed_low
+	      .if .paramcount = 1
+	        sta _seed_high
+	      .endif
+	    .endif
+	  .endif
 
-	.if .paramcount >= 3
-           poke _rand_seed3,arg3
-	.else
-           poke _rand_seed3,$37
-        .endif 
+          .if .paramcount = 2
+	    .if .xmatch ({arg2}, {A})
+	      sta _seed_high
+	    .elseif .xmatch ({arg2}, {X})
+	      stx _seed_high 
+	    .elseif .xmatch ({arg2}, {Y})
+	      sty _seed_high 
+	    .else 
+	      lda #arg2
+	      sta _seed_high
+	    .endif
+	  .endif
 
-	.if .paramcount = 4
-           poke _rand_seed4,arg4
-	.else
-           poke _rand_seed4,$c2
-        .endif 
+	.endif	
+
 .endscope
 .endmacro
 
