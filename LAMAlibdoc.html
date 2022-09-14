@@ -380,6 +380,14 @@ Registers modified: none<br>
 <br>
 <h2>Useful Routines</h2>
 <br>
+<b>_ld_reg</b> <i>reg,arg</i><br>
+_st_reg reg,arg<br>
+_cp_reg reg,arg<br>
+macros to select register for a load, store, and compare operation.<br>
+For example, _ld_reg A,#12 translates into lda #12 while _st_reg $1234,Y translates into sty $1234<br>
+if reg is blank, A is used as a default<br>
+Those funcations are mostly used in other macros.<br>
+<br>
 <b>check_C128</b><br>
 Detects if we are on a C128 in C64 mode<br>
 returns with carry set for C128<br>
@@ -609,23 +617,24 @@ Prints the null-terminated string at addr using the STROUT function<br>
 BASIC and KERNAL ROM need to be enabled when using this function<br>
 Registers modified: A,Y,X<br>
 <br>
-<b>rand8</b> <i>[max</i> <i>value-1]</i><br>
+<b>rand8</b> <i>[maxvalue-1]</i><br>
 Generate a random number between 0 and 255 which is returned in A.<br>
 The argument is optional and can be a number or the Y register<br>
 If an argument is given, the value is caclulated between 0 and given number-1<br>
 Good and fast random generator for 8bit values based on the X ABC pseudo-random number generator from EternityForest, slight modification by Wil.<br>
 Registers modified: A,Y (Y is only used when an argument is used)<br>
 <br>
-<b>rand16</b> <i>[max</i> <i>value-1]</i><br>
+<b>rand16</b> <i>[maxvalue-1]</i><br>
 Get a random number in AX betwenn 0 and 0xFFFF<br>
 The argument is optional and can be a number or AX<br>
 If an argument is given, the value is caclulated between 0 and given number-1<br>
 This function uses the same routine as rand8, therefore calling rand16 wil change the state of rand8 as well<br>
 Registers modified: A,X,Y (Y is only used when an argument is used)<br>
 <br>
-<b><b>rand_setseed</b></b> <i>[[[[<i>arg1],</i> <i>arg2],</i> <i>arg3],</i> <i>arg4</i>]</i><br>
-Seed is four 8 bit values. Arguments can be numbers or registers. Specifying seed is optional. When no argument is given, the default value for this seed byte is used.<br>
-Registers modified: A<br>
+<b><b>rand_setseed</b></b> <i>AX</i> <i>|</i> <i>[[<i>arg1</i>|A|X|Y],</i> <i><i>arg2</i>|A|X|Y]</i><br>
+Seed is two 8 bit values. Arguments can be numbers or registers. Specifying seed is optional. When no argument is given, the default value for this seed byte is used.<br>
+When setting with AX, there is a check to avoid the seed 0 which would cause the PRNG to lock up. The seed affects both, rand8 and rand16 functions.<br>
+Registers modified: normally none, except for the case where lo(AX)==0, then A is set to $FF<br>
 <br>
 <b>set_cursor_pos</b> <i>line,column</i><br>
 place the cursor at screen position line,column (counted in characters)<br>
@@ -714,11 +723,11 @@ If the PETSCII value in A belongs to a printable character, it is converted to t
 Control codes will lead to an arbitrary byte.<br>
 Registers modified: A<br>
 <br>
-<b>wait_for_rasterline</b> <i>rasterline</i><br>
+<b>wait_for_rasterline</b> <i>rasterline[,reg]</i><br>
 Macro inserting code doing busy waiting until the given rasterline is reached<br>
 rasterline can be a value between 0 and 311 (for PAL systems) or 261 for NTSC systems, respectively<br>
 The routine does not turn off the IRQ, so an IRQ might make it miss the rasterline it is waiting for.<br>
-Registers modified: A<br>
+Registers modified: A or the register (A,X, or Y) given as second argument<br>
 <br>
 <b>wait_screen_off</b><br>
 Waits until raster>255 and turns screen off. Since it is necessary to write to $d011, the high bit of the next raster IRQ will be written.<br>
