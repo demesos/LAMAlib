@@ -381,8 +381,8 @@ Registers modified: none<br>
 <h2>Useful Routines</h2>
 <br>
 <b>_ld_reg</b> <i>reg,arg</i><br>
-_st_reg reg,arg<br>
-_cp_reg reg,arg<br>
+<b>_st_reg</b> <i>reg,arg</i><br>
+<b>_cp_reg</b> <i>reg,arg</i><br>
 macros to select register for a load, store, and compare operation.<br>
 For example, _ld_reg A,#12 translates into lda #12 while _st_reg $1234,Y translates into sty $1234<br>
 if reg is blank, A is used as a default<br>

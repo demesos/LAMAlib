@@ -1,8 +1,8 @@
 ;; <h2>Useful Routines</h2>
 
 ;; _ld_reg reg,arg
-;; _st_reg reg,arg
-;; _cp_reg reg,arg
+;; <b>_st_reg</b> <i>reg,arg</i>
+;; <b>_cp_reg</b> <i>reg,arg</i>
 ;; macros to select register for a load, store, and compare operation.
 ;; For example, _ld_reg A,#12 translates into lda #12 while _st_reg $1234,Y translates into sty $1234
 ;; if reg is blank, A is used as a default
