@@ -1,4 +1,6 @@
-.include "LAMAlib.inc"
+.include "../LAMAlib-macros16.inc"
+.include "../LAMAlib-structured.inc"
+.include "../LAMAlib-ROMfunctions.inc"
 
 .export _printax_sr
 

@@ -1,5 +1,55 @@
 ;; <h2>Useful Routines</h2>
 
+;; _ld_reg reg,arg
+;; _st_reg reg,arg
+;; _cp_reg reg,arg
+;; macros to select register for a load, store, and compare operation.
+;; For example, _ld_reg A,#12 translates into lda #12 while _st_reg $1234,Y translates into sty $1234
+;; if reg is blank, A is used as a default
+;; Those funcations are mostly used in other macros.
+
+.macro _ld_reg reg,arg
+	.ifblank reg
+	   lda arg
+	.elseif (.xmatch ({reg}, {A}))  
+	   lda arg
+	.elseif (.xmatch ({reg}, {X}))  
+	   ldx arg
+	.elseif (.xmatch ({reg}, {Y}))  
+	   ldy arg
+	.else
+	   .error "No proper register stated, must be A, X or Y"
+	.endif
+.endmacro
+
+.macro _st_reg reg,arg
+	.ifblank reg
+	   sta arg
+	.elseif (.xmatch ({reg}, {A}))  
+	   sta arg
+	.elseif (.xmatch ({reg}, {X}))  
+	   stx arg
+	.elseif (.xmatch ({reg}, {Y}))  
+	   sty arg
+	.else
+	   .error "No proper register stated, must be A, X or Y"
+	.endif
+.endmacro
+
+.macro _cp_reg reg,arg
+	.ifblank reg
+	   cmp arg
+	.elseif (.xmatch ({reg}, {A}))  
+	   cmp arg
+	.elseif (.xmatch ({reg}, {X}))  
+	   cpx arg
+	.elseif (.xmatch ({reg}, {Y}))  
+	   cpy arg
+	.else
+	   .error "No proper register stated, must be A, X or Y"
+	.endif
+.endmacro
+
 ;; check_C128
 ;; Detects if we are on a C128 in C64 mode
 ;; returns with carry set for C128
@@ -1393,27 +1443,30 @@ L1:
 .endmacro
 
 
-;; wait_for_rasterline rasterline
+;; wait_for_rasterline rasterline[,reg]
 ;; Macro inserting code doing busy waiting until the given rasterline is reached
 ;; rasterline can be a value between 0 and 311 (for PAL systems) or 261 for NTSC systems, respectively
 ;; The routine does not turn off the IRQ, so an IRQ might make it miss the rasterline it is waiting for.
-;; Registers modified: A
-.macro wait_for_rasterline rasterline
+;; Registers modified: A or the register (A,X, or Y) given as second argument
+
+.macro wait_for_rasterline rasterline,reg
+.scope
 .if rasterline>255 .or rasterline<56
-:
+:	;unnamed label is only set if necessary to avoid a warning
 .endif
-        lda #<(rasterline)
+        _ld_reg reg,#<(rasterline)
 :
-        cmp $D012    		;wait until lobyte matches
+        _cp_reg reg,$D012    		;wait until lobyte matches
         bne :-
         .if rasterline>255
-          lda $D011		;check highbyte to be set
+          _ld_reg reg,$D011		;check highbyte to be set
           bpl :--
         .endif
         .if rasterline<56
-          lda $D011		;check highbyte to be cleared
+          _ld_reg reg,$D011		;check highbyte to be cleared
           bmi :--
         .endif
+.endscope
 .endmacro
 
 
