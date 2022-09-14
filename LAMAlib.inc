@@ -1,6 +1,6 @@
 ; <h1>LAMAlib - Lightweight Assembler MAcro library for cc65</h1>
-; Version: 0.201
-; Date: 2022-02-27
+; Version: 0.211
+; Date: 2022-09-15
 ; Author: Wil Elmenreich (wilfried at gmx dot at)
 ; License: The Unlicense (public domain)
 ;
