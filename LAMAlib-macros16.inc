@@ -516,7 +516,7 @@ savea:		lda #00
 ;; arg2 can be a constant or A, X or Y
 .macro  poke arg1,arg2
 .scope
-        .if (.xmatch ({arg1}, {AX}))          ;AX is used as address
+        .if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))          ;AX is used as address
           sta targetsm+1
           stx targetsm+2
           .if (.xmatch ({arg2}, {Y}))         ;value in Y register is to be poked
@@ -539,6 +539,7 @@ savea:		lda #00
         .endif
 .endscope
 .endmacro
+
 
 ;; pokew arg1,arg2
 ;; poke word: copies 16 bit value arg2 into the address of arg1 and arg1+1
