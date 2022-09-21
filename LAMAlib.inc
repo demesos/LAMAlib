@@ -49,6 +49,9 @@
 ; USE_BASIC_ROM does not actually change the ROM configuration.
 ; The switch can be changed multiple times to create program parts using the ROM and parts that do not.
 
+.ifndef LAMAlib_inc
+
+LAMAlib_inc=1
 
 .include "LAMAlib-macros16.inc"
 .include "LAMAlib-ROMfunctions.inc"
@@ -57,3 +60,4 @@
 .include "LAMAlib-routines.inc"
 .include "LAMAlib-C128only.inc"
 
+.endif

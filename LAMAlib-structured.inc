@@ -197,7 +197,7 @@
   .elseif .xmatch ({reg}, {Y}) 
     inc_nesting_levelY
     sty .ident(.sprintf("selfmod_Y%d", ::nesting_levelY/10))+1
-  .elseif .xmatch ({reg}, {AX}) 
+  .elseif .xmatch({reg}, {AX}) .or .xmatch ({reg}, {ax})
     store A
     store X
   .endif
@@ -222,7 +222,7 @@
 .ident(.sprintf("selfmod_Y%d", ::nesting_levelY/10)):
     ldy #00
     dec_nesting_levelY
-  .elseif .xmatch ({reg}, {AX}) 
+  .elseif .xmatch({reg}, {AX}) .or .xmatch ({reg}, {ax})
     restore A
     restore X
   .endif
@@ -317,7 +317,7 @@
     .ident(.sprintf("for_var%d", ::nesting_level/10))=-2
   .elseif .xmatch ({var}, {Y})
     .ident(.sprintf("for_var%d", ::nesting_level/10))=-3
-  .elseif .xmatch ({var}, {AX})
+  .elseif .xmatch ({var}, {AX}) .or .xmatch ({var}, {ax})
     .ident(.sprintf("for_var%d", ::nesting_level/10))=-4
   .else
     .ident(.sprintf("for_var%d", ::nesting_level/10))=-5
@@ -1177,7 +1177,7 @@
     .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-2
   .elseif .xmatch ({reg}, {Y})
     .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-3
-  .elseif .xmatch ({reg}, {AX})
+  .elseif .xmatch ({reg}, {AX}) .or .xmatch ({reg}, {ax})
     .ident(.sprintf("switch_reg%d", ::nesting_level/10))=-4
   .else
     .error "switch register nees to be A, X, Y, or AX!"

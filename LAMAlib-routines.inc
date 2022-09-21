@@ -187,7 +187,7 @@ loop:
 .macro  delay_ms arg
 .import _delay_ms_sr
 .scope
-       .if (.xmatch ({arg1}, AX))
+       .if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))
             jsr _delay_ms_sr
        .else
             ldax #arg
@@ -675,7 +675,7 @@ endfilename:
       .exitmacro
   .endif
 .scope
-        .if (.xmatch ({arg1}, {AX}))                    ;print AX as number
+        .if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))    ;print AX as number
 	   store AX
            printax
 	   restore AX
@@ -848,21 +848,21 @@ setx:           ldx #00
 ;; Get a random number in AX betwenn 0 and 0xFFFF
 ;; The argument is optional and can be a number or AX
 ;; If an argument is given, the value is caclulated between 0 and given number-1
-;; This function uses the same routine as rand8, therefore calling rand16 wil change the state of rand8 as well
+;; This function uses the same routine as rand8, therefore calling rand16 will change the state of rand8 as well
 ;; Registers modified: A,X,Y (Y is only used when an argument is used)
 .import _rand16_sr, _seed_low, _seed_high, _ax_mod_zpw1_sr
 .importzp _llzp_word1
 .macro rand16 max
 .scope
         .if .paramcount = 1
-	  .if (.xmatch ({max}, {AX}))                  ;calc mod AX
+	  .if (.xmatch ({max}, {AX}) .or .xmatch ({max}, {ax}))                 ;calc mod AX
 	    stax _llzp_word1
 	  .endif
 	.endif
         jsr _rand16_sr
 	ldx _seed_low
         .if .paramcount = 1
-	  .if (.xmatch ({max}, {AX}))                  ;calc mod AX
+	  .if (.xmatch ({max}, {AX}) .or .xmatch ({max}, {ax}))                 ;calc mod AX
 	     jsr _ax_mod_zpw1_sr
 	  .elseif max <= 1
 	    ldx #0
@@ -933,9 +933,9 @@ setx:           ldx #00
 	    tax
 	    pla
 	  .else
-	    ldy #<max
+	    ldy #<(max)
 	    sty _llzp_word1
-	    ldy #>max
+	    ldy #>(max)
 	    sty _llzp_word1+1
 	    jsr _ax_mod_zpw1_sr
 	  .endif
@@ -959,7 +959,7 @@ setx:           ldx #00
           .exitmacro
 	.endif	
 
-        .if .paramcount = 1 .and .xmatch ({arg1}, {AX})
+        .if .paramcount = 1 .and (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))
 	    cmp #1		;set carry if value != 0
 	    sbc #0
 	    sta _seed_low
@@ -1181,7 +1181,7 @@ setx:           ldx #00
           ldx #1+>(length-1)
           ldy #yinit
 	.elseif .paramcount = 1
-          .if (.xmatch ({src_addr}, {AX}))          ;AX is used as length
+          .if (.xmatch ({src_addr}, {AX}) .or .xmatch ({src_addr}, {ax}))          ;AX is used as length
             tay
             beq skip_adjust
 
@@ -1227,7 +1227,7 @@ skipadjust:
 .macro memcopy_from src_addr
         .scope
 .importzp _source_ptr
-        .if (.xmatch ({src_addr}, {AX}))          ;AX is used as address
+        .if (.xmatch ({src_addr}, {AX}) .or .xmatch ({src_addr}, {ax}))          ;AX is used as address
           sta _source_ptr
           stx _source_ptr+1
         .else
@@ -1242,7 +1242,7 @@ skipadjust:
 .macro memcopy_to target_addr
         .scope
 .importzp _target_ptr
-        .if (.xmatch ({target_addr}, {AX}))          ;AX is used as address
+        .if (.xmatch ({target_addr}, {AX}) .or .xmatch ({target_addr}}))         ;AX is used as address
           sta _target_ptr
           stx _target_ptr+1
         .else
