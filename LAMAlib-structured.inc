@@ -1162,11 +1162,27 @@
 ;; <b>case</b> and <b>case_eq</b> are the same function, they trigger if the register value and the comparison value are identical
 ;; <b>case_lt</b> ("less than") triggers if the register value is smaller than the comparison value 
 ;; <b>case_ge</b> ("greater or equal") triggers if the register value is greater or equal than the comparison value 
-;; <b>break</b> jumps out of the structure. If break is omitted, the next comparison is done
+;; <b>break</b> jumps out of the structure. Other than with the switch structure in C, fallthroughs before another case do not work because there is code generated for the comparison and branch function before each case part.
+;; Only a fallthrough into the default part works correctly.
 ;; <b>default</b> performs no comparison but triggers always, there is no need for a break command at the end of default
-;;
 ;; Registers modified: none
 ;;
+;; Example:
+;; 	<pre>
+;; 	switch A
+;; 	case 1:
+;; 	   print "one"
+;; 	   break
+;; 	case 2:
+;; 	   print "two"
+;; 	   break
+;; 	case 3:
+;; 	   print "one"
+;; 	   break
+;; 	default:
+;; 	   print "?"
+;; 	endswitch
+;; 	</pre>
 
 .macro switch reg
   inc_nesting_level
@@ -1243,6 +1259,7 @@
   .ident(.sprintf("case_label%d", ::nesting_level_case/10)):
   ::nesting_level_case .set ::nesting_level_case + 10
 .endmacro
+
 
 .macro endswitch
   .ident(.sprintf("case_label%d", ::nesting_level_case/10)):

@@ -62,6 +62,8 @@ macros.sort()
 #print("<br>")
 
 lastline=''
+macronameprintmode=False
+br="<br>"    #linebreaks will be printed unless preformatted text was enabled with <pre>
 for l in lines[lc:]:
     if len(l)==0:
         lastline=l
@@ -72,12 +74,22 @@ for l in lines[lc:]:
         lastline=l
         continue
     if l[0:2]==";;":
+        if "<pre>" in l[0:2]:
+            br=""
+        if "</pre>" in l[0:2]:
+            br="<br>"            
         if lastline=='':
             print ("<br>")
             printformatmacroname(l2)
             print ("<br>")
+            macronameprintmode=True
+        elif macronameprintmode==True and "#" in l and len(l)<15:
+            printformatmacroname(l2)
+            print ("<br>")
+            macronameprintmode=False
         else:
-            print (l2+"<br>")
+            print (l2+br)
+            macronameprintmode=False
     lastline=l
 print("</body>")
 print("</html>")

@@ -1,6 +1,7 @@
 ;; <h2>16-bit Emulation Macros</h2>
 
-;; ldax addr, ldax #arg
+;; ldax addr
+;; ldax #arg
 ;; Loads a 16-bit value into A/X, either from an address or as immediate value
 ;; Note that the zero flag is not indicating 0 but indicating a value <256
 ;; Supports zero page addressing mode
@@ -36,7 +37,8 @@
 .endscope
 .endmacro
 
-;; adcax addr, adcax #arg
+;; adcax addr
+;; adcax #arg
 ;; Adds a 16 bit value with carry at an addr or as immediate value to 16 bit value in registers A/X
 ;; Supports zero page addressing mode
 ;; Result is returned in A/X
@@ -63,7 +65,8 @@
 .endscope
 .endmacro
 
-;; addax addr, adcax #arg
+;; addax addr
+;; adcax #arg
 ;; Adds a 16 bit value without carry at an addr or as immediate value to 16 bit value in registers A/X
 ;; Supports zero page addressing mode
 ;; Result is returned in A/X
@@ -73,7 +76,8 @@
 	adcax arg
 .endmacro
 
-;; sbcax addr, sbcax #arg
+;; sbcax addr
+;; sbcax #arg
 ;; Subtracts the 16 bit value with carry at an addr or as immediate value from  16 bit value in registers A/X
 ;; Supports zero page addressing mode
 ;; Result is returned in A/X
@@ -100,7 +104,8 @@
 .endscope
 .endmacro
 
-;; subax addr, sbcax #arg
+;; subax addr
+;; sbcax #arg
 ;; Subtracts the 16 bit value with carry at an addr or as immediate value from  16 bit value in registers A/X
 ;; Supports zero page addressing mode
 ;; Result is returned in A/X
@@ -110,7 +115,8 @@
 	sbcax arg
 .endmacro
 
-;; rsc arg, rsc #arg
+;; rsc arg
+;; rsc #arg
 ;; Reverse subtraction with carry, calculate the value of arg - A - C
 ;; if the carry is clear before the command, this behaves like rsc
 ;; If there is an underflow (arg is larger than A), the carry bit will be set, otherwise carry is clear
@@ -121,7 +127,8 @@
 .endscope
 .endmacro
 
-;; rsb arg, rsb #arg
+;; rsb arg
+;; rsb #arg
 ;; Reverse subtraction, calculate the value of arg - A 
 ;; The result is not influenced by the carry
 ;; If there is an underflow (arg is larger than A), the carry bit will be set, otherwise carry is clear
@@ -133,7 +140,8 @@
 .endscope
 .endmacro
 
-;; rscax arg, rscax #arg
+;; rscax arg
+;; rscax #arg
 ;; 16 bit reverse subtraction, calculate the value of arg - AX - C
 ;; if the carry is clear before the command, this behaves like rsbax
 ;; If there is an underflow (arg is larger than AX), the carry bit will be set, otherwise carry is clear
@@ -163,7 +171,8 @@
 .endscope
 .endmacro
 
-;; rsbax arg, rsbax #arg
+;; rsbax arg
+;; rsbax #arg
 ;; 16 bit reverse subtraction, calculate the value of arg - AX 
 ;; The result is not influenced by the carry
 ;; If there is an underflow (arg is larger than AX), the carry bit will be set, otherwise carry is clear
@@ -197,7 +206,8 @@
 
 
 
-;; cmpax addr, cmpax #arg
+;; cmpax addr
+;; cmpax #arg
 ;; Compares the value in A/X with the 16 bit value in addr or the immediate value
 ;; Supports zero page addressing mode
 ;; Result is returned in A/X
@@ -219,7 +229,8 @@ end:
 .endscope
 .endmacro
 
-;; orax addr, orax #arg
+;; orax addr
+;; orax #arg
 ;; Calculates the bitwise OR operation between A/X and a 16 bit value at an addr or as immediate value
 ;; Supports zero page addressing mode
 ;; Result is returned in A/X
@@ -251,7 +262,8 @@ end:
 .endscope
 .endmacro
 
-;; andax addr, andax #arg
+;; andax addr
+;; andax #arg
 ;; Calculates the bitwise AND operation between A/X and a 16 bit value at an addr or as immediate value
 ;; Supports zero page addressing mode
 ;; Result is returned in A/X
@@ -283,7 +295,8 @@ end:
 .endscope
 .endmacro
 
-;; eorax addr, eorax #arg
+;; eorax addr
+;; eorax #arg
 ;; Calculates the bitwise exclusive-or operation between A/X and a 16 bit value at addr or as immediate value
 ;; Supports zero page addressing mode
 ;; Result is returned in A/X

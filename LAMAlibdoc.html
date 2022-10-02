@@ -52,7 +52,8 @@ USE_BASIC_ROM does not actually change the ROM configuration.<br>
 The switch can be changed multiple times to create program parts using the ROM and parts that do not.<br>
 <h2>16-bit Emulation Macros</h2>
 <br>
-<b>ldax</b> <i>addr,</i> ldax</b> <i>#arg</i><br>
+<b>ldax</b> <i>addr</i><br>
+<b>ldax</b> <i>#arg</i><br>
 Loads a 16-bit value into A/X, either from an address or as immediate value<br>
 Note that the zero flag is not indicating 0 but indicating a value <256<br>
 Supports zero page addressing mode<br>
@@ -63,37 +64,81 @@ Stores the value in registers A and X to addr and addr+1<br>
 Supports zero page addressing mode<br>
 Registers modified: none<br>
 <br>
-<b>adcax</b> <i>addr,</i> adcax</b> <i>#arg</i><br>
-Adds a 16 bit value at an addr or as immediate value to 16 bit value in registers A/X<br>
+<b>adcax</b> <i>addr</i><br>
+<b>adcax</b> <i>#arg</i><br>
+Adds a 16 bit value with carry at an addr or as immediate value to 16 bit value in registers A/X<br>
 Supports zero page addressing mode<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
 <br>
-<b>sbcax</b> <i>addr,</i> sbcax</b> <i>#arg</i><br>
-Subtracts the 16 bit value at an addr or as immediate value from  16 bit value in registers A/X<br>
+<b>addax</b> <i>addr</i><br>
+<b>adcax</b> <i>#arg</i><br>
+Adds a 16 bit value without carry at an addr or as immediate value to 16 bit value in registers A/X<br>
 Supports zero page addressing mode<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
 <br>
-<b>cmpax</b> <i>addr,</i> cmpax</b> <i>#arg</i><br>
+<b>sbcax</b> <i>addr</i><br>
+<b>sbcax</b> <i>#arg</i><br>
+Subtracts the 16 bit value with carry at an addr or as immediate value from  16 bit value in registers A/X<br>
+Supports zero page addressing mode<br>
+Result is returned in A/X<br>
+Registers modified: A,X<br>
+<br>
+<b>subax</b> <i>addr</i><br>
+<b>sbcax</b> <i>#arg</i><br>
+Subtracts the 16 bit value with carry at an addr or as immediate value from  16 bit value in registers A/X<br>
+Supports zero page addressing mode<br>
+Result is returned in A/X<br>
+Registers modified: A,X<br>
+<br>
+<b>rsc</b> <i>arg</i><br>
+<b>rsc</b> <i>#arg</i><br>
+Reverse subtraction with carry, calculate the value of arg - A - C<br>
+if the carry is clear before the command, this behaves like rsc<br>
+If there is an underflow (arg is larger than A), the carry bit will be set, otherwise carry is clear<br>
+<br>
+<b>rsb</b> <i>arg</i><br>
+<b>rsb</b> <i>#arg</i><br>
+Reverse subtraction, calculate the value of arg - A<br>
+The result is not influenced by the carry<br>
+If there is an underflow (arg is larger than A), the carry bit will be set, otherwise carry is clear<br>
+<br>
+<b>rscax</b> <i>arg</i><br>
+<b>rscax</b> <i>#arg</i><br>
+16 bit reverse subtraction, calculate the value of arg - AX - C<br>
+if the carry is clear before the command, this behaves like rsbax<br>
+If there is an underflow (arg is larger than AX), the carry bit will be set, otherwise carry is clear<br>
+<br>
+<b>rsbax</b> <i>arg</i><br>
+<b>rsbax</b> <i>#arg</i><br>
+16 bit reverse subtraction, calculate the value of arg - AX<br>
+The result is not influenced by the carry<br>
+If there is an underflow (arg is larger than AX), the carry bit will be set, otherwise carry is clear<br>
+<br>
+<b>cmpax</b> <i>addr</i><br>
+<b>cmpax</b> <i>#arg</i><br>
 Compares the value in A/X with the 16 bit value in addr or the immediate value<br>
 Supports zero page addressing mode<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
 <br>
-<b>orax</b> <i>addr,</i> orax</b> <i>#arg</i><br>
+<b>orax</b> <i>addr</i><br>
+<b>orax</b> <i>#arg</i><br>
 Calculates the bitwise OR operation between A/X and a 16 bit value at an addr or as immediate value<br>
 Supports zero page addressing mode<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
 <br>
-<b>andax</b> <i>addr,</i> andax</b> <i>#arg</i><br>
+<b>andax</b> <i>addr</i><br>
+<b>andax</b> <i>#arg</i><br>
 Calculates the bitwise AND operation between A/X and a 16 bit value at an addr or as immediate value<br>
 Supports zero page addressing mode<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
 <br>
-<b>eorax</b> <i>addr,</i> eorax</b> <i>#arg</i><br>
+<b>eorax</b> <i>addr</i><br>
+<b>eorax</b> <i>#arg</i><br>
 Calculates the bitwise exclusive-or operation between A/X and a 16 bit value at addr or as immediate value<br>
 Supports zero page addressing mode<br>
 Result is returned in A/X<br>
@@ -373,11 +418,27 @@ Defines a selection mechanism to allow the value of a register to change the con
 <b>case</b> and <b>case_eq</b> are the same function, they trigger if the register value and the comparison value are identical<br>
 <b>case_lt</b> ("less than") triggers if the register value is smaller than the comparison value<br>
 <b>case_ge</b> ("greater or equal") triggers if the register value is greater or equal than the comparison value<br>
-<b>break</b> jumps out of the structure. If break is omitted, the next comparison is done<br>
+<b>break</b> jumps out of the structure. Other than with the switch structure in C, fallthroughs before another case do not work because there is code generated for the comparison and branch function before each case part.<br>
+Only a fallthrough into the default part works correctly.<br>
 <b>default</b> performs no comparison but triggers always, there is no need for a break command at the end of default<br>
-<br>
 Registers modified: none<br>
 <br>
+Example:<br>
+	<pre><br>
+	switch A<br>
+	case 1:<br>
+	   print "one"<br>
+	   break<br>
+	case 2:<br>
+	   print "two"<br>
+	   break<br>
+	case 3:<br>
+	   print "one"<br>
+	   break<br>
+	default:<br>
+	   print "?"<br>
+	endswitch<br>
+	</pre><br>
 <h2>Useful Routines</h2>
 <br>
 <b>_ld_reg</b> <i>reg,arg</i><br>
@@ -628,7 +689,7 @@ Registers modified: A,Y (Y is only used when an argument is used)<br>
 Get a random number in AX betwenn 0 and 0xFFFF<br>
 The argument is optional and can be a number or AX<br>
 If an argument is given, the value is caclulated between 0 and given number-1<br>
-This function uses the same routine as rand8, therefore calling rand16 wil change the state of rand8 as well<br>
+This function uses the same routine as rand8, therefore calling rand16 will change the state of rand8 as well<br>
 Registers modified: A,X,Y (Y is only used when an argument is used)<br>
 <br>
 <b><b>rand_setseed</b></b> <i>AX</i> <i>|</i> <i>[[<i>arg1</i>|A|X|Y],</i> <i><i>arg2</i>|A|X|Y]</i><br>
