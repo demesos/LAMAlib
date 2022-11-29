@@ -658,7 +658,7 @@ endfilename:
 
 
 ;; print arg1 [arg2 ...]
-;; Prints the arguments as strings or numbers
+;; Prints the arguments as strings or numbers, without a carriage return
 ;; An argument in parenthesis will print the 16bit value stored at this address
 ;; uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro
 ;; Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)
@@ -710,6 +710,21 @@ endfilename:
                 ;macro calls itself recursely to process remaining arguments
                 print_recursive1 arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
         .endif
+.endmacro
+
+
+;; println arg1 [arg2 ...]
+;; Prints the arguments as strings or numbers, followed by a carriage return
+;; An argument in parenthesis will print the 16bit value stored at this address
+;; uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro
+;; Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)
+;; Registers modified: none
+.macro println arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+	store Y
+	print_recursive1 arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+	restore Y
+        lda #$0d
+        jsr CHROUT
 .endmacro
 
 
