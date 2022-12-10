@@ -652,7 +652,14 @@ uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macr
 Registers modified: A,Y,X<br>
 <br>
 <b>print</b> <i>arg1</i> <i>[arg2</i> <i>...]</i><br>
-Prints the arguments as strings or numbers<br>
+Prints the arguments as strings or numbers, without a carriage return<br>
+An argument in parenthesis will print the 16bit value stored at this address<br>
+uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
+Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)<br>
+Registers modified: none<br>
+<br>
+<b>println</b> <i>arg1</i> <i>[arg2</i> <i>...]</i><br>
+Prints the arguments as strings or numbers, followed by a carriage return<br>
 An argument in parenthesis will print the 16bit value stored at this address<br>
 uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
 Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)<br>
@@ -790,10 +797,16 @@ rasterline can be a value between 0 and 311 (for PAL systems) or 261 for NTSC sy
 The routine does not turn off the IRQ, so an IRQ might make it miss the rasterline it is waiting for.<br>
 Registers modified: A or the register (A,X, or Y) given as second argument<br>
 <br>
+<b>screen_off</b><br>
+turns off the screen via $d011<br>
+The function always sets a 0 as high bit to avoid an unreachable raster irq line.<br>
+<br>
 <b>wait_screen_off</b><br>
 Waits until raster>255 and turns screen off. Since it is necessary to write to $d011, the high bit of the next raster IRQ will be written.<br>
-The function always sets a 0 has high bit to avoid an unreachable raster irq line.<br>
-<b>screen_on</b> turns the screen back on. Since it is necessary to write to $d011, the high bit of the next raster IRQ will be written (also with a 0)<br>
+The function always sets a 0 as high bit to avoid an unreachable raster irq line.<br>
+<br>
+<b>wait_screen_on</b><br>
+turns the screen back on. Since it is necessary to write to $d011, the high bit of the next raster IRQ will be written (with a 0)<br>
 <h2>Special Macros for C128 in C128 Mode</h2>
 <br>
 <b>shadowIRQ</b> <i>off|on</i><br>
