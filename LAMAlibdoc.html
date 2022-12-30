@@ -825,6 +825,7 @@ getAddrOfBasicArryVar "ab%",3 returns the address of AB%(3)<br>
 The return value is the variables address in AX<br>
 uses zero page addresses $0b, $0c, $0d, $0e, $45, $46<br>
 on C128 it uses zero page addresses $0d, $0e, $0f, $10, $47, $48<br>
+On the C128, the bank will be set to 1 after return, so this code needs to be in common RAM or in bank 1.<br>
 <h2>Special Macros for C128 in C128 Mode</h2>
 <br>
 <b>shadowIRQ</b> <i>off|on</i><br>
