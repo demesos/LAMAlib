@@ -7,8 +7,8 @@
 set TARGET=c64
 
 if "%1"=="" (
-  echo Usage: %0 [-128] asmfile [startaddr]
-  echo Calls the cl65 assembler and linker and creates an executable .PRG for C64, unless -128 is specified, then result is for C128
+  echo Usage: %0 [-128|20] asmfile [startaddr]
+  echo Calls the cl65 assembler and linker and creates an executable .PRG for C64, unless -128 or -20 are specified, then result is for C128 or VIC20
   exit /b
 )
 if "%1"=="-128" (

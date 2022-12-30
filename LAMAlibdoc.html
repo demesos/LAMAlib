@@ -807,6 +807,24 @@ The function always sets a 0 as high bit to avoid an unreachable raster irq line
 <br>
 <b>wait_screen_on</b><br>
 turns the screen back on. Since it is necessary to write to $d011, the high bit of the next raster IRQ will be written (with a 0)<br>
+<h2>Interacting with BASIC</h2>
+<br>
+<b>setBasicVarnam</b> <i>"varnam"</i><br>
+This macro puts name and type of current variable into $45/46 (on C128 $47/48) in preparation for using ROM routines<br>
+The values of $45 and $46 are also put into registers A and X<br>
+The varname can be of 1 or 2 characters length plus an optional $ or % to indicate string or integer variables<br>
+Example usage:<br>
+setBasicVarnam "ab%" sets the integer variable ab%<br>
+setBasicVarnam "s$" sets the string variable s$<br>
+setBasicVarnam "x1" sets the floating point variable x1<br>
+<br>
+<b>getAddrOfBasicArryVar</b> <i>varnam,arrayidx</i><br>
+The arrayidx must be not larger than decimal 10 for arrays to be created<br>
+Example usage:<br>
+getAddrOfBasicArryVar "ab%",3 returns the address of AB%(3)<br>
+The return value is the variables address in AX<br>
+uses zero page addresses $0b, $0c, $0d, $0e, $45, $46<br>
+on C128 it uses zero page addresses $0d, $0e, $0f, $10, $47, $48<br>
 <h2>Special Macros for C128 in C128 Mode</h2>
 <br>
 <b>shadowIRQ</b> <i>off|on</i><br>

@@ -5,6 +5,8 @@
 PRESSED_KEY_MATRIX_CODE=$C5
 MATRIX_CODE_NO_KEY=$40
 
+VAR_FLAGS      = $0b
+CURR_VAR_NAME  = $45
 CHARS_IN_KEYBUF= $C6
 CURSORX        = $D3
 CURSORY        = $D6
@@ -18,6 +20,7 @@ USE_BASIC_ROM .set 1  ;add USE_BASIC_ROM=0 to your code to make LAMAlib generate
 
 STROUT= $AB1E ;outputs a string at addr A/Y
 LINPRT= $BDCD ;outputs number in A/X
+FINDARRAYELEMENT=$B218	;part of routine $b1d1 to find or make an array
 
 CLRSCR= $E544 ;clear screen
 
@@ -80,6 +83,8 @@ CRB= CIABASE+$F ;Control Timer B
 PRESSED_KEY_MATRIX_CODE=$D4
 MATRIX_CODE_NO_KEY=$58
 
+VAR_FLAGS      = $0d
+CURR_VAR_NAME  = $47
 CHARS_IN_KEYBUF= $D0
 CURSORX        = $EC
 CURSORY        = $EB
@@ -93,6 +98,7 @@ USE_BASIC_ROM .set 1  ;add USE_BASIC_ROM=0 to your code to make LAMAlib generate
 
 STROUT= $55E2 ;outputs a string at addr A/Y
 LINPRT= $8E32 ;outputs number in A/X
+FINDARRAYELEMENT=$7CF4	;part of routine $7cAB to find or make an array
 
 CLRSCR= $C142 ;clear screen
 INITVIC = $E170
@@ -167,6 +173,8 @@ USE_BASIC_ROM .set 1  ;add USE_BASIC_ROM=0 to your code to make LAMAlib generate
 PRESSED_KEY_MATRIX_CODE=$C5
 MATRIX_CODE_NO_KEY=$40
 
+VAR_FLAGS      = $0b
+CURR_VAR_NAME  = $45
 CHARS_IN_KEYBUF= $C6
 CURSORX        = $D3
 CURSORY        = $D6
@@ -175,6 +183,7 @@ BASICSTART=$1001
 
 STROUT= $CB1E ;outputs a string at addr A/Y
 LINPRT= $DDCD ;outputs number in A/X
+FINDARRAYELEMENT=$D218	;part of routine $D1D1 to find or make an array
 
 CLRSCR= $E55F ;clear screen
 

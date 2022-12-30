@@ -59,7 +59,6 @@
         restore X
         next
 
-
         disable_chrout2window
 
         rts
