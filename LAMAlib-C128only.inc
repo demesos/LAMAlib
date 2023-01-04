@@ -33,7 +33,20 @@
 .endmacro
 
 
-
+;; set_VIC_RAMbank bank
+;; Tell the MMU to feed RAM bank 0 or 1 to the VIC
+;; This is a C128-only feature
+;; Bank must be 0 or 1
+;; I/O must be enabled for this macro to work
+.macro set_VIC_RAMbank bank
+	lda $d506
+	.if bank=0
+	  and #%10111111	;clear bit 6
+	.else
+	  ora #%01111111	;enable bit 6
+	.endif
+	sta $d506
+.endmacro
 
 .endif
 
