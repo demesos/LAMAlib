@@ -836,5 +836,11 @@ avoid this, the macro  shadowIRQ off puts a 0 into memory address $0A04,<br>
 telling the Kernal that BASIC has not been initialized yet.<br>
 Cutting the IRQ routine provides a speed gain of about 2.5%<br>
 Registers modified: A<br>
+<br>
+<b>set_VIC_RAMbank</b> <i>bank</i><br>
+Tell the MMU to feed RAM bank 0 or 1 to the VIC<br>
+This is a C128-only feature<br>
+Bank must be 0 or 1<br>
+I/O must be enabled for this macro to work<br>
 </body>
 </html>
