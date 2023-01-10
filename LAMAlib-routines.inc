@@ -1132,7 +1132,8 @@ setx:           ldx #00
 ;; readWASDspace
 ;; Checks the keyboard for keypresses of W, A ,S, D and Space
 ;; Output is a byte in A in the same format as a joystick value
-;; Function works independly of IRQ routine
+;; Since movement of joystick 1 disturbs the value, no keys are returen if joystick 1 is moved to any direction
+;; Function does not require the Kernal keyboard routine that is in the IRQ
 ;; Registers modified: A,X
 .import _readWASDspace_sr
 .macro readwasdspace   ;version with all lowercase

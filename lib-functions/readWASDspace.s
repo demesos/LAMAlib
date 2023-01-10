@@ -8,6 +8,14 @@
 result=sm+1
 
 readWASDspace:
+  lda $DC01
+  and #$0f		;test for joystick 1 activity
+  cmp #$0f
+  beq cont		;joystick 1 is disturbing, return no key
+    lda #$1f
+    rts
+cont:
+
   poke $DC00, $FB
   lda $DC01
   and #$04		;test for key "d"
