@@ -3,7 +3,7 @@
 screen=$0400
 bitmap=$2000
 
-gfxtables=$9000
+.import gfxtables
 
 gfx_xtablelo = gfxtables
 gfx_ytablelo = gfxtables + $100
