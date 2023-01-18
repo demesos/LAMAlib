@@ -364,10 +364,18 @@ sm_to_add=*+1
 ;; For example to set a window starting on column 5, write 
 ;; <tt>  .import _window_x1
 ;;   poke _window_x1,5</tt>
-
 .macro enable_chrout2window
 .import _enable_chrout2window
 	jsr _enable_chrout2window
+.endmacro
+
+;; getkey
+;; clears the key buffer, waits for a keypress and returns the ASCII value of the pressed key in A
+;; relies on the interrupt routine regularily scanning the keyboard
+.macro getkey
+.import _getkey
+.exportzp CHARS_IN_KEYBUF
+	jsr _getkey
 .endmacro
 
 

@@ -563,6 +563,10 @@ For example to set a window starting on column 5, write<br>
 <tt>  .import _window_x1<br>
 poke _window_x1,5</tt><br>
 <br>
+<b>getkey</b><br>
+clears the key buffer, waits for a keypress and returns the ASCII value of the pressed key in A<br>
+relies on the interrupt routine regularily scanning the keyboard<br>
+<br>
 <b>identify_SID</b> <i>[baseaddress]</i><br>
 Detects the SID soundchip model<br>
 SID detection routine from codebase64 by SounDemon and a tip from Dag Lem<br>
