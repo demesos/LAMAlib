@@ -1154,12 +1154,13 @@ setx:           ldx #00
 .endmacro
 
 
-;; makesys [linenumber[,text]]
-;; Generates the code for a BASIC line with a SYS command and an optional text behind the sys command
+;; makesys [linenumber[,text[, address]]]
+;; Generates the code for a BASIC line with a SYS command, an optional text behind the sys command, and an optional specified entry address
 ;; This is similar to the command line option  -u __EXEHDR__
 ;; Difference is that with this function the code segment starts at $801, so .align is off only by 1
+;; If no SYS address is given, the target address is calculated to be the address right after the BASIC stub
 ;; Default line number is 2020
-.macro  makesys linenumber,text
+.macro  makesys linenumber,text,address
        .byte $0b,$08
        .if .paramcount > 0
             .byte <linenumber,>linenumber
@@ -1167,17 +1168,20 @@ setx:           ldx #00
             .byte <2020,>2020
        .endif
        .byte $9e   ;SYS token
-       ;.byte $30+2 ;systarget/1000
+       ;.byte $30+systarget/1000
        ;.byte $30+systarget .mod 1000/100
        ;.byte $30+systarget .mod 100/10
        ;.byte $30+(systarget .mod 10)
-       .if .paramcount = 2
-            systarget=BASICSTART+$0c+.strlen(text)
-            .byte .sprintf ("%d", systarget)
-            .asciiz text
-       .else
+       .if .paramcount < 2
             systarget=BASICSTART+$0c
-            .asciiz .sprintf ("%d", systarget)
+	    .byte .sprintf ("%d", systarget), $00
+       .elseif .paramcount = 2
+            systarget=BASICSTART+$0c+.strlen(text)
+	    .byte .sprintf ("%d", systarget)
+            .asciiz text
+       .elseif .paramcount = 3
+	    .byte .sprintf ("%d", address)
+            .asciiz text
        .endif
        .byte $00,$00
 .endmacro

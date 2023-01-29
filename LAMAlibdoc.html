@@ -750,10 +750,11 @@ Since movement of joystick 1 disturbs the value, no keys are returen if joystick
 Function does not require the Kernal keyboard routine that is in the IRQ<br>
 Registers modified: A,X<br>
 <br>
-<b>makesys</b> <i>[linenumber[,text]]</i><br>
-Generates the code for a BASIC line with a SYS command and an optional text behind the sys command<br>
+<b>makesys</b> <i>[linenumber[,text[,</i> <i>address]]]</i><br>
+Generates the code for a BASIC line with a SYS command, an optional text behind the sys command, and an optional specified entry address<br>
 This is similar to the command line option  -u __EXEHDR__<br>
 Difference is that with this function the code segment starts at $801, so .align is off only by 1<br>
+If no SYS address is given, the target address is calculated to be the address right after the BASIC stub<br>
 Default line number is 2020<br>
 <br>
 <b>memcopy</b> <i>src_addr,target_addr,length</i><br>
