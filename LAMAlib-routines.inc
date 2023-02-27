@@ -1508,7 +1508,7 @@ L1:
 .endmacro
 
 ;; wait_screen_off
-;; Waits until raster>255 and turns screen off. Since it is necessary to write to $d011, the high bit of the next raster IRQ will be written.
+;; Waits until raster>249 and turns screen off. Since it is necessary to write to $d011 to turn the screen off, we cannot avoid setting the high bit.
 ;; The function always sets a 0 as high bit to avoid an unreachable raster irq line.
 
 .macro wait_screen_off
