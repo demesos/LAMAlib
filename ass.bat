@@ -52,12 +52,12 @@ if "%2"=="" (
     cl65 -t %TARGET% "%1" -lib LAMAlib.lib -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -o "%~n1.prg"
   ) || (
     @echo on
-    cl65 -t %TARGET% "%1" -lib LAMAlib.lib -t %TARGET% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -u __EXEHDR__ -o "%~n1.prg"
+    cl65 -t %TARGET% "%1" -lib LAMAlib.lib -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -u __EXEHDR__ -o "%~n1.prg"
   )
 ) else (
   echo assembling %1 to start address %2 for target %TARGET%...
   @echo on
-  cl65 -t %TARGET% "%1" -lib LAMAlib.lib -t %TARGET% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" --start-addr %2 -o "%~n1.prg"
+  cl65 -t %TARGET% "%1" -lib LAMAlib.lib -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" --start-addr %2 -o "%~n1.prg"
 )
 @echo done.
 
