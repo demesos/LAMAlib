@@ -187,7 +187,7 @@ loop:
 .macro  delay_ms arg
 .import _delay_ms_sr
 .scope
-       .if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))
+       .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
             jsr _delay_ms_sr
        .else
             ldax #arg
