@@ -804,14 +804,24 @@ setx:           ldx #00
 ;; Prints the null-terminated string at addr using the STROUT function
 ;; BASIC and KERNAL ROM need to be enabled when using this function
 ;; Registers modified: A,Y,X
-.macro  printstr   addr
-                lda #<addr
-                ldy #>addr
+.macro  printstr   arg
+        .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
+	    ;need to copy X to Y without using A
+	    pha
+	    txa
+	    tay
+	    pla
+        .elseif (.xmatch ({arg}, {AY}) .or .xmatch ({arg}, {ay}))
+	    ;no need to do anything
+        .else
+            lda #<(arg)
+            ldy #>(arg)
+        .endif
 	.if ::USE_BASIC_ROM>0
-                jsr STROUT
+            jsr STROUT
 	.else
-		.import _strout_sr
-		jsr _strout_sr
+	    .import _strout_sr
+	    jsr _strout_sr
 	.endif
 .endmacro
 
