@@ -220,7 +220,7 @@ loop:
 .endmacro
 
 
-; diskstatus devicenr
+;; diskstatus devicenr
 ;; Returns the disk status error message number in A
 ;; This code only reads the number without further text
 ;; Error codes (listed in decimal) are:

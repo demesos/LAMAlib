@@ -490,6 +490,8 @@ Executes a short routine to disable the NMI<br>
 the trick is to cause an NMI but don't ackowledge it<br>
 Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)<br>
 Registers modified: A<br>
+<br>
+<b>diskstatus</b> <i>devicenr</i><br>
 Returns the disk status error message number in A<br>
 This code only reads the number without further text<br>
 Error codes (listed in decimal) are:<br>
