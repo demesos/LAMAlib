@@ -6,7 +6,7 @@
 ;; macros to select register for a load, store, and compare operation.
 ;; For example, _ld_reg A,#12 translates into lda #12 while _st_reg $1234,Y translates into sty $1234
 ;; if reg is blank, A is used as a default
-;; Those funcations are mostly used in other macros.
+;; Those functions are mostly used in other macros.
 
 .macro _ld_reg reg,arg
 	.ifblank reg
@@ -411,6 +411,133 @@ waitraster:
        lda SIDbaseaddress+$1b
        lsr
 .endscope
+.endmacro
+
+
+;; include_file_as filename,identifier
+;; This macro helps in linking external files to the project that should be copied into a target area later or accessed directly
+;; filename should be given as a quoted string. If the filename ends with ".prg" it is assumed that the first two byter are the loading address, these bytes are skipped for the calculation of start address and length
+;; Example: include_file_as "sprites.bin",sprites
+;; (identifier)_filestart contains the first address where the file was included (in the example that would be sprites_filestart)s
+;; (identifier)_filestart contains the last address (+1) where the file was included 
+;; (identifier)_length contains the length in bytes
+;; This macro is convenient for small projects, consider using a linker for projects with many different large components 
+.macro include_file_as filename,identifier
+        ; Check if the argument string ends with '.prg' (any case)
+        .if .strlen(filename)>3
+          .if (.strat (filename, .strlen(filename)-4) = '.') .and ((.strat (filename, .strlen(filename)-3) = 'p')  .or (.strat (filename, .strlen(filename)-3) = 'P')) .and ((.strat (filename, .strlen(filename)-2) = 'r')  .or (.strat (filename, .strlen(filename)-2) = 'R')) .and ((.strat (filename, .strlen(filename)-1) = 'g')  .or (.strat (filename, .strlen(filename)-1) = 'G'))
+            ::.ident (.sprintf ("%s_filetype", .string(identifier))) = 1
+          .else
+            ::.ident (.sprintf ("%s_filetype", .string(identifier))) = 0
+          .endif
+        .else
+          ::.ident (.sprintf ("%s_filetype", .string(identifier))) = 0
+        .endif
+
+        .if ::.ident (.sprintf ("%s_filetype", .string(identifier))) = 1
+          .incbin filename,0,2  
+::.ident (.sprintf ("%s_filestart", .string(identifier))):
+          .incbin filename,2    
+        .else
+::.ident (.sprintf ("%s_filestart", .string(identifier))):
+          .incbin filename
+        .endif
+::.ident (.sprintf ("%s_fileend", .string(identifier))):
+::.ident (.sprintf ("%s_length", .string(identifier))) .set (::.ident (.sprintf ("%s_fileend", .string(identifier))) - ::.ident (.sprintf ("%s_filestart", .string(identifier)))) 
+.endmacro
+
+;; install_file identifier[,target_addr]
+;; copies a previously included file to the target address
+;; Example: install_file sprites,$340
+;; if target_addr is omitted, the address is taken from the load address (first two bytes of a PRG file)
+;; if the filetype ist different from PRG, target_addr must be specified
+;; The corresponding command include_file_as filename,identifier must be executed before calling install_file
+.macro install_prgfile identifier,target_addr
+        .import _memcopy_sr
+        .importzp _source_ptr,_target_ptr
+
+        .ifblank target_addr
+          .if ::.ident (.sprintf ("%s_filetype", .string(identifier))) = 0
+            .error "Binary files have no load address, missing parameter target_addr"
+          .endif
+        .endif
+
+	.ifndef ::.ident (.sprintf ("%s_filetype", .string(identifier)))
+	  .error "File object not defined, typo?"
+	.endif
+
+        .scope
+        .if ::.ident (.sprintf ("%s_length", .string(identifier))) < 256
+          ;code for copying up to 255 bytes
+          .ifblank target_addr
+            ldax ::.ident (.sprintf ("%s_filestart", .string(identifier)))-2
+            stax sm_target_addr
+            ;x goes from length-1 down to 0
+            ldx #::.ident (.sprintf ("%s_length", .string(identifier))) - 1
+  copyloop1:
+            lda ::.ident (.sprintf ("%s_filestart", .string(identifier))),x
+sm_target_addr=*+1
+            sta $affe,x
+            dex
+	    .if ::.ident (.sprintf ("%s_length", .string(identifier))) <= 128
+	      bpl copyloop1
+	    .else
+	      cpx #$ff
+              bne copyloop1
+	    .endif
+          .else ;ifblank target_addr
+            ;x goes from length down to 1
+            ldx #<::.ident (.sprintf ("%s_length", .string(identifier)))
+  copyloop_cmp2:
+            lda ::.ident (.sprintf ("%s_filestart", .string(identifier)))-1,x
+            sta target_addr-1,x
+            dex
+            bne copyloop_cmp2
+          .endif
+          .endscope
+          .exitmacro
+        .endif
+
+        .if ::.ident (.sprintf ("%s_length", .string(identifier))) = 256
+          ;code copying 256 bytes
+          .ifblank target_addr
+            ldax ::.ident (.sprintf ("%s_filestart", .string(identifier)))-2
+            stax sm_target_addr
+          .endif
+          ldx #0	;256 iterations
+copyloop256:
+          lda ::.ident (.sprintf ("%s_filestart", .string(identifier))),x
+          .ifblank target_addr
+sm_target_addr=*+1
+            sta $affe,x
+          .else
+            sta target_addr,x
+          .endif
+          dex
+          bne copyloop256
+          .endscope
+          .exitmacro
+        .endif
+
+        ;code for copying >256 bytes
+        yinit = <($100-<::.ident (.sprintf ("%s_length", .string(identifier))) )
+        ldy #yinit
+        .ifblank target_addr
+          ; using target address from file
+          ldax ::.ident (.sprintf ("%s_filestart", .string(identifier)))-2
+          .if yinit>0
+            subax #yinit
+          .endif
+        .else
+          ; target address is given as argument
+          ldax #target_addr - yinit
+        .endif
+        stax _target_ptr
+        ldax #(::.ident (.sprintf ("%s_filestart", .string(identifier))) - yinit)
+        stax _source_ptr
+        ldx #1+>(::.ident (.sprintf ("%s_length", .string(identifier))) -1)
+        .endscope
+        jsr _memcopy_sr
 .endmacro
 
 
@@ -1463,6 +1590,79 @@ endfilename:
         lda #01
         sta $D01A       ; set raster interrupt
 .endmacro
+
+;; set_timerA_latch value|AX[,cia base address]
+;; Sets the timer A value of the Complex Interface Adapter (CIA)
+;; If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be specified.
+;; Note that the value specifies the reload value of the timer, not the current counter value
+;; Used registers: A
+.macro set_timerA_latch arg1, base_addr
+	.scope
+	.ifblank base_addr
+	  base_addr_value .set $DC00
+	.else
+	  base_addr_value .set base_addr
+	.endif
+	.if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))          ;AX is used as argument
+	  sta base_addr_value+4
+	  stx base_addr_value+5	
+	.else
+	  lda #<arg1
+	  sta base_addr_value+4
+	  lda #>arg1
+	  sta base_addr_value+5
+	.endif
+	.endscope
+.endmacro
+
+;; read_timerA [AX[,cia base address]]
+;; Reads the current timer value and puts it into AX
+;; If the high byte changes during the reading, the reading is done again
+;; Used registers: A,X
+.macro read_timerA regs, base_addr
+	.scope
+	.ifblank base_addr
+	  base_addr_value .set $DC00
+	.else
+	  base_addr_value .set base_addr
+	.endif
+	.if .blank(regs) .or (.xmatch ({regs}, {AX}) .or .xmatch ({regs}, {ax}))          ;AX is used as argument
+:	  ldx base_addr_value+5
+	  lda base_addr_value+4
+	  cpx base_addr_value+5
+	  bne :-
+	.else
+	  .error "Wrong argument for read_timerA"
+	.endif
+	.endscope
+.endmacro
+
+
+;; set_timerB_latch value|AX[,cia base address]
+;; Sets the timer B value of the Complex Interface Adapter (CIA)
+;; If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be specified.
+;; Note that the value specifies the reload value of the timer, not the current counter value
+;; Used registers: A
+.macro set_timerB_latch arg1, base_addr
+	.scope
+	.ifblank base_addr
+	  base_addr_value .set $DC00
+	.else
+	  base_addr_value .set base_addr
+	.endif
+	.if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))          ;AX is used as argument
+	  sta base_addr_value+6
+	  stx base_addr_value+7	
+	.else
+	  lda #<arg1
+	  sta base_addr_value+6
+	  lda #>arg1
+	  sta base_addr_value+7
+	.endif
+	.endscope
+.endmacro
+
+
 
 
 ;; to_screencode
