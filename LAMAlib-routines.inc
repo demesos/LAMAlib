@@ -1298,28 +1298,42 @@ setx:           ldx #00
 ;; If no SYS address is given, the target address is calculated to be the address right after the BASIC stub
 ;; Default line number is 2020
 .macro  makesys linenumber,text,address
-       .byte $0b,$08
-       .if .paramcount > 0
-            .byte <linenumber,>linenumber
-       .else
-            .byte <2020,>2020
-       .endif
-       .byte $9e   ;SYS token
-       ;.byte $30+systarget/1000
-       ;.byte $30+systarget .mod 1000/100
-       ;.byte $30+systarget .mod 100/10
-       ;.byte $30+(systarget .mod 10)
-       .if .paramcount < 2
-            systarget=BASICSTART+$0c
-	    .byte .sprintf ("%d", systarget), $00
-       .elseif .paramcount = 2
-            systarget=BASICSTART+$0c+.strlen(text)
-	    .byte .sprintf ("%d", systarget)
-            .asciiz text
-       .elseif .paramcount = 3
-	    .byte .sprintf ("%d", address)
-            .asciiz text
-       .endif
+       .scope
+         lama_nextlineptr .set ::BASICSTART+10
+          .if .not .blank(address)
+            .if (address<10)
+              lama_nextlineptr .set lama_nextlineptr-3
+            .elseif (address<100)
+              lama_nextlineptr .set lama_nextlineptr-2
+            .elseif (address<1000)
+              lama_nextlineptr .set lama_nextlineptr-1
+            .elseif (address>9999)
+              lama_nextlineptr .set lama_nextlineptr+1
+            .endif
+          .endif
+          .ifnblank text
+            lama_nextlineptr .set lama_nextlineptr + .strlen(text)
+          .endif 
+          .word lama_nextlineptr
+          ;
+          .if .paramcount > 0
+               .byte <linenumber,>linenumber
+          .else
+               .byte <2020,>2020
+          .endif
+          .byte $9e   ;SYS token
+          .if .paramcount < 2
+               systarget=::BASICSTART+$0c
+               .byte .sprintf ("%d", systarget), $00
+          .elseif .paramcount = 2
+               systarget=::BASICSTART+$0c+.strlen(text)
+               .byte .sprintf ("%d", systarget)
+               .asciiz text
+          .elseif .paramcount = 3
+               .byte .sprintf ("%d", address)
+               .asciiz text
+          .endif
+       .endscope
        .byte $00,$00
 .endmacro
 

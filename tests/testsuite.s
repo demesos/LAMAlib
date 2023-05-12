@@ -28,6 +28,8 @@
 
 .FEATURE string_escapes
 
+makesys 1984
+
 ; Main program starts here
 
 testsuite:
