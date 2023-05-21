@@ -1576,16 +1576,26 @@ endfilename:
 .endmacro
 
 
-;; set_raster_irq rasterline
+;; set_raster_irq rasterline[, isr]
 ;; Changes the IRQ source to VIC raster interrupt
 ;; Turns off the CIA IRQ source
+;; If isr is given, the address is set in Kernals IRQ vector $314/315
 ;; IRQ routine must acknowledge the IRQ source
-.macro set_raster_irq rasterline
+;; Interrupts should be turned off or ensured that they won't happen while executing this macro
+.macro set_raster_irq rasterline, isr
 	.ifblank rasterline
 	  rline_value .set 0
 	.else
 	  rline_value .set rasterline
 	.endif
+
+	.ifnblank isr
+	  lda #<isr
+	  sta $314
+	  lda #>isr
+	  sta $315
+	.endif
+
         lda #$7f
         sta $dc0d       ; disable timer interrupts
         sta $dd0d

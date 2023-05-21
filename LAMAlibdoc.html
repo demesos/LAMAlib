@@ -806,10 +806,12 @@ Scrambles/unscrambles a memory area. To unscramble, call scramble with the same 
 Deletes a file on disk. If device number is not stated or 0, the last used device number stored in address $BA is used. In case $BA contains 0, 8 is used as default.<br>
 Registers modified: A,X,Y<br>
 <br>
-<b>set_raster_irq</b> <i>rasterline</i><br>
+<b>set_raster_irq</b> <i>rasterline[,</i> <i>isr]</i><br>
 Changes the IRQ source to VIC raster interrupt<br>
 Turns off the CIA IRQ source<br>
+If isr is given, the address is set in Kernals IRQ vector $314/315<br>
 IRQ routine must acknowledge the IRQ source<br>
+Interrupts should be turned off or ensured that they won't happen while executing this macro<br>
 <br>
 <b>set_timerA_latch</b> <i>value|AX[,cia</i> <i>base</i> <i>address]</i><br>
 Sets the timer A value of the Complex Interface Adapter (CIA)<br>
