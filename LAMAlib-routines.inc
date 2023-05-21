@@ -1740,8 +1740,8 @@ L1:
 	jsr _wait_screen_off
 .endmacro
 
-;; wait_screen_on
-;;turns the screen back on. Since it is necessary to write to $d011, the high bit of the next raster IRQ will be written (with a 0)
+;; screen_on
+;;turns the screen back on. Since it is necessary to write to $d011, the high bit of the next raster IRQ will be reset to 0 as a side effect
 
 .macro screen_on
 .import _screen_on
