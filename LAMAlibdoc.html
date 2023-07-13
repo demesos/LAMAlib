@@ -537,6 +537,12 @@ This function is not reentrant, don't use in interrupt and main program simultan
 Result is returned in A/X<br>
 Registers modified: all<br>
 <br>
+<b>disable_cbm_shift</b><br>
+disable Commodore-Shift<br>
+<br>
+<b>enable_cbm_shift</b><br>
+enable Commodore-Shift, this key combination toggles between the uppercase/graphics and lowercase/uppercase character set<br>
+<br>
 <b>draw_frame</b><br>
 Draws a frame around the window defined by the window parameters<br>
 Note that the frame will go around the window, so it is larger than the defined window<br>
@@ -567,7 +573,7 @@ poke _window_x1,5</tt><br>
 <br>
 <b>getkey</b><br>
 clears the key buffer, waits for a keypress and returns the ASCII value of the pressed key in A<br>
-relies on the interrupt routine regularily scanning the keyboard<br>
+Function depends on Kernal ROM and the IRQ routine regularily scanning the keyboard<br>
 <br>
 <b>identify_SID</b> <i>[baseaddress]</i><br>
 Detects the SID soundchip model<br>
@@ -752,8 +758,8 @@ if this function is used on the C128, a bank with visible ROM must be active.<br
 Turn off cursor briefly before output of a char, otherwise you get inverse character artifacts when blink phase is on<br>
 <br>
 <b>waitkey</b><br>
-Waits until a key is pressed<br>
-Function works independly of IRQ routine<br>
+Waits until a key is pressed, no meaningful return value<br>
+Function works independly of IRQ routine or ROM<br>
 Registers modified: A<br>
 <br>
 <b>waitkeyreleased</b><br>
@@ -830,10 +836,10 @@ If no base address is specified, the base address $DC00 (CIA #1) is used. For CI
 Note that the value specifies the reload value of the timer, not the current counter value<br>
 Used registers: A<br>
 <br>
-<b>to_screencode</b><br>
+<b>to_scrcode</b><br>
 If the PETSCII value in A belongs to a printable character, it is converted to the corresponding screencode and returned in A<br>
 Control codes will lead to an arbitrary byte.<br>
-Registers modified: A<br>
+Used registers: A<br>
 <br>
 <b>wait_for_rasterline</b> <i>rasterline[,reg]</i><br>
 Macro inserting code doing busy waiting until the given rasterline is reached<br>

@@ -331,6 +331,26 @@ sm_to_add=*+1
 .endmacro
 
 
+;; disable_cbm_shift
+;; disable Commodore-Shift
+.macro  disable_cbm_shift
+.scope
+	lda #8
+	jsr CHROUT
+.endscope
+.endmacro
+
+
+;; enable_cbm_shift
+;; enable Commodore-Shift, this key combination toggles between the uppercase/graphics and lowercase/uppercase character set
+.macro  enable_cbm_shift
+.scope
+	lda #9
+	jsr CHROUT
+.endscope
+.endmacro
+
+
 ;; draw_frame
 ;; Draws a frame around the window defined by the window parameters
 ;; Note that the frame will go around the window, so it is larger than the defined window
@@ -371,7 +391,7 @@ sm_to_add=*+1
 
 ;; getkey
 ;; clears the key buffer, waits for a keypress and returns the ASCII value of the pressed key in A
-;; relies on the interrupt routine regularily scanning the keyboard
+;; Function depends on Kernal ROM and the IRQ routine regularily scanning the keyboard
 .macro getkey
 .import _getkey
 .exportzp CHARS_IN_KEYBUF
@@ -452,7 +472,7 @@ waitraster:
 ;; if target_addr is omitted, the address is taken from the load address (first two bytes of a PRG file)
 ;; if the filetype ist different from PRG, target_addr must be specified
 ;; The corresponding command include_file_as filename,identifier must be executed before calling install_file
-.macro install_prgfile identifier,target_addr
+.macro install_file identifier,target_addr
         .import _memcopy_sr
         .importzp _source_ptr,_target_ptr
 
@@ -1255,14 +1275,13 @@ setx:           ldx #00
 
 
 ;; waitkey
-;; Waits until a key is pressed
-;; Function works independly of IRQ routine
+;; Waits until a key is pressed, no meaningful return value
+;; Function works independly of IRQ routine or ROM
 ;; Registers modified: A
 .import _waitkey_sr
 .macro waitkey
         jsr _waitkey_sr
 .endmacro
-
 
 ;; waitkeyreleased
 ;; Waits until all keys are released
@@ -1687,21 +1706,13 @@ endfilename:
 .endmacro
 
 
-
-
-;; to_screencode
+;; to_scrcode
 ;; If the PETSCII value in A belongs to a printable character, it is converted to the corresponding screencode and returned in A
 ;; Control codes will lead to an arbitrary byte.
-;; Registers modified: A
-.macro to_screencode
-        .scope
-        cmp #$60
-        bcc L1+1
-        ora #$40
-        and #$7f
-L1:
-        bit $3f29    ;contains command AND #$3f 
-        .endscope
+;; Used registers: A
+.macro to_scrcode
+	.import to_scrcode_sr
+	jsr to_scrcode_sr
 .endmacro
 
 
