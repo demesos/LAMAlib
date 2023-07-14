@@ -1,6 +1,6 @@
-.export to_scrcode_sr
+.export _to_scrcode_sr
 
-.proc to_scrcode_sr
+.proc _to_scrcode_sr
 	cmp #$ff
 	bne L0
 	lda #126     ;pi character

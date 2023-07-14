@@ -1711,8 +1711,8 @@ endfilename:
 ;; Control codes will lead to an arbitrary byte.
 ;; Used registers: A
 .macro to_scrcode
-	.import to_scrcode_sr
-	jsr to_scrcode_sr
+	.import _to_scrcode_sr
+	jsr _to_scrcode_sr
 .endmacro
 
 
