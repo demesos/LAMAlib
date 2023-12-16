@@ -836,6 +836,13 @@ If no base address is specified, the base address $DC00 (CIA #1) is used. For CI
 Note that the value specifies the reload value of the timer, not the current counter value<br>
 Used registers: A<br>
 <br>
+<b>sync_to_rasterline256</b><br>
+A sturdy version of waiting for the rasterline transition from 255 to 256.<br>
+Does busy waiting and comes with some jitter, so setting an IRQ might be the better option.<br>
+Might be delayed if an IRQ occurs, but will still trigger.<br>
+see also wait_for_rasterline<br>
+Registers modified: A<br>
+<br>
 <b>to_scrcode</b><br>
 If the PETSCII value in A belongs to a printable character, it is converted to the corresponding screencode and returned in A<br>
 Control codes will lead to an arbitrary byte.<br>
@@ -845,6 +852,7 @@ Used registers: A<br>
 Macro inserting code doing busy waiting until the given rasterline is reached<br>
 rasterline can be a value between 0 and 311 (for PAL systems) or 261 for NTSC systems, respectively<br>
 The routine does not turn off the IRQ, so an IRQ might make it miss the rasterline it is waiting for.<br>
+see also sync_to_rasterline256<br>
 Registers modified: A or the register (A,X, or Y) given as second argument<br>
 <br>
 <b>screen_off</b><br>
