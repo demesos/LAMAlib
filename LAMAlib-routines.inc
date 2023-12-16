@@ -1705,6 +1705,24 @@ endfilename:
 	.endscope
 .endmacro
 
+;; sync_to_rasterline256
+;; A sturdy version of waiting for the rasterline transition from 255 to 256. 
+;; Does busy waiting and comes with some jitter, so setting an IRQ might be the better option.
+;; Might be delayed if an IRQ occurs, but will still trigger.
+;; see also wait_for_rasterline
+;; Registers modified: A
+.macro sync_to_rasterline256 
+.scope
+        ;wait for a rasterline under 255
+        waitsync1:
+          lda $d011
+          bmi waitsync1
+        ;wait for a rasterline over 255
+        waitsync2:
+          lda $d011
+          bpl waitsync2
+.endscope
+.endmacro
 
 ;; to_scrcode
 ;; If the PETSCII value in A belongs to a printable character, it is converted to the corresponding screencode and returned in A
@@ -1720,6 +1738,7 @@ endfilename:
 ;; Macro inserting code doing busy waiting until the given rasterline is reached
 ;; rasterline can be a value between 0 and 311 (for PAL systems) or 261 for NTSC systems, respectively
 ;; The routine does not turn off the IRQ, so an IRQ might make it miss the rasterline it is waiting for.
+;; see also sync_to_rasterline256
 ;; Registers modified: A or the register (A,X, or Y) given as second argument
 
 .macro wait_for_rasterline rasterline,reg
