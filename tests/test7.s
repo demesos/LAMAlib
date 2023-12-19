@@ -60,10 +60,10 @@ include_file_as "test7files/0xff B.bin", binblockff
 include_file_as "test7files/0xfff B.bin", binblockfff	
 
 skip:
-	;install_prgfile sprites
+	;install_file sprites
 
 	memset $9fff,$b000,0
-	install_prgfile block100
+	install_file block100
 	checksum_eor $9fff,$b000
 
 	cmp #$80
@@ -77,7 +77,7 @@ skip:
 	sta $400
 
 	memset $9fff,$b000,0
-	install_prgfile block101
+	install_file block101
 	checksum_eor $9fff,$b000
 	sta $401
 
@@ -90,7 +90,7 @@ skip:
 	endif
 
 	memset $9fff,$b000,0
-	install_prgfile block1ff
+	install_file block1ff
 	checksum_eor $9fff,$b000
 	sta $402
 
@@ -103,7 +103,7 @@ skip:
 	endif
 
 	memset $9fff,$b000,0
-	install_prgfile block200
+	install_file block200
 	checksum_eor $9fff,$b000
 	sta $403
 
@@ -116,7 +116,7 @@ skip:
 	endif
 
 	memset $9fff,$b000,0
-	install_prgfile block201
+	install_file block201
 	checksum_eor $9fff,$b000
 	sta $404
 
@@ -129,7 +129,7 @@ skip:
 	endif
 
 	memset $9fff,$b000,0
-	install_prgfile block7f
+	install_file block7f
 	checksum_eor $9fff,$b000
 	sta $405
 
@@ -142,7 +142,7 @@ skip:
 	endif
 
 	memset $9fff,$b000,0
-	install_prgfile block80
+	install_file block80
 	checksum_eor $9fff,$b000
 	sta $406
 
@@ -155,7 +155,7 @@ skip:
 	endif
 
 	memset $9fff,$b000,0
-	install_prgfile block81
+	install_file block81
 	checksum_eor $9fff,$b000
 	sta $407
 
@@ -168,7 +168,7 @@ skip:
 	endif
 
 	memset $9fff,$b000,0
-	install_prgfile blockff
+	install_file blockff
 	checksum_eor $9fff,$b000
 	sta $408
 
@@ -181,7 +181,7 @@ skip:
 	endif
 
 	memset $9fff,$b000,0
-	install_prgfile blockfff
+	install_file blockfff
 	checksum_eor $9fff,$b000
 	sta $409
 
@@ -195,7 +195,7 @@ skip:
 
 	;second round with specified target address
 	memset $a57f,$b600,0
-	install_prgfile block100,$a580
+	install_file block100,$a580
 	checksum_eor $a57f,$b600
 
 	cmp #$80
@@ -209,7 +209,7 @@ skip:
 	sta $400
 
 	memset $a57f,$b600,0
-	install_prgfile block101,$a580
+	install_file block101,$a580
 	checksum_eor $a57f,$b600
 	sta $401
 
@@ -222,7 +222,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile block1ff,$a580
+	install_file block1ff,$a580
 	checksum_eor $a57f,$b600
 	sta $402
 
@@ -235,7 +235,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile block200,$a580
+	install_file block200,$a580
 	checksum_eor $a57f,$b600
 	sta $403
 
@@ -248,7 +248,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile block201,$a580
+	install_file block201,$a580
 	checksum_eor $a57f,$b600
 	sta $404
 
@@ -261,7 +261,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile block7f,$a580
+	install_file block7f,$a580
 	checksum_eor $a57f,$b600
 	sta $405
 
@@ -274,7 +274,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile block80,$a580
+	install_file block80,$a580
 	checksum_eor $a57f,$b600
 	sta $406
 
@@ -287,7 +287,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile block81,$a580
+	install_file block81,$a580
 	checksum_eor $a57f,$b600
 	sta $407
 
@@ -300,7 +300,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile blockff,$a580
+	install_file blockff,$a580
 	checksum_eor $a57f,$b600
 	sta $408
 
@@ -313,7 +313,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile blockfff,$a580
+	install_file blockfff,$a580
 	checksum_eor $a57f,$b600
 	sta $409
 
@@ -326,7 +326,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile binblock100,$a580
+	install_file binblock100,$a580
 	checksum_eor $a57f,$b600
 
 	cmp #$80
@@ -340,7 +340,7 @@ skip:
 	sta $400
 
 	memset $a57f,$b600,0
-	install_prgfile binblock101,$a580
+	install_file binblock101,$a580
 	checksum_eor $a57f,$b600
 	sta $401
 
@@ -353,7 +353,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile binblock1ff,$a580
+	install_file binblock1ff,$a580
 	checksum_eor $a57f,$b600
 	sta $402
 
@@ -366,7 +366,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile binblock200,$a580
+	install_file binblock200,$a580
 	checksum_eor $a57f,$b600
 	sta $403
 
@@ -379,7 +379,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile binblock201,$a580
+	install_file binblock201,$a580
 	checksum_eor $a57f,$b600
 	sta $404
 
@@ -392,7 +392,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile binblock7f,$a580
+	install_file binblock7f,$a580
 	checksum_eor $a57f,$b600
 	sta $405
 
@@ -406,7 +406,7 @@ skip:
 
 
 	memset $a57f,$b600,0
-	install_prgfile binblock80,$a580
+	install_file binblock80,$a580
 	checksum_eor $a57f,$b600
 	sta $406
 
@@ -419,7 +419,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile binblock81,$a580
+	install_file binblock81,$a580
 	checksum_eor $a57f,$b600
 	sta $407
 
@@ -432,7 +432,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile binblockff,$a580
+	install_file binblockff,$a580
 	checksum_eor $a57f,$b600
 	sta $408
 
@@ -445,7 +445,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile binblockfff,$a580
+	install_file binblockfff,$a580
 	checksum_eor $a57f,$b600
 	sta $409
 
