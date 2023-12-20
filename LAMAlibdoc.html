@@ -95,7 +95,7 @@ Registers modified: A,X<br>
 <b>rsc</b> <i>arg</i><br>
 <b>rsc</b> <i>#arg</i><br>
 Reverse subtraction with carry, calculate the value of arg - A - C<br>
-if the carry is clear before the command, this behaves like rsc<br>
+if the carry is clear before the command, this behaves like rsb<br>
 If there is an underflow (arg is larger than A), the carry bit will be set, otherwise carry is clear<br>
 <br>
 <b>rsb</b> <i>arg</i><br>
@@ -121,7 +121,7 @@ If there is an underflow (arg is larger than AX), the carry bit will be set, oth
 Compares the value in A/X with the 16 bit value in addr or the immediate value<br>
 Supports zero page addressing mode<br>
 Result is returned in A/X<br>
-Registers modified: A,X<br>
+Registers modified: none<br>
 <br>
 <b>orax</b> <i>addr</i><br>
 <b>orax</b> <i>#arg</i><br>
@@ -401,6 +401,15 @@ do<br>
 &nbsp;  and $dc00<br>
 loop until eq<br>
 </code><br>
+<br>
+<b>do_every</b> <i>interval[,phase]</i><br>
+...<br>
+<b>end_every</b><br>
+Defines a block that is executed every n-th time<br>
+interval: Specifies the interval between each execution. Maximum value 255.<br>
+phase: Determines the phase offset of the first iteration. If 0 the event is triggered in the first iteration.<br>
+Default value for phase is the interval-1<br>
+Registers modified: A<br>
 <br>
 <b>switch</b> <i></i><b>[A|X|Y|AX]</b><i></i><br>
 <b>[case|case_eq|case_lt|case_ge]</b> <i>num1</i><br>
@@ -836,6 +845,13 @@ If no base address is specified, the base address $DC00 (CIA #1) is used. For CI
 Note that the value specifies the reload value of the timer, not the current counter value<br>
 Used registers: A<br>
 <br>
+<b>sync_to_rasterline256</b><br>
+A sturdy version of waiting for the rasterline transition from 255 to 256.<br>
+Does busy waiting and comes with some jitter, so setting an IRQ might be the better option.<br>
+Might be delayed if an IRQ occurs, but will still trigger.<br>
+see also wait_for_rasterline<br>
+Registers modified: A<br>
+<br>
 <b>to_scrcode</b><br>
 If the PETSCII value in A belongs to a printable character, it is converted to the corresponding screencode and returned in A<br>
 Control codes will lead to an arbitrary byte.<br>
@@ -845,6 +861,7 @@ Used registers: A<br>
 Macro inserting code doing busy waiting until the given rasterline is reached<br>
 rasterline can be a value between 0 and 311 (for PAL systems) or 261 for NTSC systems, respectively<br>
 The routine does not turn off the IRQ, so an IRQ might make it miss the rasterline it is waiting for.<br>
+see also sync_to_rasterline256<br>
 Registers modified: A or the register (A,X, or Y) given as second argument<br>
 <br>
 <b>screen_off</b><br>

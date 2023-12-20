@@ -147,8 +147,20 @@
   ::nesting_levelY .set ::nesting_levelY/10 + 1
 .endmacro
 
+; the do_every macro uses a separate nesting_level counter
+.macro inc_nesting_level_every
+  .if .defined(::nesting_level_every)
+    ::nesting_level_every .set ::nesting_level_every*100
+  .else
+    ::nesting_level_every .set 100
+  .endif
+.endmacro
 
-; the switch case macro is using an extra nesting_level counter 
+.macro dec_nesting_level_every
+  ::nesting_level_every .set ::nesting_level_every/100 + 1
+.endmacro
+
+; the switch case macro uses a separate nesting_level counter
 .macro inc_nesting_level_case
   .if .defined(::nesting_level_case)
     ::nesting_level_case .set ::nesting_level_case*100
@@ -1143,6 +1155,33 @@
   .endif
 .ident(.sprintf("end_loop%d", ::nesting_level/10)):
   dec_nesting_level
+.endmacro
+
+;; do_every interval[,phase]
+;;   ...
+;; <b>end_every</b>
+;; Defines a block that is executed every n-th time
+;; interval: Specifies the interval between each execution. Maximum value 255.
+;; phase: Determines the phase offset of the first iteration. If 0 the event is triggered in the first iteration.
+;; Default value for phase is the interval-1
+;; Registers modified: A
+.macro do_every interval,phase
+  inc_nesting_level_every
+  .ident(.sprintf("begin_do_every%d", ::nesting_level_every/10)):
+  .if .paramcount = 1
+    lda #interval
+  .else
+    lda #phase+1
+  .endif
+  dec .ident(.sprintf("begin_do_every%d", ::nesting_level_every/10)) +1
+  longbne .ident(.sprintf("end_do_every%d", ::nesting_level_every/10))
+  lda #interval
+  sta .ident(.sprintf("begin_do_every%d", ::nesting_level_every/10)) +1
+.endmacro
+
+.macro end_every
+  .ident(.sprintf("end_do_every%d", ::nesting_level_every/10)):
+  dec_nesting_level_every
 .endmacro
 
 ;; switch </i><b>[A|X|Y|AX]</b><i>

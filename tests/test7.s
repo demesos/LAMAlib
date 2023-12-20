@@ -16,7 +16,7 @@
 	sta $403
 	checksum_eor $a000,$a0ff
 	sta $404
-	checksum_eor $a000,$a100
+	checksum_eor $a000,$a101
 	sta $405
 	checksum_eor $a000,$a1fe
 	sta $406
@@ -60,11 +60,9 @@ include_file_as "test7files/0xff B.bin", binblockff
 include_file_as "test7files/0xfff B.bin", binblockfff	
 
 skip:
-	;install_prgfile sprites
-
-	memset $9fff,$b000,0
-	install_prgfile block100
-	checksum_eor $9fff,$b000
+	memset $9fff,$a101,0
+	install_file block100
+	checksum_eor $9fff,$a101
 
 	cmp #$80
 	if eq
@@ -76,9 +74,9 @@ skip:
 
 	sta $400
 
-	memset $9fff,$b000,0
-	install_prgfile block101
-	checksum_eor $9fff,$b000
+	memset $9fff,$a101,0
+	install_file block101
+	checksum_eor $9fff,$a101
 	sta $401
 
 	cmp #$c9
@@ -89,9 +87,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $9fff,$b000,0
-	install_prgfile block1ff
-	checksum_eor $9fff,$b000
+	memset $9fff,$a201,0
+	install_file block1ff
+	checksum_eor $9fff,$a201
 	sta $402
 
 	cmp #$01
@@ -102,9 +100,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $9fff,$b000,0
-	install_prgfile block200
-	checksum_eor $9fff,$b000
+	memset $9fff,$a201,0
+	install_file block200
+	checksum_eor $9fff,$a201
 	sta $403
 
 	cmp #$4c
@@ -115,9 +113,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $9fff,$b000,0
-	install_prgfile block201
-	checksum_eor $9fff,$b000
+	memset $9fff,$a201,0
+	install_file block201
+	checksum_eor $9fff,$a201
 	sta $404
 
 	cmp #$05
@@ -128,9 +126,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $9fff,$b000,0
-	install_prgfile block7f
-	checksum_eor $9fff,$b000
+	memset $9fff,$a101,0
+	install_file block7f
+	checksum_eor $9fff,$a101
 	sta $405
 
 	cmp #$78
@@ -141,9 +139,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $9fff,$b000,0
-	install_prgfile block80
-	checksum_eor $9fff,$b000
+	memset $9fff,$a101,0
+	install_file block80
+	checksum_eor $9fff,$a101
 	sta $406
 
 	cmp #$cf
@@ -154,9 +152,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $9fff,$b000,0
-	install_prgfile block81
-	checksum_eor $9fff,$b000
+	memset $9fff,$a101,0
+	install_file block81
+	checksum_eor $9fff,$a101
 	sta $407
 
 	cmp #$b6
@@ -167,9 +165,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $9fff,$b000,0
-	install_prgfile blockff
-	checksum_eor $9fff,$b000
+	memset $9fff,$a101,0
+	install_file blockff
+	checksum_eor $9fff,$a101
 	sta $408
 
 	cmp #$d2
@@ -181,7 +179,7 @@ skip:
 	endif
 
 	memset $9fff,$b000,0
-	install_prgfile blockfff
+	install_file blockfff
 	checksum_eor $9fff,$b000
 	sta $409
 
@@ -194,9 +192,9 @@ skip:
 	endif
 
 	;second round with specified target address
-	memset $a57f,$b600,0
-	install_prgfile block100,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file block100,$a580
+	checksum_eor $a57f,$a800
 
 	cmp #$80
 	if eq
@@ -208,9 +206,9 @@ skip:
 
 	sta $400
 
-	memset $a57f,$b600,0
-	install_prgfile block101,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file block101,$a580
+	checksum_eor $a57f,$a800
 	sta $401
 
 	cmp #$c9
@@ -221,9 +219,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $a57f,$b600,0
-	install_prgfile block1ff,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file block1ff,$a580
+	checksum_eor $a57f,$a800
 	sta $402
 
 	cmp #$01
@@ -234,9 +232,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $a57f,$b600,0
-	install_prgfile block200,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file block200,$a580
+	checksum_eor $a57f,$a800
 	sta $403
 
 	cmp #$4c
@@ -247,9 +245,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $a57f,$b600,0
-	install_prgfile block201,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file block201,$a580
+	checksum_eor $a57f,$a800
 	sta $404
 
 	cmp #$05
@@ -260,9 +258,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $a57f,$b600,0
-	install_prgfile block7f,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file block7f,$a580
+	checksum_eor $a57f,$a800
 	sta $405
 
 	cmp #$78
@@ -273,9 +271,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $a57f,$b600,0
-	install_prgfile block80,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file block80,$a580
+	checksum_eor $a57f,$a800
 	sta $406
 
 	cmp #$cf
@@ -286,9 +284,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $a57f,$b600,0
-	install_prgfile block81,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file block81,$a580
+	checksum_eor $a57f,$a800
 	sta $407
 
 	cmp #$b6
@@ -299,9 +297,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $a57f,$b600,0
-	install_prgfile blockff,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file blockff,$a580
+	checksum_eor $a57f,$a800
 	sta $408
 
 	cmp #$d2
@@ -313,7 +311,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile blockfff,$a580
+	install_file blockfff,$a580
 	checksum_eor $a57f,$b600
 	sta $409
 
@@ -325,9 +323,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $a57f,$b600,0
-	install_prgfile binblock100,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file binblock100,$a580
+	checksum_eor $a57f,$a800
 
 	cmp #$80
 	if eq
@@ -339,9 +337,9 @@ skip:
 
 	sta $400
 
-	memset $a57f,$b600,0
-	install_prgfile binblock101,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file binblock101,$a580
+	checksum_eor $a57f,$a800
 	sta $401
 
 	cmp #$c9
@@ -352,9 +350,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $a57f,$b600,0
-	install_prgfile binblock1ff,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file binblock1ff,$a580
+	checksum_eor $a57f,$a800
 	sta $402
 
 	cmp #$01
@@ -365,9 +363,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $a57f,$b600,0
-	install_prgfile binblock200,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file binblock200,$a580
+	checksum_eor $a57f,$a800
 	sta $403
 
 	cmp #$4c
@@ -378,9 +376,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $a57f,$b600,0
-	install_prgfile binblock201,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file binblock201,$a580
+	checksum_eor $a57f,$a800
 	sta $404
 
 	cmp #$05
@@ -391,9 +389,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $a57f,$b600,0
-	install_prgfile binblock7f,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file binblock7f,$a580
+	checksum_eor $a57f,$a800
 	sta $405
 
 	cmp #$78
@@ -405,9 +403,9 @@ skip:
 	endif
 
 
-	memset $a57f,$b600,0
-	install_prgfile binblock80,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file binblock80,$a580
+	checksum_eor $a57f,$a800
 	sta $406
 
 	cmp #$cf
@@ -418,9 +416,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $a57f,$b600,0
-	install_prgfile binblock81,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file binblock81,$a580
+	checksum_eor $a57f,$a800
 	sta $407
 
 	cmp #$b6
@@ -431,9 +429,9 @@ skip:
 	  jmp exit
 	endif
 
-	memset $a57f,$b600,0
-	install_prgfile binblockff,$a580
-	checksum_eor $a57f,$b600
+	memset $a57f,$a800,0
+	install_file binblockff,$a580
+	checksum_eor $a57f,$a800
 	sta $408
 
 	cmp #$d2
@@ -445,7 +443,7 @@ skip:
 	endif
 
 	memset $a57f,$b600,0
-	install_prgfile binblockfff,$a580
+	install_file binblockfff,$a580
 	checksum_eor $a57f,$b600
 	sta $409
 

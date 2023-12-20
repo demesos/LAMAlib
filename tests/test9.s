@@ -1,0 +1,34 @@
+; tests for the do_every structure
+
+.include "LAMAlib.inc"
+
+.proc test_no_9
+        for Y,0,to,79
+          lda #'.'
+          tya
+          and #7
+          sta $400,Y
+          do_every 10
+            lda #'1'+128
+            sta $400,Y
+            do_every 2
+              lda #'2'+128
+              sta $400,Y
+            end_every
+            do_every 3,1
+              lda #'-'+128
+              sta $400,Y
+            end_every
+          end_every
+        next
+
+	checksum_eor $0400,$044f
+	cmp #28
+	if eq
+	  clc
+	else
+	  sec
+	endif
+        rts
+
+.endproc

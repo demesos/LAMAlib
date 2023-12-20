@@ -118,7 +118,7 @@
 ;; rsc arg
 ;; rsc #arg
 ;; Reverse subtraction with carry, calculate the value of arg - A - C
-;; if the carry is clear before the command, this behaves like rsc
+;; if the carry is clear before the command, this behaves like rsb
 ;; If there is an underflow (arg is larger than A), the carry bit will be set, otherwise carry is clear
 .macro rsc arg
 .scope
@@ -211,7 +211,7 @@
 ;; Compares the value in A/X with the 16 bit value in addr or the immediate value
 ;; Supports zero page addressing mode
 ;; Result is returned in A/X
-;; Registers modified: A,X
+;; Registers modified: none
 .macro cmpax arg
 .scope
         .if (.match (.left (1, {arg}), #))
