@@ -440,6 +440,15 @@ end:
 .endscope
 .endmacro
 
+;; neg
+;; Negate A
+;; Registers modified: A
+.macro  neg
+	eor #$FF
+	sec
+	adc #0
+.endmacro
+
 ;; negax
 ;; Negates the value in A/X
 ;; Result is returned in A/X

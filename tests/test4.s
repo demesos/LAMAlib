@@ -1,4 +1,7 @@
-; test rsb and rsbax
+;--------------------------------------------------
+; test program for LAMAlib functions
+;
+; test reverse subtract macros rsb, rsbax
 
 .include "LAMAlib.inc"
 

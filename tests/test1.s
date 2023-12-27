@@ -1,6 +1,8 @@
 ;--------------------------------------------------
-; begin of test program
-;--------------------------------------------------
+; test program for LAMAlib functions
+;
+; testing: for (addr),start,to,end
+
 
 .include "LAMAlib.inc"
 

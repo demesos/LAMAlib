@@ -1,4 +1,8 @@
+;--------------------------------------------------
+; test program for LAMAlib functions
+;
 ; tests for AX, store, restore with lowercase characters, do loop, if else endif
+
 
 .include "LAMAlib.inc"
 

@@ -17,10 +17,6 @@
 	.macpack generic
 .endif
 
-.if .not .definedmacro(add)
-	.macpack generic
-.endif
-
 .macro checkerr testnr
 	lda #testnr
 	jsr checkerr
@@ -54,8 +50,8 @@ testsuite:
 	jsr test7
 	checkerr 7
 
-	;jsr test8
-	;checkerr 8
+	jsr test8
+	checkerr 8
 
 	jsr test9
 	checkerr 9
@@ -78,5 +74,5 @@ test4:	.include "test4.s"
 test5:	.include "test5.s"
 test6:	.include "test6.s"
 test7:	.include "test7.s"
-;test8:	.include "test8.s"
+test8:	.include "test8.s"
 test9:	.include "test9.s"

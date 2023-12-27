@@ -1,6 +1,8 @@
 ;--------------------------------------------------
-; testing the include 
-;--------------------------------------------------
+; test program for LAMAlib functions
+;
+; testing the include_file_as macro 
+
 
 .include "LAMAlib.inc"
 

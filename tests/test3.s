@@ -1,3 +1,6 @@
+;--------------------------------------------------
+; test program for LAMAlib functions
+;
 ; test the random number generator
 ; this is a probabilistic test if among 1000 rolls all numbers between 0 and 28 are hit
 ; there is a chance of 3.45e-15 that this will fail naturally, but if this test fails

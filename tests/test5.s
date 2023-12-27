@@ -1,3 +1,6 @@
+;--------------------------------------------------
+; test program for LAMAlib functions
+;
 ; test switch - case
 
 .include "LAMAlib.inc"

@@ -4,10 +4,9 @@
 ;; Waits until rasterbar is below screen area, then blanks the screen and shows only the border color
 .macro blank_screen
 .scope
-:	lda $D012
+:	lda $D011
 	bpl :-      ;wait until rasterbar is below screen area
-	lda $D011   ;bit 4 off = Screen blanked
-	and #%11101111
+	and #%11101111 ;bit 4 off = Screen blanked
 	sta $D011 
 .endscope
 .endmacro

@@ -1,6 +1,7 @@
 ;--------------------------------------------------
-; begin of test program
-;--------------------------------------------------
+; test program for LAMAlib functions
+;
+; test delay_ms
 
 .include "LAMAlib.inc"
 

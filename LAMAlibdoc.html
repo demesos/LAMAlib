@@ -184,6 +184,10 @@ Performs a rotate right of a 16 bit number at addr<br>
 Result at addr, addr+1<br>
 Registers modified: none<br>
 <br>
+<b>neg</b><br>
+Negate A<br>
+Registers modified: A<br>
+<br>
 <b>negax</b><br>
 Negates the value in A/X<br>
 Result is returned in A/X<br>
@@ -670,10 +674,6 @@ This function is not reentrant, don't use in interrupt and main program simultan
 Result is returned in A/X<br>
 Registers modified: A,X,Y<br>
 <br>
-<b>neg</b><br>
-Negate A<br>
-Registers modified: A<br>
-<br>
 <b>newline</b><br>
 Prints a newline character<br>
 KERNAL ROM needs to be enabled when using this function<br>
@@ -828,10 +828,30 @@ If isr is given, the address is set in Kernals IRQ vector $314/315<br>
 IRQ routine must acknowledge the IRQ source<br>
 Interrupts should be turned off or ensured that they won't happen while executing this macro<br>
 <br>
-<b>set_timerA_latch</b> <i>value|AX[,cia</i> <i>base</i> <i>address]</i><br>
+<b>set_timerA_latch</b> <i>value|AX[,CIA</i> <i>base</i> <i>address]</i><br>
 Sets the timer A value of the Complex Interface Adapter (CIA)<br>
-If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be specified.<br>
+If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.<br>
 Note that the value specifies the reload value of the timer, not the current counter value<br>
+Used registers: A<br>
+<br>
+<b>set_timerA</b> <i>value|AX[,CIA</i> <i>base</i> <i>address]</i><br>
+Sets the timer A latch value of the Complex Interface Adapter (CIA) and makes it load this value<br>
+If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.<br>
+Used registers: A<br>
+<br>
+<b>force_load_timerA</b> <i>[CIA</i> <i>base</i> <i>address]</i><br>
+Makes timer A of the Complex Interface Adapter (CIA) load the latch value<br>
+If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.<br>
+Used registers: A<br>
+<br>
+<b>stop_timerA</b> <i>[CIA</i> <i>base</i> <i>address]</i><br>
+Stops timer A of the Complex Interface Adapter (CIA)<br>
+If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.<br>
+Used registers: A<br>
+<br>
+<b>start_timerA</b> <i>[CIA</i> <i>base</i> <i>address]</i><br>
+Starts timer A of the Complex Interface Adapter (CIA)<br>
+If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.<br>
 Used registers: A<br>
 <br>
 <b>read_timerA</b> <i>[AX[,cia</i> <i>base</i> <i>address]]</i><br>

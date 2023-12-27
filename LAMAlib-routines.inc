@@ -763,15 +763,6 @@ endfilename:
 .endmacro
 
 
-;; neg
-;; Negate A
-;; Registers modified: A
-.macro  neg
-	eor #$FF
-	sec
-	adc #0
-.endmacro
-
 
 ;; newline
 ;; Prints a newline character
@@ -819,9 +810,43 @@ endfilename:
 ;; Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)
 ;; Registers modified: none
 .macro print arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
-	store Y
+	.if .defined(::nesting_level_print)
+	  ::nesting_level_print .set ::nesting_level_print+1
+	.else
+	  ::nesting_level_print .set 1
+	.endif
+	sta .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+1
+	stx .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+3
+	sty .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+5
 	print_recursive1 arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
-	restore Y
+.ident(.sprintf("print_macro_lbl%d", ::nesting_level_print)):	
+	lda #$af	;value will be overwritten to restore reg value
+	ldx #$fe	;value will be overwritten to restore reg value
+	ldy #$42	;value will be overwritten to restore reg value
+.endmacro
+
+;; println arg1 [arg2 ...]
+;; Prints the arguments as strings or numbers, followed by a carriage return
+;; An argument in parenthesis will print the 16bit value stored at this address
+;; uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro
+;; Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)
+;; Registers modified: none
+.macro println arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+	.if .defined(::nesting_level_print)
+	  ::nesting_level_print .set ::nesting_level_print+1
+	.else
+	  ::nesting_level_print .set 1
+	.endif
+	sta .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+1
+	stx .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+3
+	sty .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+5
+	print_recursive1 arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+        lda #$0d
+        jsr CHROUT
+.ident(.sprintf("print_macro_lbl%d", ::nesting_level_print)):	
+	lda #$af	;value will be overwritten to restore reg value
+	ldx #$fe	;value will be overwritten to restore reg value
+	ldy #$42	;value will be overwritten to restore reg value
 .endmacro
 
 .macro print_recursive1 arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
@@ -831,15 +856,10 @@ endfilename:
   .endif
 .scope
         .if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))    ;print AX as number
-	   store AX
            printax
-	   restore AX
        .elseif (.xmatch ({arg1}, {A}))                  ;print akku as number
-	   store AX
            printa
-	   restore AX
        .elseif (.match (.left (1, {arg1}), #))          ;immediate number
-	   store AX
            iarg=(.right (.tcount ({arg1})-1, {arg1}))
            .if .const(iarg) .and (<iarg = >iarg)
               lda     #<iarg
@@ -849,39 +869,21 @@ endfilename:
               ldx     #>iarg
            .endif
            printax
-	   restore AX
         .elseif (.match (.left (1, {arg1}), {(})) .and (.match (.right (1, {arg1}), {)}))       ;argument in brackets
-	   store AX
            ldax .mid (1, .tcount ({arg1})-2, {arg1})
            printax
-	   restore AX
         .else
-	   store AX
-           primm arg1
-	   restore AX
+           primm arg1	;immediate string
        .endif
 .endscope
-        .if .paramcount > 1
-                ;macro calls itself recursely to process remaining arguments
-                print_recursive1 arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+        .ifnblank arg2
+	  ;restore A and X to prepare for next print part
+	  lda .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+1
+	  ldx .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+3
         .endif
+	;recursely process remaining arguments
+        print_recursive1 arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
 .endmacro
-
-
-;; println arg1 [arg2 ...]
-;; Prints the arguments as strings or numbers, followed by a carriage return
-;; An argument in parenthesis will print the 16bit value stored at this address
-;; uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro
-;; Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)
-;; Registers modified: none
-.macro println arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
-	store Y
-	print_recursive1 arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
-	restore Y
-        lda #$0d
-        jsr CHROUT
-.endmacro
-
 
 ;; printax
 ;; Prints the number in A/X as a 16 bit unsigned decimal number
@@ -1634,9 +1636,9 @@ endfilename:
         sta $D01A       ; set raster interrupt
 .endmacro
 
-;; set_timerA_latch value|AX[,cia base address]
+;; set_timerA_latch value|AX[,CIA base address]
 ;; Sets the timer A value of the Complex Interface Adapter (CIA)
-;; If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be specified.
+;; If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.
 ;; Note that the value specifies the reload value of the timer, not the current counter value
 ;; Used registers: A
 .macro set_timerA_latch arg1, base_addr
@@ -1655,6 +1657,66 @@ endfilename:
 	  lda #>arg1
 	  sta base_addr_value+5
 	.endif
+	.endscope
+.endmacro
+
+;; set_timerA value|AX[,CIA base address]
+;; Sets the timer A latch value of the Complex Interface Adapter (CIA) and makes it load this value
+;; If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.
+;; Used registers: A
+.macro set_timerA arg1, base_addr
+	set_timerA_latch arg1, base_addr
+	force_load_timerA base_addr
+.endmacro
+
+;; force_load_timerA [CIA base address]
+;; Makes timer A of the Complex Interface Adapter (CIA) load the latch value
+;; If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.
+;; Used registers: A
+.macro force_load_timerA base_addr
+	.scope
+	.ifblank base_addr
+	  base_addr_value .set $DC00
+	.else
+	  base_addr_value .set base_addr
+	.endif
+	lda base_addr_value+$e		;force load timer A
+	ora #$10
+	sta base_addr_value+$e
+	.endscope
+.endmacro
+
+;; stop_timerA [CIA base address]
+;; Stops timer A of the Complex Interface Adapter (CIA)
+;; If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.
+;; Used registers: A
+.macro stop_timerA base_addr
+	.scope
+	.ifblank base_addr
+	  base_addr_value .set $DC00
+	.else
+	  base_addr_value .set base_addr
+	.endif
+	lda base_addr_value+$e		;force load timer A
+	and #$fe
+	sta base_addr_value+$e
+	.endscope
+.endmacro
+
+;; start_timerA [CIA base address]
+;; Starts timer A of the Complex Interface Adapter (CIA)
+;; If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.
+;; Used registers: A
+.macro start_timerA base_addr
+	.scope
+	.ifblank base_addr
+	  base_addr_value .set $DC00
+	.else
+	  base_addr_value .set base_addr
+	.endif
+	lda base_addr_value+$e		;force load timer A
+	ora #$01
+	sta base_addr_value+$e
 	.endscope
 .endmacro
 

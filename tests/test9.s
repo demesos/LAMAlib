@@ -1,4 +1,7 @@
-; tests for the do_every structure
+;--------------------------------------------------
+; test program for LAMAlib functions
+;
+; test do_every structure
 
 .include "LAMAlib.inc"
 
