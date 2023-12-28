@@ -2,6 +2,8 @@
 ; test program for LAMAlib functions
 ;
 ; test do_every structure
+;
+; re-running this test fails, because the state of do_every will be changed by running it
 
 .include "LAMAlib.inc"
 

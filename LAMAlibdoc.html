@@ -490,10 +490,22 @@ generated code does not need to be aligned, but requires around 0.3 bytes/cycle 
 Registers modified: none (but flags may be messed up)<br>
 <br>
 <b>delay_ms</b> <i>arg</i><br>
-Delays for arg milliseconds using a busy waiting loop. This does not account for interrupts or stolen cycles by VIC badlines.<br>
+Delays for arg milliseconds using a busy waiting loop.<br>
+The waiting loop is calibrated to avergage available CPU cycles on a C64 with VIC and interrupts enabled.<br>
+Depending on interrupts or stolen cycles by VIC badlines the actual delay time may vary.<br>
 When AX is given as argument it waits as many ms as the 16 bit value in A/X<br>
-When a number (1-65536) is given as argument it waits this long<br>
-Registers modified: A,X<br>
+When a number 1-65536 is given as argument it waits this long<br>
+Registers modified: A,X,Y<br>
+<br>
+<b>delay_ms_abort_on_fire</b> <i>arg</i><br>
+Delays for arg milliseconds using a busy waiting loop.<br>
+The waiting loop is calibrated to avergage available CPU cycles on a C64 with VIC and interrupts enabled.<br>
+Depending on interrupts or stolen cycles by VIC badlines the actual delay time may vary.<br>
+When AX is given as argument it waits as many ms as the 16 bit value in A/X<br>
+When a number 1-65536 is given as argument it waits this long<br>
+If the loop ran through, the carry flag is set upon return<br>
+If firebutton was detected, the loop is aborted and the carry flag is cleared upon return<br>
+Registers modified: A,X,Y<br>
 <br>
 <b>disable_chrout2window</b><br>
 Restores the original Kernal vector and disables the chrout2window mode<br>

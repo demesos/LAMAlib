@@ -6,9 +6,9 @@ ASFLAGS=-t c64
 SOURCES=$(wildcard *.s)
 OBJS=$(SOURCES:.s=.o)
 
-.PHONY:	all clean
+.PHONY: all clean
 
-all:	../LAMAlib.lib
+all: ../LAMAlib.lib
 
 clean:
 	rm -f ../LAMAlib.lib

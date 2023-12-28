@@ -180,10 +180,12 @@ loop:
 
 
 ;; delay_ms arg
-;; Delays for arg milliseconds using a busy waiting loop. This does not account for interrupts or stolen cycles by VIC badlines.
+;; Delays for arg milliseconds using a busy waiting loop. 
+;; The waiting loop is calibrated to avergage available CPU cycles on a C64 with VIC and interrupts enabled.
+;; Depending on interrupts or stolen cycles by VIC badlines the actual delay time may vary. 
 ;; When AX is given as argument it waits as many ms as the 16 bit value in A/X
-;; When a number (1-65536) is given as argument it waits this long
-;; Registers modified: A,X
+;; When a number 1-65536 is given as argument it waits this long
+;; Registers modified: A,X,Y
 .macro  delay_ms arg
 .import _delay_ms_sr
 .scope
@@ -192,6 +194,28 @@ loop:
        .else
             ldax #arg
             jsr _delay_ms_sr
+       .endif
+.endscope
+.endmacro
+
+
+;; delay_ms_abort_on_fire arg
+;; Delays for arg milliseconds using a busy waiting loop. 
+;; The waiting loop is calibrated to avergage available CPU cycles on a C64 with VIC and interrupts enabled.
+;; Depending on interrupts or stolen cycles by VIC badlines the actual delay time may vary. 
+;; When AX is given as argument it waits as many ms as the 16 bit value in A/X
+;; When a number 1-65536 is given as argument it waits this long
+;; If the loop ran through, the carry flag is set upon return
+;; If firebutton was detected, the loop is aborted and the carry flag is cleared upon return
+;; Registers modified: A,X,Y
+.macro  delay_ms_abort_on_fire arg
+.import _delay_ms_abort_on_fire_sr
+.scope
+       .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
+            jsr _delay_ms_abort_on_fire_sr
+       .else
+            ldax #arg
+            jsr _delay_ms_abort_on_fire_sr
        .endif
 .endscope
 .endmacro

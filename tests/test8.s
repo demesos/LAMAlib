@@ -3,11 +3,15 @@
 ;
 ; test hw timer and delay_ms function
 
-.include "LAMAlib.inc"		;TODO this is local!
+.include "LAMAlib.inc"
 
-TOLERANCE=600	;in cycles, for the ms test
+
 
 .proc test_no_8
+
+TOLERANCE=900	;in cycles, for the ms test
+DELAYMS=17
+
 	blank_screen		;to avoid jitter in delay_ms because of badlines
 
 	stop_timerA
@@ -19,7 +23,7 @@ TOLERANCE=600	;in cycles, for the ms test
 	pokew $400,AX
 
 	start_timerA
-	delay_ms 17
+	delay_ms DELAYMS
 	stop_timerA
 	read_timerA
 	pokew $402,AX
@@ -36,9 +40,9 @@ TOLERANCE=600	;in cycles, for the ms test
 	unblank_screen
 
 	ldax $402
-	cmpax #40000-17000-TOLERANCE
+	cmpax #40000-DELAYMS*983-TOLERANCE
 	bcc exit_failure
-	cmpax #40000-17000+TOLERANCE
+	cmpax #40000-DELAYMS*983+TOLERANCE
 	bcs exit_failure
 
 	subax $404
