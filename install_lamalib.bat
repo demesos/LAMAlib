@@ -57,7 +57,7 @@ for /F %%I in ('where cc65.exe') do (
 
 @copy LAMAlib*.inc "%CC65PATH%\asminc"
 @copy LAMAlib.lib "%CC65PATH%\lib"
-@copy *-basicfriendly-asm.cfg "%CC65PATH%\cfg"
+@copy *friendly-asm.cfg "%CC65PATH%\cfg"
 @copy ass.bat "%CC65PATH%\bin"
 
 echo %white%
