@@ -26,6 +26,12 @@
 
 makesys 1984
 
+	clrscr
+	lda #$0d
+	jsr CHROUT
+	jsr CHROUT
+	jsr CHROUT
+
 ; Main program starts here
 
 testsuite:
