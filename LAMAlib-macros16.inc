@@ -1,4 +1,4 @@
-;; <h2>16-bit Emulation Macros</h2>
+;; <h2>16-bit Emulation and Other Short Macros</h2>
 
 ;; ldax addr
 ;; ldax #arg
@@ -204,7 +204,34 @@
 .endscope
 .endmacro
 
+;; A_between lower,higher
+;; Checks if the value in A is between the lower and higher value (including the values themselves)
+;; Arguments are constant immediate values between 0 and 255, A is changed in the progress
+;; If lower <= A <= higher, the carry bit is cleared, otherwise carry is set
+;; Registers modified: A
+.macro A_between lower,higher
+.scope
+	.if lower>0
+	  sec
+	  sbc #lower
+	.endif
+	cmp #(higher - lower + 1)
+.endscope
+.endmacro
 
+;; AX_between lower,higher
+;; Checks if the value in A is between the lower and higher value (including the values themselves)
+;; Arguments are constant immediate values between 0 and 6535, AX is changed in the progress
+;; If lower <= AX <= higher, the carry bit is cleared, otherwise carry is set
+;; Registers modified: A,X
+.macro AX_between lower,higher
+.scope
+	.if lower>0
+	  subax #lower
+	.endif
+	cmpax #(higher - lower + 1)
+.endscope
+.endmacro
 
 ;; cmpax addr
 ;; cmpax #arg
