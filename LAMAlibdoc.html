@@ -1,8 +1,8 @@
 <html>
 <body>
 <h1>LAMAlib - Lightweight Assembler MAcro library for cc65</h1>
-Version: 0.22<br>
-Date: 2023-05-21<br>
+Version: 0.23<br>
+Date: 2023-12-29<br>
 Author: Wil Elmenreich (wilfried at gmx dot at)<br>
 License: The Unlicense (public domain)<br>
 <br>
@@ -50,7 +50,7 @@ This switch tells LAMAlib if it should use calls into BASIC ROM or not. If USE_B
 The LAMAlib implementations are also faster, so USE_BASIC_ROM can also be set to 0 if you would like to increase performance.<br>
 USE_BASIC_ROM does not actually change the ROM configuration.<br>
 The switch can be changed multiple times to create program parts using the ROM and parts that do not.<br>
-<h2>16-bit Emulation Macros</h2>
+<h2>16-bit Emulation and Other Short Macros</h2>
 <br>
 <b>ldax</b> <i>addr</i><br>
 <b>ldax</b> <i>#arg</i><br>
@@ -115,6 +115,18 @@ If there is an underflow (arg is larger than AX), the carry bit will be set, oth
 16 bit reverse subtraction, calculate the value of arg - AX<br>
 The result is not influenced by the carry<br>
 If there is an underflow (arg is larger than AX), the carry bit will be set, otherwise carry is clear<br>
+<br>
+<b>A_between</b> <i>lower,higher</i><br>
+Checks if the value in A is between the lower and higher value (including the values themselves)<br>
+Arguments are constant immediate values between 0 and 255, A is changed in the progress<br>
+If lower <= A <= higher, the carry bit is cleared, otherwise carry is set<br>
+Registers modified: A<br>
+<br>
+<b>AX_between</b> <i>lower,higher</i><br>
+Checks if the value in A is between the lower and higher value (including the values themselves)<br>
+Arguments are constant immediate values between 0 and 6535, AX is changed in the progress<br>
+If lower <= AX <= higher, the carry bit is cleared, otherwise carry is set<br>
+Registers modified: A,X<br>
 <br>
 <b>cmpax</b> <i>addr</i><br>
 <b>cmpax</b> <i>#arg</i><br>
@@ -202,17 +214,37 @@ Registers modified: A,X<br>
 Increments 16 bit value in registers A/X<br>
 Registers modified: A,X<br>
 <br>
-<b>inc16</b> <i>addr</i><br>
+<b>inc8</b> <i>addr[,increment]</i><br>
+Increments the byte stored at addr by increment<br>
+addr or increment can also be specified by AX<br>
+if addr is specified by AX, the increment can also be specified by Y<br>
+if increment is not specified, an increment of 1 is used, with a given addr this is identical to an INC command<br>
+Registers modified: none in increment = 1, A otherwise<br>
+<br>
+<b>inc16</b> <i>addr[,increment]</i><br>
 Increments the value stored at addr (lo-byte) and addr+1 (hi-byte) as a 16 bit value<br>
-Registers modified: none<br>
+addr can also be specified by AX<br>
+increment can also be specified by Y and, if AX is not used as addr, by AX,A, or X<br>
+if increment is not specified, an increment of 1 is used<br>
+Registers modified: none in increment = 1, AX otherwise<br>
 <br>
 <b>decax</b><br>
 Decrements 16 bit value in registers A/X<br>
 Registers modified: A,X<br>
 <br>
-<b>dec16</b> <i>addr</i><br>
+<b>dec8</b> <i>addr[,decrement]</i><br>
+Decrements the byte stored at addr by decrement<br>
+addr or decrement can also be specified by AX<br>
+if addr is specified by AX, the decrement can also be specified by Y<br>
+if decrement is not specified, an decrement of 1 is used, with a given addr this is identical to an INC command<br>
+Registers modified: none in decrement = 1, A otherwise<br>
+<br>
+<b>dec16</b> <i>addr[,decrement]</i><br>
 Decrements the value stored at addr (lo-byte) and addr+1 (hi-byte) as a 16 bit value<br>
-Registers modified: A<br>
+addr can also be specified by AX<br>
+decrement can also be specified by Y and, if AX is not used as addr, by AX,A, or X<br>
+if decrement is not specified, an decrement of 1 is used<br>
+Registers modified: none with decrement = 1, AX otherwise<br>
 <br>
 <b>incx</b> <i>n</i><br>
 Increments the X register by a value of n<br>
@@ -705,6 +737,7 @@ Registers modified: A,Y,X<br>
 Prints the arguments as strings or numbers, without a carriage return<br>
 An argument in parenthesis will print the 16bit value stored at this address<br>
 uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
+if USE_BASIC_ROM .set 0 was done before, the BASIC ROM functions are replaced by onw implementations. This creates larger but also fatser code.<br>
 Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)<br>
 Registers modified: none<br>
 <br>
@@ -712,6 +745,7 @@ Registers modified: none<br>
 Prints the arguments as strings or numbers, followed by a carriage return<br>
 An argument in parenthesis will print the 16bit value stored at this address<br>
 uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
+if USE_BASIC_ROM .set 0 was done before, the BASIC ROM functions are replaced by onw implementations. This creates larger but also fatser code.<br>
 Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)<br>
 Registers modified: none<br>
 <br>

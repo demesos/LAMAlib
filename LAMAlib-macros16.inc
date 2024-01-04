@@ -520,17 +520,181 @@ end:
 .endscope
 .endmacro
 
-;; inc16 addr
-;; Increments the value stored at addr (lo-byte) and addr+1 (hi-byte) as a 16 bit value
-;; Registers modified: none
-.macro  inc16 addr
-.scope
-                inc addr
-                bne end
-                inc addr+1
-end:
-.endscope
+
+;; inc8 addr[,increment]
+;; Increments the byte stored at addr by increment
+;; addr or increment can also be specified by AX
+;; if addr is specified by AX, the increment can also be specified by Y
+;; if increment is not specified, an increment of 1 is used, with a given addr this is identical to an INC command
+;; Registers modified: none in increment = 1, A otherwise
+.macro  inc8 addr,increment
+        .if .paramcount = 1
+          .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
+            sta :+ + 1
+            stx :+ + 2
+	    :
+            inc $affe
+          .else ;we assume that the address is a number or a label that evaluates to a number
+            inc addr
+          .endif
+        .else	;.paramcount > 1
+          .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
+            sta :+ + 1
+            sta :+ + 4  
+            stx :+ + 2
+            stx :+ + 5
+            .if (.xmatch ({increment}, {Y}) .or .xmatch ({increment}, {y}))            ;Y is used as increment
+              tya
+	    .else
+	      lda #increment
+            .endif
+            clc
+	    :
+            adc $affe
+            sta $affe
+          .else ;we assume that the address is a number or a label that evaluates to a number
+            .if (.xmatch ({increment}, {A}) .or .xmatch ({increment}, {a}))            ;A is used as increment
+              clc
+              adc addr
+              sta addr
+	    .elseif (.xmatch ({increment}, {X}) .or .xmatch ({increment}, {x}))            ;X is used as increment
+              txa
+              clc
+              adc addr
+              sta addr
+	    .elseif (.xmatch ({increment}, {Y}) .or .xmatch ({increment}, {y}))            ;Y is used as increment	
+              tya
+              clc
+              adc addr
+              sta addr
+            .else
+              lda addr
+              clc
+              adc #increment
+              sta addr
+	    .endif
+          .endif
+        .endif
 .endmacro
+
+;; inc16 addr[,increment]
+;; Increments the value stored at addr (lo-byte) and addr+1 (hi-byte) as a 16 bit value
+;; addr can also be specified by AX
+;; increment can also be specified by Y and, if AX is not used as addr, by AX,A, or X
+;; if increment is not specified, an increment of 1 is used
+;; Registers modified: none in increment = 1, AX otherwise
+.macro  inc16 addr,increment
+        .if .paramcount = 1
+          .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
+            sta :+ + 1
+            stx :+ + 2
+            ldx #0
+    	    :
+            inc $affe,x
+            bne :+	;done
+            inx
+            cpx #2
+            bne :-	;inc again
+            :
+          .else ;we assume that the address is a number or a label that evaluates to a number
+            inc addr
+            bne :+
+            inc addr+1
+	    :
+          .endif
+        .else	;.paramcount > 1
+          .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
+            sta :+ + 2
+            sta :+ + 7  
+            stx :+ + 3
+            stx :+ + 8
+            .if (.xmatch ({increment}, {Y}) .or .xmatch ({increment}, {y}))            ;Y is used as increment
+              sty :+ +5
+              ldx #$ff
+              clc
+              :
+              inx
+              lda $affe,x
+              adc #$af
+              sta $affe,x    
+              bcc :+
+              stx :- +5 ;x is 0
+              txa         ;test x for 0
+              beq :-
+              :
+            .else
+	      lda #<increment
+	      sta :+ +5
+              ldx #$ff
+  	      clc
+  	      :
+  	      inx
+              lda $affe,x
+  	      adc #$af
+              sta $affe,x	   
+  	      .if .const(increment) .and increment<256
+  	        bcc :+
+  	      .endif
+	      lda #>increment
+	      sta :- +5
+              txa         ;test x for 0
+              beq :-
+	      .if .const(increment) .and increment<256	;only set the label if used to avoid warning
+	        :
+	      .endif
+            .endif
+          .else ;we assume that the address is a number or a label that evaluates to a number
+            .if (.xmatch ({increment}, {A}) .or .xmatch ({increment}, {a}))            ;A is used as increment
+              clc
+              adc addr
+              sta addr
+              bcc :+
+              inc addr+1
+              :
+	    .elseif (.xmatch ({increment}, {X}) .or .xmatch ({increment}, {x}))            ;X is used as increment
+              txa
+              clc
+              adc addr
+              sta addr
+              bcc :+
+              inc addr+1
+              :
+	    .elseif (.xmatch ({increment}, {Y}) .or .xmatch ({increment}, {y}))            ;Y is used as increment
+              tya
+              clc
+              adc addr
+              sta addr
+              bcc :+
+              inc addr+1
+              :
+            .elseif (.xmatch ({increment}, {AX}) .or .xmatch ({increment}, {ax}))          ;AX is used as increment
+              clc
+              adc addr
+              sta addr
+              txa
+              adc addr+1
+              sta addr+1        
+            .elseif .const(increment) .and increment<256
+              lda addr
+              clc
+              adc #increment
+              sta addr
+              bcc :+
+              inc addr+1
+              :
+            .else
+              lda addr
+              clc
+              adc #<increment
+              sta addr
+              lda addr+1
+              adc #>increment
+              sta addr+1
+            .endif
+          .endif
+        .endif
+.endmacro
+
 
 ;; decax
 ;; Decrements 16 bit value in registers A/X
@@ -545,16 +709,196 @@ declo:		sbc #01
 .endmacro
 
 
-;; dec16 addr
+;; dec8 addr[,decrement]
+;; Decrements the byte stored at addr by decrement
+;; addr or decrement can also be specified by AX
+;; if addr is specified by AX, the decrement can also be specified by Y
+;; if decrement is not specified, an decrement of 1 is used, with a given addr this is identical to an INC command
+;; Registers modified: none in decrement = 1, A otherwise
+.macro  dec8 addr,decrement
+        .if .paramcount = 1
+          .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
+            sta :+ + 1
+            stx :+ + 2
+	    :
+            dec $affe
+          .else ;we assume that the address is a number or a label that evaluates to a number
+            dec addr
+          .endif
+        .else	;.paramcount > 1
+          .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
+            sta :+ + 1
+            sta :++ + 1
+            stx :+ + 2
+            stx :++ + 2
+            .if (.xmatch ({decrement}, {Y}) .or .xmatch ({decrement}, {y}))            ;Y is used as decrement
+              tya
+              clc
+              :
+              sbc $affe
+	      eor #$ff	;reverse subtraction
+	    .else
+	      :
+	      lda $affe
+	      sec
+	      sbc #decrement
+            .endif
+	    :
+	    sta $affe
+          .else ;we assume that the address is a number or a label that evaluates to a number
+            .if (.xmatch ({decrement}, {A}) .or .xmatch ({decrement}, {a}))            ;A is used as decrement
+              clc               ;begin reverse subtraction
+              sbc addr
+	      eor #$ff		;end reverse subtraction
+              sta addr
+	    .elseif (.xmatch ({decrement}, {X}) .or .xmatch ({decrement}, {x}))            ;X is used as decrement
+              txa
+              clc               ;begin reverse subtraction
+              sbc addr
+	      eor #$ff		;end reverse subtraction
+              sta addr
+	    .elseif (.xmatch ({decrement}, {Y}) .or .xmatch ({decrement}, {y}))            ;Y is used as decrement	
+              tya
+              clc               ;begin reverse subtraction
+              sbc addr
+	      eor #$ff		;end reverse subtraction
+              sta addr
+            .else
+              lda addr
+              sec
+              sbc #decrement
+	      sta addr
+	    .endif
+          .endif
+        .endif
+.endmacro
+
+
+;; dec16 addr[,decrement]
 ;; Decrements the value stored at addr (lo-byte) and addr+1 (hi-byte) as a 16 bit value
-;; Registers modified: A
-.macro  dec16 addr
-.scope
-                lda addr
-		bne declo
-                dec addr+1
-declo:         dec addr
-.endscope
+;; addr can also be specified by AX
+;; decrement can also be specified by Y and, if AX is not used as addr, by AX,A, or X
+;; if decrement is not specified, an decrement of 1 is used
+;; Registers modified: none with decrement = 1, AX otherwise
+.macro  dec16 addr,decrement
+        .if .paramcount = 1
+          .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
+            sta :+ + 1
+            stx :+ + 2
+            sta :++ + 1
+            stx :++ + 2
+            ldx #0
+	    :
+	    lda $affe
+	    bne :+
+             ldx #1
+            :
+            dec $affe,x
+            dex
+            bpl :-
+          .else ;we assume that the address is a number or a label that evaluates to a number
+            lda addr	;test addr for zero
+            bne :+
+            dec addr+1
+            :
+            dec addr
+          .endif
+        .else   ;.paramcount > 1
+          .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
+            sta :+ + 2
+            sta :+ + 7  
+            stx :+ + 3
+            stx :+ + 8
+            .if (.xmatch ({decrement}, {Y}) .or .xmatch ({decrement}, {y}))            ;Y is used as decrement
+              sty :+ +5
+              ldx #$ff
+              sec
+              :
+              inx
+              lda $affe,x
+              sbc #$af
+              sta $affe,x    
+              bcs :+
+              stx :- +5 ;x is 0
+              txa         ;test x for 0
+              beq :-
+              :
+            .else
+              lda #<decrement
+              sta :+ +5
+              ldx #$ff
+              sec
+              :
+              inx
+              lda $affe,x
+              sbc #$af
+              sta $affe,x          
+              .if .const(decrement) .and decrement<256
+                bcs :+
+              .endif
+              lda #>decrement
+              sta :- +5
+              txa         ;test x for 0
+              beq :-
+              .if .const(decrement) .and decrement<256  ;only set the label if used to avoid warning
+                :
+              .endif
+            .endif
+          .else ;we assume that the address is a number or a label that evaluates to a number
+            .if (.xmatch ({decrement}, {A}) .or .xmatch ({decrement}, {a}))            ;A is used as decrement
+              clc               ;begin reverse subtraction
+              sbc addr
+	      eor #$ff		;end reverse subtraction
+              sta addr
+              bcc :+		;underflow
+              dec addr+1
+              :
+            .elseif (.xmatch ({decrement}, {X}) .or .xmatch ({decrement}, {x}))            ;X is used as decrement
+              txa
+              clc               ;begin reverse subtraction
+              sbc addr
+	      eor #$ff		;end reverse subtraction
+              sta addr
+              bcc :+		;underflow
+              dec addr+1
+              :
+            .elseif (.xmatch ({decrement}, {Y}) .or .xmatch ({decrement}, {y}))            ;Y is used as decrement
+              tya
+              clc               ;begin reverse subtraction
+              sbc addr
+	      eor #$ff		;end reverse subtraction
+              sta addr
+              bcc :+		;underflow
+              dec addr+1
+              :
+            .elseif (.xmatch ({decrement}, {AX}) .or .xmatch ({decrement}, {ax}))          ;AX is used as decrement
+              clc               ;begin reverse subtraction
+              sbc addr
+	      eor #$ff		;end reverse subtraction
+              sta addr  
+	      txa
+              sbc addr+1	;begin reverse subtraction with carry
+	      eor #$ff		;end reverse subtraction
+              sta addr+1  
+            .elseif .const(decrement) .and decrement<256
+              lda addr
+              sec
+              sbc #decrement
+              sta addr
+              bcs :+
+              dec addr+1
+              :
+            .else
+              lda addr
+              sec
+              sbc #<decrement
+              sta addr
+              lda addr+1
+              sbc #>decrement
+              sta addr+1
+            .endif
+          .endif
+        .endif
 .endmacro
 
 ;; incx n

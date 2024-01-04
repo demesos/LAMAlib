@@ -831,6 +831,7 @@ endfilename:
 ;; Prints the arguments as strings or numbers, without a carriage return
 ;; An argument in parenthesis will print the 16bit value stored at this address
 ;; uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro
+;; if USE_BASIC_ROM .set 0 was done before, the BASIC ROM functions are replaced by onw implementations. This creates larger but also fatser code.
 ;; Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)
 ;; Registers modified: none
 .macro print arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
@@ -853,6 +854,7 @@ endfilename:
 ;; Prints the arguments as strings or numbers, followed by a carriage return
 ;; An argument in parenthesis will print the 16bit value stored at this address
 ;; uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro
+;; if USE_BASIC_ROM .set 0 was done before, the BASIC ROM functions are replaced by onw implementations. This creates larger but also fatser code.
 ;; Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)
 ;; Registers modified: none
 .macro println arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
