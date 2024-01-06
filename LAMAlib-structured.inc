@@ -198,6 +198,7 @@
 ;; Registers can be A,X,Y, or AX (that is A and X)
 ;; An example application for <i>store</i>/<i>restore</i> is for saving a register to be able use it in between. An alternative to <i>store</i>/<i>restore</i> are stack push/pull, which is more compact, but 1 cycle slower.
 ;; Each store must match with exactly one <i>restore</i> macro using the same register, restore has to be placed later in your code
+;; inbetween store and restore, the stored value can be also accessed via address stored_A, stored_X, or stored_Y. Note that a stored AX is just a stored A and a stored X. The two addresses stored_A and stored_X are not consecutive.
 ;; Registers modified: none
 .macro store reg
   .if .xmatch ({reg}, {A}) 
@@ -214,6 +215,10 @@
     store X
   .endif
 .endmacro
+
+.define stored_A .ident(.sprintf("selfmod_A%d", ::nesting_levelA/10))+1
+.define stored_X .ident(.sprintf("selfmod_X%d", ::nesting_levelX/10))+1
+.define stored_Y .ident(.sprintf("selfmod_Y%d", ::nesting_levelY/10))+1
 
 ;; restore reg
 ;; Generates the code for restoreing a stored register

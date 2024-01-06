@@ -7,7 +7,21 @@
 .include "LAMAlib.inc"
 
 .proc test_no_2
-	pokew sum,0
+
+	lda #4
+	ldx #$ff
+	store A
+	store X
+	lda #$fc
+	clc
+	adc stored_A
+	adc stored_X	;A should contain now 0
+	pha
+	restore A
+	restore X
+	pla
+	inx	;X should contain now 0
+	stax sum
 	
 	for Y,0,to,100
 	  store y

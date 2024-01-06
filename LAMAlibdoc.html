@@ -348,6 +348,7 @@ Generates self-modifying code for store/restore of a register<br>
 Registers can be A,X,Y, or AX (that is A and X)<br>
 An example application for <i>store</i>/<i>restore</i> is for saving a register to be able use it in between. An alternative to <i>store</i>/<i>restore</i> are stack push/pull, which is more compact, but 1 cycle slower.<br>
 Each store must match with exactly one <i>restore</i> macro using the same register, restore has to be placed later in your code<br>
+inbetween store and restore, the stored value can be also accessed via address stored_A, stored_X, or stored_Y. Note that a stored AX is just a stored A and a stored X. The two addresses stored_A and stored_X are not consecutive.<br>
 Registers modified: none<br>
 <br>
 <b>restore</b> <i>reg</i><br>
