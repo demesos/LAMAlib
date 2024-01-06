@@ -51,12 +51,21 @@
 	  restore y
 	next
 
-	ldax sum
+	ldax sum	;should be 16032 at this point
 
 	cmpax #16032
-	if eq
-	  clc
-	else
+	longif eq
+          if_A_in #1,#2,#<16032,#>16032
+            txa
+            if_X_in #1,#2,#<16032,#>16032
+              clc
+            else
+              sec
+            endif
+          else
+            sec
+          endif
+        else
 	  sec
 	endif
 	rts

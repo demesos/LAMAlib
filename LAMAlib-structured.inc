@@ -246,6 +246,10 @@
 .endmacro
 
 ;; if cond
+;; if_A_in arg1,arg2,...
+;; if_X_in arg1,arg2,...
+;; if_Y_in arg1,arg2,...
+;; longif cond
 ;;   ...
 ;; [<b>else</b>]
 ;;   ...
@@ -256,6 +260,8 @@
 ;; Therefore the amount of code between if and else must not exceed the range of a branch instruction (127 byte for a forward branch)
 ;; <i>lt</i> (less than) is equal to <i>cc</i> (BCC), <i>ge</i> (greater or equal) is equal to <i>cs</i> (BCS)
 ;; using else is optional
+;; <i>longif</i> is doing the same as <i>if</i>, but it is using long branches
+;; <i>if_A_in arg1,arg2,...</i> triggers if A (or, respectively, X,Y) is equal to any value (immediate or address) in the list
 ;; Registers modified: none
 
 .macro if cond
@@ -281,7 +287,68 @@
   .endif
 .endmacro
 
-; future extension: add a version iflong with long branches
+.macro if_A_in arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+  .ifnblank arg1
+    cmp arg1
+    beq :+
+    if_A_in arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+  .else
+    inc_nesting_level_if
+    jmp .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
+    :
+  .endif
+.endmacro
+
+.macro if_X_in arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+  .ifnblank arg1
+    cpx arg1
+    beq :+
+    if_X_in arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+  .else
+    inc_nesting_level_if
+    jmp .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
+    :
+  .endif
+.endmacro
+
+.macro if_Y_in arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+  .ifnblank arg1
+    cpy arg1
+    beq :+
+    if_Y_in arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+  .else
+    inc_nesting_level_if
+    jmp .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
+    :
+  .endif
+.endmacro
+
+.macro longif cond
+  inc_nesting_level_if
+  .if ((.xmatch ({cond}, {eq})) || (.xmatch ({cond}, {zero})))
+    longbne .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
+  .elseif (.xmatch ({cond}, {ne}))
+    longbeq .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
+  .elseif (.xmatch ({cond}, {mi}))
+    longbpl .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
+  .elseif (.xmatch ({cond}, {pl}))
+    longbmi .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
+  .elseif ((.xmatch ({cond}, {cc})) || (.xmatch ({cond}, {lt})))
+    longbcs .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
+  .elseif ((.xmatch ({cond}, {cs})) || (.xmatch ({cond}, {ge})))
+    longbcc .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
+  .elseif (.xmatch ({cond}, {vc}))
+    longbvs .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
+  .elseif (.xmatch ({cond}, {vs}))
+    longbvc .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))
+  .else
+    .error  "Condition for if undefined!"
+  .endif
+.endmacro
+
+
+
+
 
 .macro else
   jmp .ident(.sprintf("end_of_if%d", ::nesting_level_if/10))

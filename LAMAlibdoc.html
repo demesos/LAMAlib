@@ -358,6 +358,10 @@ Each restore must match with exactly one preceding <i>store</i> macro using the 
 Registers modified: the restoreed register<br>
 <br>
 <b>if</b> <i>cond</i><br>
+if_A_in arg1,arg2,...<br>
+if_X_in arg1,arg2,...<br>
+if_Y_in arg1,arg2,...<br>
+longif cond<br>
 ...<br>
 [<b>else</b>]<br>
 ...<br>
@@ -368,6 +372,8 @@ This corresponds to assembler commands BEQ, BNE, BMI, BPL, BCC, BCS, BVC, BVS<br
 Therefore the amount of code between if and else must not exceed the range of a branch instruction (127 byte for a forward branch)<br>
 <i>lt</i> (less than) is equal to <i>cc</i> (BCC), <i>ge</i> (greater or equal) is equal to <i>cs</i> (BCS)<br>
 using else is optional<br>
+<i>longif</i> is doing the same as <i>if</i>, but it is using long branches<br>
+<i>if_A_in arg1,arg2,...</i> triggers if A (or, respectively, X,Y) is equal to any value (immediate or address) in the list<br>
 Registers modified: none<br>
 <br>
 <b>for</b> <i></i><b>X|Y|A|AX</b><i>|addr,start,</i><b>to|downto</b><i>,end,step</i><br>
