@@ -289,9 +289,11 @@
 
 .macro if_A_in arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
   .ifnblank arg1
+  .if arg1>-1
     cmp arg1
     beq :+
     if_A_in arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+  .endif
   .else
     inc_nesting_level_if
     jmp .ident(.sprintf("else_or_end%d", ::nesting_level_if/10))

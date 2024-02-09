@@ -1628,13 +1628,16 @@ endfilename:
 ;; Turns off the CIA IRQ source
 ;; If isr is given, the address is set in Kernals IRQ vector $314/315
 ;; IRQ routine must acknowledge the IRQ source
-;; Interrupts should be turned off or ensured that they won't happen while executing this macro
+;; Interrupt flag will be turned off while executing the macro and rreset to the previous state afterwards
 .macro set_raster_irq rasterline, isr
 	.ifblank rasterline
 	  rline_value .set 0
 	.else
 	  rline_value .set rasterline
 	.endif
+
+	php		; store current state of interrupt flag
+	sei
 
 	.ifnblank isr
 	  lda #<isr
@@ -1647,19 +1650,21 @@ endfilename:
         sta $dc0d       ; disable timer interrupts
         sta $dd0d
 
-        and $D011       ; accu is still $7f
+        and $d011       ; accu is still $7f
         .if rline_value>255
         ora #$80
         .endif
-        sta $D011       ; Clear most significant bit in VIC's raster register
+        sta $d011       ; Clear most significant bit in VIC's raster register
 
         lda $dc0d       ; acknowledge CIA interrupts
 
         lda #<rline_value
-        sta $D012       ; Set the raster line number where interrupt should occur 
+        sta $d012       ; Set the raster line number where interrupt should occur 
 
         lda #01
-        sta $D01A       ; set raster interrupt
+        sta $d01A       ; set raster interrupt
+
+	plp
 .endmacro
 
 ;; set_timerA_latch value|AX[,CIA base address]

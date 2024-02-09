@@ -879,7 +879,7 @@ Changes the IRQ source to VIC raster interrupt<br>
 Turns off the CIA IRQ source<br>
 If isr is given, the address is set in Kernals IRQ vector $314/315<br>
 IRQ routine must acknowledge the IRQ source<br>
-Interrupts should be turned off or ensured that they won't happen while executing this macro<br>
+Interrupt flag will be turned off while executing the macro and rreset to the previous state afterwards<br>
 <br>
 <b>set_timerA_latch</b> <i>value|AX[,CIA</i> <i>base</i> <i>address]</i><br>
 Sets the timer A value of the Complex Interface Adapter (CIA)<br>
