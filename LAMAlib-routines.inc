@@ -95,13 +95,6 @@ loop:
         .endscope
 .endmacro
 
-;; clear_window
-;; Clears the window that was defined by the window parametes above. When chrout2window is enabled, the same effect can be achieved by lda #147, jsr $FFD2
-.macro clear_window
-.import _clear_window
-	jsr _clear_window
-.endmacro
-
 
 ;; decimal_flag_to_N
 ;; Copies the decimal flag into the negative flag to detect if decimal mode is on
@@ -218,14 +211,6 @@ loop:
             jsr _delay_ms_abort_on_fire_sr
        .endif
 .endscope
-.endmacro
-
-
-;; disable_chrout2window
-;; Restores the original Kernal vector and disables the chrout2window mode
-.macro disable_chrout2window
-.import _disable_chrout2window
-	jsr _disable_chrout2window
 .endmacro
 
 
@@ -375,6 +360,38 @@ sm_to_add=*+1
 .endmacro
 
 
+;; enable_chrout2window
+;; Switches the Kernal chrout vector to a routine that prints within a window
+;; The page of the textscreen (stored in $288 / 648) is used to determine the output screen, but if you change the screen page, <b>enable_chrout2window</b> needs to be called again.
+;; Limitations: no backspace, no insert
+;; Note that control character keypresses in direct mode are not handled via $FFD2, therefore pressing for example CLR/HOME will leave the window in direct mode.
+;; Window parameters:
+;; <tt>.import _window_x1,_window_y1,_window_x2,_window_y2</tt>
+;; For example to set a window starting on column 5, write 
+;; <tt>  .import _window_x1
+;;   poke _window_x1,5</tt>
+.macro enable_chrout2window
+.import _enable_chrout2window
+	jsr _enable_chrout2window
+.endmacro
+
+
+;; disable_chrout2window
+;; Restores the original Kernal vector and disables the chrout2window mode
+.macro disable_chrout2window
+.import _disable_chrout2window
+	jsr _disable_chrout2window
+.endmacro
+
+
+;; clear_window
+;; Clears the window that was defined by the window parametes of chrout2window. When chrout2window is enabled, the same effect can be achieved by lda #147, jsr $FFD2
+.macro clear_window
+.import _clear_window
+	jsr _clear_window
+.endmacro
+
+
 ;; draw_frame
 ;; Draws a frame around the window defined by the window parameters
 ;; Note that the frame will go around the window, so it is larger than the defined window
@@ -397,21 +414,6 @@ sm_to_add=*+1
 	jsr _draw_frame_sr
 .endmacro
 
-
-;; enable_chrout2window
-;; Switches the Kernal chrout vector to a routine that prints within a window
-;; The page of the textscreen (stored in $288 / 648) is used to determine the output screen, but if you change the screen page, <b>enable_chrout2window</b> needs to be called again.
-;; Limitations: no backspace, no insert
-;; Note that control character keypresses in direct mode are not handled via $FFD2, therefore pressing for example CLR/HOME will leave the window in direct mode.
-;; Window parameters:
-;; <tt>.import _window_x1,_window_y1,_window_x2,_window_y2</tt>
-;; For example to set a window starting on column 5, write 
-;; <tt>  .import _window_x1
-;;   poke _window_x1,5</tt>
-.macro enable_chrout2window
-.import _enable_chrout2window
-	jsr _enable_chrout2window
-.endmacro
 
 ;; getkey
 ;; clears the key buffer, waits for a keypress and returns the ASCII value of the pressed key in A

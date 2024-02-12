@@ -54,8 +54,8 @@
 	ldax sum	;should be 16032 at this point
 
 	cmpax #16032
-	longif eq
-          if_A_in #1,#2,#<16032,#>16032
+	longif eq 
+          if_X_in #1,#2,#<16032,#>16032
             txa
             if_X_in #1,#2,#<16032,#>16032
               clc

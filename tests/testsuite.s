@@ -68,6 +68,9 @@ testsuite:
 	jsr test11
 	checkerr 11
 
+	jsr test12
+	checkerr 12
+
 	rts
 
 .proc checkerr
@@ -90,3 +93,4 @@ test8:	.include "test8.s"
 test9:	.include "test9.s"
 test10:	.include "test10.s"
 test11:	.include "test11.s"
+test12:	.include "test12.s"

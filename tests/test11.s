@@ -1,8 +1,6 @@
 ;--------------------------------------------------
 ; test program for LAMAlib functions
 ;
-; test do_every structure
-;
 ; testing inc8, inc16, dec8, dec16 macros
 
 .include "LAMAlib.inc"
