@@ -514,9 +514,6 @@ Registers modified: A,Y,X<br>
 <b>checksum_eor</b> <i>startaddr,endaddr</i><br>
 Returns an 8-bit checksum calculated by EOR-conjunction over all bytes<br>
 <br>
-<b>clear_window</b><br>
-Clears the window that was defined by the window parametes above. When chrout2window is enabled, the same effect can be achieved by lda #147, jsr $FFD2<br>
-<br>
 <b>decimal_flag_to_N</b><br>
 Copies the decimal flag into the negative flag to detect if decimal mode is on<br>
 Macro always returns with a cleared Carry<br>
@@ -545,9 +542,6 @@ When a number 1-65536 is given as argument it waits this long<br>
 If the loop ran through, the carry flag is set upon return<br>
 If firebutton was detected, the loop is aborted and the carry flag is cleared upon return<br>
 Registers modified: A,X,Y<br>
-<br>
-<b>disable_chrout2window</b><br>
-Restores the original Kernal vector and disables the chrout2window mode<br>
 <br>
 <b>disable_NMI</b><br>
 Executes a short routine to disable the NMI<br>
@@ -607,6 +601,23 @@ disable Commodore-Shift<br>
 <b>enable_cbm_shift</b><br>
 enable Commodore-Shift, this key combination toggles between the uppercase/graphics and lowercase/uppercase character set<br>
 <br>
+<b>enable_chrout2window</b><br>
+Switches the Kernal chrout vector to a routine that prints within a window<br>
+The page of the textscreen (stored in $288 / 648) is used to determine the output screen, but if you change the screen page, <b>enable_chrout2window</b> needs to be called again.<br>
+Limitations: no backspace, no insert<br>
+Note that control character keypresses in direct mode are not handled via $FFD2, therefore pressing for example CLR/HOME will leave the window in direct mode.<br>
+Window parameters:<br>
+<tt>.import _window_x1,_window_y1,_window_x2,_window_y2</tt><br>
+For example to set a window starting on column 5, write<br>
+<tt>  .import _window_x1<br>
+poke _window_x1,5</tt><br>
+<br>
+<b>disable_chrout2window</b><br>
+Restores the original Kernal vector and disables the chrout2window mode<br>
+<br>
+<b>clear_window</b><br>
+Clears the window that was defined by the window parametes of chrout2window. When chrout2window is enabled, the same effect can be achieved by lda #147, jsr $FFD2<br>
+<br>
 <b>draw_frame</b><br>
 Draws a frame around the window defined by the window parameters<br>
 Note that the frame will go around the window, so it is larger than the defined window<br>
@@ -623,17 +634,6 @@ Further configuration parameters (default is a white frame using PETSCII charact
 For example to change the color of the frame to green, write<br>
 <tt>  .import _frame_color<br>
 poke _frame_color,5</tt><br>
-<br>
-<b>enable_chrout2window</b><br>
-Switches the Kernal chrout vector to a routine that prints within a window<br>
-The page of the textscreen (stored in $288 / 648) is used to determine the output screen, but if you change the screen page, <b>enable_chrout2window</b> needs to be called again.<br>
-Limitations: no backspace, no insert<br>
-Note that control character keypresses in direct mode are not handled via $FFD2, therefore pressing for example CLR/HOME will leave the window in direct mode.<br>
-Window parameters:<br>
-<tt>.import _window_x1,_window_y1,_window_x2,_window_y2</tt><br>
-For example to set a window starting on column 5, write<br>
-<tt>  .import _window_x1<br>
-poke _window_x1,5</tt><br>
 <br>
 <b>getkey</b><br>
 clears the key buffer, waits for a keypress and returns the ASCII value of the pressed key in A<br>
@@ -755,6 +755,20 @@ uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macr
 if USE_BASIC_ROM .set 0 was done before, the BASIC ROM functions are replaced by onw implementations. This creates larger but also fatser code.<br>
 Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)<br>
 Registers modified: none<br>
+<br>
+<b>print_wrapped_setpars</b> <i>[x1],[width],[endchar]</i><br>
+set parameters for print_wrapped command<br>
+x1     first column of print window<br>
+width  width of print window in characters<br>
+endchar character to print after print_wrapped command, typical values are 13, 32, 0 (no extra char)<br>
+If not all parameter should be changed, the others can be omitted with commas, e.g. print_wrapped_setpars ,,13 sets only the endchar<br>
+<br>
+<b>print_wrapped</b> <i>arg</i><br>
+Write arg to the screen with word wrapping. arg can be a string or AX as a pointer to a null-terminated string<br>
+Left margin and width of print window are defined via print_wrapped_setpars<br>
+Default parameters for the printing window are 0,40, meaning full screen<br>
+The printing starts at the current cursor position, to support successive print_wrapped calls.<br>
+Using command <i>set_cursor_pos</i> for the first print is suggested.<br>
 <br>
 <b>printax</b><br>
 Prints the number in A/X as a 16 bit unsigned decimal number<br>

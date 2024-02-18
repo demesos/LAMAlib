@@ -70,4 +70,4 @@ echo * and assemble with command %cyan%cl65 yourprog.s -lib LAMAlib.lib -C c64-a
 echo * There is no overhead to your assembled program for unused functions                       *
 echo *********************************************************************************************%nocolor%
 
-pause
+IF /I %0 EQU "%~dpnx0" PAUSE

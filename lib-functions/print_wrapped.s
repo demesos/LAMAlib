@@ -46,94 +46,20 @@ text=_llzp_word1
 print_loop:
 	ldy #0
 	lda (text),y
-	jeq done_print_loop
-
-	jsr calc_rest	;result in A and rest
-
-        ;calculate length of next word
-        ldy #$ff
-next_char:
-        iny
-        lda (text),y
-        beq done
-        cmp #32
-        beq done
-        cmp #13
-        bne next_char
-done:	;y now contains the length of the next word
-        cpy rest
-        if cs	;is the word too long to fit into current line?
-          beq just_fit	;the next word fits exactly
-          lda #13
-          jsr CHROUT
-          lda x1
-          sta 211
-        endif
-just_fit:	
-        cpy #0
-        if ne ;do we have a word with length>0 to print?
-          ldy #0
-print_word_loop:
-          lda (text),y
-          beq done_print_word_loop
-          cmp #32
-          beq done_print_word_loop
-          cmp #13    
-          beq done_print_word_loop
-          jsr CHROUT
-          inc16 text
-          jmp print_word_loop
-done_print_word_loop:
-	  jsr calc_rest
-	  if eq	;rest==0 ?
-	    lda #13
-            jsr CHROUT
-            lda x1
-            sta 211
-	    lda width
-	    sta rest
-	  endif
-	  cmp width
-          bne print_loop
-	  beq entry		;unconditional jump
-skip_space_after_new_line:
-	  inc16 text
-entry:
-          lda (text),y   
-	  cmp #32
-          beq skip_space_after_new_line
-        endif  ;if ne ;do we have...
-
-	;ldy #0		;not necessary, y=0 at that point
-	lda (text),y  
-	cmp #32
-	bne check_cr
-	dec rest
-	beq cr_out
-	jsr CHROUT
-	jmp adv_text_ptr
-check_cr:
-	cmp #13
 	if eq
-cr_out:
-	  lda #13
-	  jsr CHROUT
-	  lda x1
-	  sta 211
-adv_text_ptr:
-	  inc16 text
+	  lda endchar
+	  if ne
+	    jsr CHROUT
+	  endif
+
+          ;restore contents of _llzp_word1
+          pla
+          sta text+1
+          pla
+          lda text
+          rts
 	endif
-        jmp print_loop
-done_print_loop:
-        ;restore contents of _llzp_word1
-        pla
-        sta text+1
-        pla
-        lda text
-        rts
 
-
-calc_rest:
         ;rest = 80 - peek (211);
         lda #80
         sub 211
@@ -147,9 +73,80 @@ calc_rest:
 right_margin=*+1
 	sbc #$af
 	sta rest
+
+	cmp width
+	if cs
+	  jsr go_to_left_margin
+	  lda width
+	endif
+
+        ;calculate length of next word
+        dey	;instead of ldy #$ffm because y = 0 from before
+next_char:
+        iny
+        lda (text),y
+        beq done
+        cmp #32
+        beq done
+        cmp #13
+        bne next_char
+done:	;y now contains the length of the next word
+	dey
+	if mi
+	  iny
+	endif
+rest=*+1
+        cpy #$af
+        if cc	;does the word fit into current line?
+	  ldx #0
+	  dey
+printword:
+	  lda (text,x)
+	  jsr CHROUT
+	  jsr adv_text_ptr
+	  dey
+	  bpl printword
+	  lda 211
+	  beq indent
+	  cmp #40
+	  beq indent
+	else
+	  lda 211
+	  beq indent
+	  cmp #40
+	  beq indent
+
+	  lda #17
+	  jsr CHROUT
+indent:
+	  jsr go_to_left_margin
+
+	  ;skip space and cr after new line
+	  ldy #0
+	  lda (text),y
+	  cmp #32
+	  beq skip_text_byte
+	  cmp #13
+	  bne print_loop
+skip_text_byte:
+	  jsr adv_text_ptr
+	endif
+	jmp print_loop
+
+adv_text_ptr:
+	inc16 text
 	rts
 
-rest:          .byte 0
+.proc go_to_left_margin
+	lda 211
+	cmp #40
+	lda x1
+	if cs	;carry still defined by comparison
+	  adc #39
+	endif
+        sta 211
+	rts
+.endproc
 
 .endproc
 

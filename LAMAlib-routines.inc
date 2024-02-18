@@ -913,6 +913,46 @@ endfilename:
         print_recursive1 arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
 .endmacro
 
+;; print_wrapped_setpars [x1],[width],[endchar]
+;; set parameters for print_wrapped command
+;; x1     first column of print window
+;; width  width of print window in characters
+;; endchar character to print after print_wrapped command, typical values are 13, 32, 0 (no extra char)
+;; If not all parameter should be changed, the others can be omitted with commas, e.g. print_wrapped_setpars ,,13 sets only the endchar
+.macro print_wrapped_setpars x1,width,endchar
+        .import _print_wrapped_x1
+        .import _print_wrapped_width
+        .import _print_wrapped_endchar
+
+        .if (.not .blank(x1))
+          poke _print_wrapped_x1,x1
+        .endif
+        .if (.not .blank(width))
+          poke _print_wrapped_width,width
+        .endif
+        .if (.not .blank(endchar))
+          poke _print_wrapped_endchar,endchar
+        .endif
+.endmacro
+
+;; print_wrapped arg
+;; Write arg to the screen with word wrapping. arg can be a string or AX as a pointer to a null-terminated string
+;; Left margin and width of print window are defined via print_wrapped_setpars 
+;; Default parameters for the printing window are 0,40, meaning full screen
+;; The printing starts at the current cursor position, to support successive print_wrapped calls.
+;; Using command <i>set_cursor_pos</i> for the first print is suggested.
+
+.macro print_wrapped arg
+        .import _print_wrapped_windowed
+        .if .not ((.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax})))    ;not AX
+          jmp :++
+          : .byte arg,0
+          : lda #<:--
+          ldx #>:--
+        .endif
+        jsr _print_wrapped_windowed
+.endmacro
+
 ;; printax
 ;; Prints the number in A/X as a 16 bit unsigned decimal number
 ;; BASIC and KERNAL ROM need to be enabled when using this function
