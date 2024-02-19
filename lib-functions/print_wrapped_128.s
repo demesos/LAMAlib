@@ -7,10 +7,10 @@
 .include "../LAMAlib-structured.inc"
 .include "../LAMAlib-ROMfunctions.inc"
 
-.export _print_wrapped_x1       := x1
-.export _print_wrapped_width    := width
-.export _print_wrapped_endchar  := endchar
-.export _print_wrapped_windowed := print_wrapped_windowed
+.export _print_wrapped_x1_128       := x1
+.export _print_wrapped_width_128    := width
+.export _print_wrapped_endchar_128  := endchar
+.export _print_wrapped_windowed_128 := print_wrapped_windowed
 
 .if .not .definedmacro(add)
 .macpack generic      
@@ -20,7 +20,7 @@
 .macpack longbranch      
 .endif
 
-CURR_COLUMN=211
+CURR_COLUMN=$EC
 
 .importzp _llzp_word1
 
@@ -101,7 +101,6 @@ rest=*+1
         cpy #$af
         if cc	;does the word fit into current line?
 	  ldx #0
-	  ;dey
 printword:
 	  lda (text,x)
 	  jsr CHROUT

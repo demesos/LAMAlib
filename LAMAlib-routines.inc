@@ -919,7 +919,26 @@ endfilename:
 ;; width  width of print window in characters
 ;; endchar character to print after print_wrapped command, typical values are 13, 32, 0 (no extra char)
 ;; If not all parameter should be changed, the others can be omitted with commas, e.g. print_wrapped_setpars ,,13 sets only the endchar
-.macro print_wrapped_setpars x1,width,endchar
+
+
+.if .def(__C128__)
+  .macro print_wrapped_setpars x1,width,endchar
+        .import _print_wrapped_x1_128
+        .import _print_wrapped_width_128
+        .import _print_wrapped_endchar_128
+
+        .if (.not .blank(x1))
+          poke _print_wrapped_x1_128,x1
+        .endif
+        .if (.not .blank(width))
+          poke _print_wrapped_width_128,width
+        .endif
+        .if (.not .blank(endchar))
+          poke _print_wrapped_endchar_128,endchar
+        .endif
+  .endmacro
+.else
+  .macro print_wrapped_setpars x1,width,endchar
         .import _print_wrapped_x1
         .import _print_wrapped_width
         .import _print_wrapped_endchar
@@ -933,7 +952,9 @@ endfilename:
         .if (.not .blank(endchar))
           poke _print_wrapped_endchar,endchar
         .endif
-.endmacro
+  .endmacro
+.endif
+
 
 ;; print_wrapped arg
 ;; Write arg to the screen with word wrapping. arg can be a string or AX as a pointer to a null-terminated string
@@ -943,14 +964,19 @@ endfilename:
 ;; Using command <i>set_cursor_pos</i> for the first print is suggested.
 
 .macro print_wrapped arg
-        .import _print_wrapped_windowed
         .if .not ((.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax})))    ;not AX
           jmp :++
           : .byte arg,0
           : lda #<:--
           ldx #>:--
         .endif
+.if .def(__C128__)
+        .import _print_wrapped_windowed_128
+        jsr _print_wrapped_windowed_128
+.else
+        .import _print_wrapped_windowed
         jsr _print_wrapped_windowed
+.endif
 .endmacro
 
 ;; printax
