@@ -179,6 +179,9 @@ CHARS_IN_KEYBUF= $C6
 CURSORX        = $D3
 CURSORY        = $D6
 
+TEXTCOLOR_ADDR=646
+PTRSCRHI=$288 ;high byte of pointer to screen memory for screen input/output
+
 BASICSTART=$1001
 
 STROUT= $CB1E ;outputs a string at addr A/Y

@@ -21,6 +21,7 @@
 .endif
 
 CURR_COLUMN=211
+SCREEN_WIDTH=40
 
 .importzp _llzp_word1
 
@@ -40,7 +41,7 @@ text=_llzp_word1
         stx text+1
 
         ;calc right margin
-        lda #40
+        lda #SCREEN_WIDTH
         sub x1
         sbc width
         sta right_margin
@@ -63,12 +64,12 @@ print_loop:
 	endif
 
         ;rest = 80 - peek (211);
-        lda #80
+        lda #2*SCREEN_WIDTH
         sub ::CURR_COLUMN
         ;if (rest > 40) rest -= 40;
-        cmp #41
+        cmp #SCREEN_WIDTH+1
         if cs
-          sbc #40	;carry is set because of if condition
+          sbc #SCREEN_WIDTH	;carry is set because of if condition
         endif 
         ;rest -= right_margin;
 	sec
@@ -110,12 +111,12 @@ printword:
 	  bpl printword
 	  lda ::CURR_COLUMN
 	  beq indent
-	  cmp #40
+	  cmp #SCREEN_WIDTH
 	  beq indent
 	else
 	  lda ::CURR_COLUMN
 	  beq indent
-	  cmp #40
+	  cmp #SCREEN_WIDTH
 	  beq indent
 
 	  lda #17
@@ -141,10 +142,10 @@ adv_text_ptr:
 
 .proc go_to_left_margin
 	lda ::CURR_COLUMN
-	cmp #40
+	cmp #SCREEN_WIDTH
 	lda x1
 	if cs		;carry still defined from comparison
-	  adc #39	;we are adding actually 40 b/c carry is set
+	  adc #SCREEN_WIDTH-1	;we are adding actually 40 b/c carry is set
 	endif
         sta ::CURR_COLUMN
 	rts
@@ -153,5 +154,5 @@ adv_text_ptr:
 .endproc
 
 x1:	.byte   0
-width:	.byte  40
+width:	.byte  SCREEN_WIDTH
 endchar: .byte 0

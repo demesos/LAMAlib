@@ -937,6 +937,22 @@ endfilename:
           poke _print_wrapped_endchar_128,endchar
         .endif
   .endmacro
+.elseif .def(__VIC20__)
+  .macro print_wrapped_setpars x1,width,endchar
+        .import _print_wrapped_x1_20
+        .import _print_wrapped_width_20
+        .import _print_wrapped_endchar_20
+
+        .if (.not .blank(x1))
+          poke _print_wrapped_x1_20,x1
+        .endif
+        .if (.not .blank(width))
+          poke _print_wrapped_width_20,width
+        .endif
+        .if (.not .blank(endchar))
+          poke _print_wrapped_endchar_20,endchar
+        .endif
+  .endmacro
 .else
   .macro print_wrapped_setpars x1,width,endchar
         .import _print_wrapped_x1
@@ -973,6 +989,9 @@ endfilename:
 .if .def(__C128__)
         .import _print_wrapped_windowed_128
         jsr _print_wrapped_windowed_128
+.elseif .def(__VIC20__)
+        .import _print_wrapped_windowed_20
+        jsr _print_wrapped_windowed_20
 .else
         .import _print_wrapped_windowed
         jsr _print_wrapped_windowed
