@@ -136,9 +136,10 @@ skip_text_byte:
 	endif
 	jmp print_loop
 
-adv_text_ptr:
-	inc16 text
+.proc adv_text_ptr
+	inc16 ::text
 	rts
+.endproc
 
 .proc go_to_left_margin
 	lda ::CURR_COLUMN
