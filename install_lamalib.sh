@@ -4,10 +4,10 @@
 # and to install it in cc65 
 # 
 # Usage: install_lamalib
-# cc65 tools need to be installed on your system and to be in your path
+# cc65 needs to be installed on your system and cc65/bin must be in your path
 #
-# Version: 0.3
-# Date: 2021-10-05
+# Version: 0.31
+# Date: 2024-03-03
 # Author: Wil Elmenreich (wilfried at gmx dot at)
 # License: The Unlicense (public domain)
 

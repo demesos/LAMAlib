@@ -1,6 +1,6 @@
-# Script to assemble a file in ca65 assembler cource into an executable
+# Script to assemble a file in ca65 assembler source code into an executable
 # Automatically adds a BASIC execution stub, unless there is already code for a stub
-# in the program or a different target address is given
+# in the program or a customized target address is given
 
 if [ $# -eq 0 ]; then
   echo Usage: $0 asmfile [startaddr]
