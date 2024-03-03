@@ -15,4 +15,6 @@ clean:
 	rm -f *.o
 
 ../LAMAlib.lib:	$(OBJS)
+	$(foreach obj, $(filter-out $(OBJS), $(wildcard *.o)), rm -f $(obj))
+	rm -f ../LAMAlib.lib
 	ar65 a ../LAMAlib.lib $+
