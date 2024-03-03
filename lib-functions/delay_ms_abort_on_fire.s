@@ -4,27 +4,36 @@
 ; if the loop ran through, the carry flag is set
 ; if firebutton was detected, the loop is aborted and the carry flag is cleared
 .proc _delay_ms_abort_on_fire_sr
-loop1:  cmp #00 	;test A, sets the carry
+	tay
+	lda $dc00
+	and $dc01
+	and #$10
+	sta last_fire_state
+	tya		;undo the tay 
+loop1: 	tay
 	bne declo
 	dex
 	bmi done 
-declo:	;sec		;carry was already set by cmp #00
-	sbc #01
-
-	pha
+declo:	dey
 	lda $dc00
 	and $dc01
 	and #$10
 	bne no_fire
-	pla
+last_fire_state=*+1
+	eor #$af
+	beq still_fire
 	clc
-done:
 	rts
 no_fire:
-	pla
-	ldy #130	;inner loop value is adjusted for average CPU speed with badlines and the 
+	sta last_fire_state	
+still_fire:
+	tya		;move back counter low byte to A
+	ldy #129	;inner loop value is adjusted for average CPU speed with badlines
 inner_loop:
 	dey
 	beq loop1
 	jmp inner_loop	;using a jmp loop to avoid different timing with bne over page border
+done:	sec		;regular exit with no button abort
+	rts
+
 .endproc
