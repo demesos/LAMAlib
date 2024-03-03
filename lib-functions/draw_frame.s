@@ -9,7 +9,7 @@
 ; Needs to be linked with window_parameters.o
 ;-----------------------------------------------------------------------
 
-.include "LAMAlib.inc"
+.include "../LAMAlib-structured.inc"
 
 .export _draw_frame_sr
 
