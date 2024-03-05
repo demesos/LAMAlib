@@ -13,6 +13,7 @@
 @echo off
 setlocal ENABLEDELAYEDEXPANSION
 
+echo Assembling and linking all LAMAlib modules...
 
 :: Define some useful colorcode vars
 for /F "delims=#" %%E in ('"prompt #$E# & for %%E in (1) do rem "') do set "ESCchar=%%E"
@@ -27,7 +28,7 @@ set "black=%ESCchar%[30m"
 set "nocolor=%ESCchar%[0m"
 set "bold=%ESCchar%[1m"
 
-where cc65.exe 2>nul
+where cc65.exe >nul
 if errorlevel 1 (
   echo %red%cc65 installation not found. Please install cc65 and run this script again^^!%nocolor%
   pause
@@ -36,14 +37,14 @@ if errorlevel 1 (
 
 cd lib-functions
 set count=0
+set "o_files="
 for %%f in (*.s) do (
     ca65 -t c64 %%f
     set /a count+=1
+    set "o_files=!o_files! %%~nf.o"
 )
 
-for %%f in (*.o) do (
-    ar65 a LAMAlib.lib %%f
-)
+ar65 a LAMAlib.lib !o_files!
 
 move /y LAMAlib.lib ..
 
@@ -64,10 +65,10 @@ echo %white%
 echo *********************************************************************************************
 echo * Congratulations, LAMAlib has been installed^^!                                              *
 echo *                                                                                           *
-echo * To use it,                                                                                *
-echo * add the line %cyan%.include "LAMAlib.inc"%white% at the top of your assembler file                     *
+echo * To use it, add the line %cyan%.include "LAMAlib.inc"%white% at the top of your assembler file          *
 echo * and assemble with command %cyan%cl65 yourprog.s -lib LAMAlib.lib -C c64-asm.cfg -o yourprog.prg%white% *
-echo * There is no overhead to your assembled program for unused functions                       *
+echo * or rather simpler with %cyan%ass yourprog.prg%white%                                                   *
+echo * There is no overhead to your assembled program for unused functions.                      *
 echo *********************************************************************************************%nocolor%
 
 IF /I %0 EQU "%~dpnx0" PAUSE
