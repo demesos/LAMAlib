@@ -1005,14 +1005,27 @@ endfilename:
 .macro  printax
 .scope
 	.if ::USE_BASIC_ROM>0
-                sta setx +1     ;we need to switch A and X
-                txa
-setx:           ldx #00
-                jsr LINPRT
+          sta setx +1     ;we need to switch A and X
+          txa
+setx:     ldx #00
+          jsr LINPRT
 	.else
-		.import _printax_sr
-		jsr _printax_sr
+	  .import _printax_sr
+	  jsr _printax_sr
 	.endif
+.endscope
+.endmacro
+
+.macro  printax_rightaligned fillchar
+.scope
+	.import _print_fillchars_ax_sr
+	.ifblank fillchar
+	  ldy #32	;default fillchar is space
+	.else
+	  ldy #fillchar
+	.endif
+	jsr _print_fillchars_ax_sr
+	printax
 .endscope
 .endmacro
 
@@ -1034,6 +1047,18 @@ setx:           ldx #00
 .endscope
 .endmacro
 
+.macro  printa_rightaligned fillchar
+.scope
+	.import _print_fillchars_a_sr
+	.ifblank fillchar
+	  ldy #32	;default fillchar is space
+	.else
+	  ldy #fillchar
+	.endif
+	jsr _print_fillchars_a_sr
+	printa
+.endscope
+.endmacro
 
 ;; printax_signed
 ;; Prints the number in A/X as a 16 bit signed decimal number
