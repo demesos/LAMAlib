@@ -1740,7 +1740,7 @@ endfilename:
 ;; Turns off the CIA IRQ source
 ;; If isr is given, the address is set in Kernals IRQ vector $314/315
 ;; IRQ routine must acknowledge the IRQ source
-;; Interrupt flag will be turned off while executing the macro and rreset to the previous state afterwards
+;; Interrupt flag will be turned off while executing the macro and reset to the previous state afterwards
 .macro set_raster_irq rasterline, isr
 	.ifblank rasterline
 	  rline_value .set 0
