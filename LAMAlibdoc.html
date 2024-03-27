@@ -893,7 +893,65 @@ Changes the IRQ source to VIC raster interrupt<br>
 Turns off the CIA IRQ source<br>
 If isr is given, the address is set in Kernals IRQ vector $314/315<br>
 IRQ routine must acknowledge the IRQ source<br>
-Interrupt flag will be turned off while executing the macro and rreset to the previous state afterwards<br>
+Interrupt flag will be turned off while executing the macro and reset to the previous state afterwards<br>
+<br>
+<b>set_irq_rasterline</b> <i>rasterline|A|AX|X|Y</i><br>
+Sets the raster line where the IRQ should occur. This macro does not set the IRQ source, use set_raster_irq for this.<br>
+Used registers: A<br>
+<br>
+<b>set_isr_for_stabilize_raster_cycle</b><br>
+Puts the isr address of the IRQ wedge routine of stabilize_raster_cycle into $FFFE/$FFFF<br>
+When using the raster stabilization from a Kernal IRQ ($314) this macro should be used once during setup<br>
+When using the raster stabilization with banked out Kernal, this macro should be always before the stabilize macro (or stabilize_raster_cycle_with_isr_set is used, which puts both macros together).<br>
+When you have multiple instances of the stabilization routine, the macros refering to each other should be put into a named scope under the same name.<br>
+Used registers: A<br>
+<br>
+<b>stabilize_raster_cycle_with_isr_set</b><br>
+Combination of set_irq_for_stabilize_raster_cycle and stabilize_raster_cycle<br>
+This macro is useful when you have your interrupt service routine called via $FFFE/$FFFF<br>
+The macros are encapsuled into a common scope, so that this macro can be used multiple times.<br>
+Used registers: A,X<br>
+Minimal example showing a typical usage:<br>
+<tt>init:&nbsp;&nbsp;&nbsp;sei<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set_raster_irq 48<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pokew $fffe,isr<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;poke 1,$35<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cli<br>
+:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jmp :-<br>
+isr:&nbsp;&nbsp;&nbsp;&nbsp;pha<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;txa<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pha<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tya<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pha<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stabilize_raster_cycle_with_isr_set<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;we are perfectly synchronized, do stuff<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set_irq_rasterline 48<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;asl $d019<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pokew $fffe,isr<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pla<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tay<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pla<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tax<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pla<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rti</tt><br>
+<br>
+<b>stabilize_raster_cycle</b> <i>[extranops]</i><br>
+Syncs to raster cycle 3 at current raster line+2 (cycle perfect)<br>
+The current and the next two rasterlines must not be badlines<br>
+Uses the double IRQ method with a NOP slide and a conditional jump to eliminate jitter<br>
+Assembling may fail if the conditional branch goes of a page boundary, enable the option extranops in this case.<br>
+Used registers: A,X<br>
+Minimal example showing a typical usage:<br>
+<tt>init:&nbsp;&nbsp;&nbsp;set_isr_for_stabilize_raster_cycle<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set_raster_irq 48,isr<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rts<br>
+isr:&nbsp;&nbsp;&nbsp;&nbsp;poke 1,$35<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stabilize_raster_cycle<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; we are perfectly synchronized, do stuff<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;poke 1,$37<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set_irq_rasterline 48<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;asl $d019<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jmp $ea31</tt><br>
 <br>
 <b>set_timerA_latch</b> <i>value|AX[,CIA</i> <i>base</i> <i>address]</i><br>
 Sets the timer A value of the Complex Interface Adapter (CIA)<br>

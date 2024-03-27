@@ -1779,6 +1779,174 @@ endfilename:
 	plp
 .endmacro
 
+;; set_irq_rasterline rasterline|A|AX|X|Y
+;; Sets the raster line where the IRQ should occur. This macro does not set the IRQ source, use set_raster_irq for this. 
+;; Used registers: A
+.macro set_irq_rasterline rasterline
+	.if (.xmatch ({rasterline}, {AX}) .or .xmatch ({arg1}, {ax}))          ;AX is used as argument
+	  sta $d012
+	  lda $d011
+	  and #$7f
+	  cpx #1
+	  if eq
+	    ora #$80
+	  endif
+	  sta $d011
+	.elseif (.xmatch ({rasterline}, {A}) .or .xmatch ({arg1}, {a}))          ;A is used as argument
+	  sta $d012
+	  lda $d011
+	  and #$7f
+	  sta $d011	
+	.elseif (.xmatch ({rasterline}, {X}) .or .xmatch ({arg1}, {x}))          ;X is used as argument
+	  stx $d012
+	  lda $d011
+	  and #$7f
+	  sta $d011	
+	.elseif (.xmatch ({rasterline}, {Y}) .or .xmatch ({arg1}, {y}))          ;Y is used as argument
+	  sty $d012
+	  lda $d011
+	  and #$7f
+	  sta $d011	
+	.else          							  ;argument is a number
+          poke $d012,<rasterline
+          lda $d011
+          .if rasterline<256
+            and #$7f
+          .else
+            ora #$80
+          .endif
+          sta $d011
+        .endif
+.endmacro
+
+;; set_isr_for_stabilize_raster_cycle 
+;; Puts the isr address of the IRQ wedge routine of stabilize_raster_cycle into $FFFE/$FFFF
+;; When using the raster stabilization from a Kernal IRQ ($314) this macro should be used once during setup
+;; When using the raster stabilization with banked out Kernal, this macro should be always before the stabilize macro (or stabilize_raster_cycle_with_isr_set is used, which puts both macros together).
+;; When you have multiple instances of the stabilization routine, the macros refering to each other should be put into a named scope under the same name.
+;; Used registers: A
+.macro set_isr_for_stabilize_raster_cycle
+        ; label is set in macro stabilize_raster_cycle
+        lda #<_stabilize_raster_cycle_isr
+        sta $fffe
+        lda #>_stabilize_raster_cycle_isr
+        sta $ffff
+.endmacro
+
+;; stabilize_raster_cycle_with_isr_set
+;; Combination of set_irq_for_stabilize_raster_cycle and stabilize_raster_cycle
+;; This macro is useful when you have your interrupt service routine called via $FFFE/$FFFF
+;; The macros are encapsuled into a common scope, so that this macro can be used multiple times.
+;; Used registers: A,X
+;; Minimal example showing a typical usage:
+;;<tt>init:&nbsp;&nbsp;&nbsp;sei
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set_raster_irq 48
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pokew $fffe,isr
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;poke 1,$35
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cli
+;;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jmp :-
+;;isr:&nbsp;&nbsp;&nbsp;&nbsp;pha
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;txa
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pha
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tya
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pha
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stabilize_raster_cycle_with_isr_set
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; we are perfectly synchronized, do stuff
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set_irq_rasterline 48
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;asl $d019
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pokew $fffe,isr
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pla
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tay
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pla
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tax
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pla
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rti</tt>
+.macro stabilize_raster_cycle_with_isr_set
+.scope
+        set_isr_for_stabilize_raster_cycle
+        stabilize_raster_cycle
+.endscope
+.endmacro
+
+;; stabilize_raster_cycle [extranops]
+;; Syncs to raster cycle 3 at current raster line+2 (cycle perfect)
+;; The current and the next two rasterlines must not be badlines
+;; Uses the double IRQ method with a NOP slide and a conditional jump to eliminate jitter
+;; Assembling may fail if the conditional branch goes of a page boundary, enable the option extranops in this case. 
+;; Used registers: A,X
+;; Minimal example showing a typical usage:
+;;<tt>init:&nbsp;&nbsp;&nbsp;set_isr_for_stabilize_raster_cycle
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set_raster_irq 48,isr
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rts
+;;isr:&nbsp;&nbsp;&nbsp;&nbsp;poke 1,$35      
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stabilize_raster_cycle
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; we are perfectly synchronized, do stuff
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;poke 1,$37
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set_irq_rasterline 48
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;asl $d019
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jmp $ea31</tt>
+.macro stabilize_raster_cycle extranops
+        ; **************************************************
+        ; Raster Stabilizing Code
+        ; based on: https://codebase64.org/doku.php?id=base:stable_raster_routine
+	; by TWW / Creators
+        ; **************************************************
+        ; A Raster Compare IRQ is triggered on cycle 0 on the current $d012 line
+        ; The CPU needs to finish its current OP code before starting the Interrupt Handler,
+        ; meaning a 0 -> 7 cycles delay depending on OP code.
+        ; Then a 7 cycle delay is spent invoking the Interrupt Handler (Push SR/PC to stack++)
+        ; Then 13 cycles for storing registers (pha, txa, pha, tya, pha)
+        ; CYCLECOUNT: [20 -> 27] cycles after Raster IRQ occurred.
+        ; Acknowledge current Raster IRQ
+        asl $d019
+        ; Store current Stack Pointer (will be messed up when the next IRQ occurs)
+        tsx
+        ; Set the Raster IRQ to trigger on the next Raster line
+	inc $d012
+        ; Allow IRQ to happen (Remember, the Interrupt flag is set by the Interrupt Handler).
+        cli
+        ; Execute nops until the raster line changes and the Raster IRQ triggers
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+	.if .xmatch ({extranops}, {extranops})
+	  ; add two extra nops, to be used in case of the beq goes over a page limit
+	  nop
+	  nop
+	.endif
+        ; Add one extra nop for 65 cycles NTSC machines
+        ; CYCLECOUNT: [64 -> 71]
+_stabilize_raster_cycle_isr:
+        ; At this point, the next Raster Compare IRQ has triggered and the jitter is max 1 cycle.
+        ; CYCLECOUNT: [7 -> 8] (7 cycles for the interrupt handler + [0 -> 1] cycle Jitter for the nop)
+        ; Restore previous Stack Pointer (undo the last stack manipulation by the IRQ)
+        txs
+	delay_cycles 44	;44 for PAL, 45 for NTSC-64, 46 for NTSC-65  
+        ; Check if $d012 is incremented and rectify with an additional cycle if necessary
+        lda $d012
+        cmp $d012  ; <- critical instruction (ZERO-Flag will indicate if Jitter = 0 or 1)
+        ; CYCLECOUNT: [61 -> 62] <- Will not work if this timing is wrong
+        ; cmp $d012 is originally a 5 cycle instruction but due to pipelining tech. the
+        ; 5th cycle responsible for calculating the result is executed simultaneously
+        ; with the next OP fetch cycle (first cycle of beq *+2).
+        ; Add one cycle if $d012 wasn't incremented (Jitter / ZERO-Flag = 0)
+	.assert >* = >(*+2), error, "Time critical branch goes over page limit, please use *stabilize_raster_cycle extranops* in your code"
+        beq *+2 ;remove remaining jitter of 1 cycle
+        ; we are now stable
+.endmacro
+
+
 ;; set_timerA_latch value|AX[,CIA base address]
 ;; Sets the timer A value of the Complex Interface Adapter (CIA)
 ;; If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.
