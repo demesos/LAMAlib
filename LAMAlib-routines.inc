@@ -1906,6 +1906,7 @@ endfilename:
         ; Allow IRQ to happen (Remember, the Interrupt flag is set by the Interrupt Handler).
         cli
         ; Execute nops until the raster line changes and the Raster IRQ triggers
+:       nop
         nop
         nop
         nop
@@ -1919,7 +1920,7 @@ endfilename:
         nop
         nop
         nop
-        nop
+	jmp :-	;if this jmp is reached it can spoil the timing, but avoid a crash
 	.if .xmatch ({extranops}, {extranops})
 	  ; add two extra nops, to be used in case of the beq goes over a page limit
 	  nop
