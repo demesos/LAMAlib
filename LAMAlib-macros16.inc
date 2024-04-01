@@ -494,8 +494,22 @@ end:
 .endscope
 .endmacro
 
+;; abs
+;; Converts the signed 8 bit value in A to an absolute value
+;; Result is returned in A
+;; Registers modified: A
+.macro  abs
+.scope
+	cmp #$80
+	bcc end
+	eor #$ff
+	adc #0	;the carry is know to be set because of the cmp / bcc instruction
+end:
+.endscope
+.endmacro
+
 ;; absax
-;; Makes the signed 16 bit value in A/X an absolute value
+;; Converts the signed 16 bit value in A/X an absolute value
 ;; Result is returned in A/X
 ;; Registers modified: A,X
 .macro  absax
