@@ -1599,8 +1599,8 @@ skipadjust:
 .import _memset_sr
 .importzp _target_ptr
         .scope
-        length = end_addr - start_addr + 1
-        yinit=<($100-<length)
+        length = end_addr - (start_addr) + 1
+        yinit=<($100-<(length))
         pokew _target_ptr,start_addr - yinit
 
         ldx #1+>(length-1)

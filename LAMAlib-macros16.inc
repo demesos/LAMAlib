@@ -495,7 +495,7 @@ end:
 .endmacro
 
 ;; abs
-;; Converts the signed 8 bit value in A to an absolute value
+;; Converts the signed 8-bit value in A to an absolute value
 ;; Result is returned in A
 ;; Registers modified: A
 .macro  abs
@@ -509,7 +509,7 @@ end:
 .endmacro
 
 ;; absax
-;; Converts the signed 16 bit value in A/X an absolute value
+;; Converts the signed 16-bit value in A/X to an absolute value
 ;; Result is returned in A/X
 ;; Registers modified: A,X
 .macro  absax
