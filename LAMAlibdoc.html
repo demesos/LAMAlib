@@ -1,8 +1,8 @@
 <html>
 <body>
 <h1>LAMAlib - Lightweight Assembler MAcro library for cc65</h1>
-Version: 0.23<br>
-Date: 2023-12-29<br>
+Version: 0.24<br>
+Date: 2024-04-03<br>
 Author: Wil Elmenreich (wilfried at gmx dot at)<br>
 License: The Unlicense (public domain)<br>
 <br>
@@ -206,12 +206,12 @@ Result is returned in A/X<br>
 Registers modified: A,X<br>
 <br>
 <b>abs</b><br>
-Converts the signed 8 bit value in A to an absolute value<br>
+Converts the signed 8-bit value in A to an absolute value<br>
 Result is returned in A<br>
 Registers modified: A<br>
 <br>
 <b>absax</b><br>
-Converts the signed 16 bit value in A/X an absolute value<br>
+Converts the signed 16-bit value in A/X to an absolute value<br>
 Result is returned in A/X<br>
 Registers modified: A,X<br>
 <br>
@@ -662,11 +662,11 @@ Example: include_file_as "sprites.bin",sprites<br>
 This macro is convenient for small projects, consider using a linker for projects with many different large components<br>
 <br>
 <b>install_file</b> <i>identifier[,target_addr]</i><br>
-copies a previously included file to the target address<br>
-Example: install_file sprites,$340<br>
-if target_addr is omitted, the address is taken from the load address (first two bytes of a PRG file)<br>
-if the filetype ist different from PRG, target_addr must be specified<br>
-The corresponding command include_file_as filename,identifier must be executed before calling install_file<br>
+If identifier is a string, the file with that name is imported here and copied to its start address,<br>
+or if a target address is given to target_addr.<br>
+If the filetype is different from PRG, target_addr must be specified.<br>
+If identifier is not a string it refers to a previously included file. In this case, there must be a<br>
+command include_file_as filename,identifier placed before calling install_file.<br>
 <br>
 <b>is_alpha</b><br>
 is_alpha tests if value in Accu is between the values 'a' and 'z' (in lowercase mode).<br>

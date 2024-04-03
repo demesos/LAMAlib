@@ -493,14 +493,29 @@ waitraster:
 .endmacro
 
 ;; install_file identifier[,target_addr]
-;; copies a previously included file to the target address
-;; Example: install_file sprites,$340
-;; if target_addr is omitted, the address is taken from the load address (first two bytes of a PRG file)
-;; if the filetype ist different from PRG, target_addr must be specified
-;; The corresponding command include_file_as filename,identifier must be executed before calling install_file
+;; If identifier is a string, the file with that name is imported here and copied to its start address, 
+;; or if a target address is given to target_addr. 
+;; If the filetype is different from PRG, target_addr must be specified.
+;; If identifier is not a string it refers to a previously included file. In this case, there must be a
+;; command include_file_as filename,identifier placed before calling install_file.
 .macro install_file identifier,target_addr
         .import _memcopy_sr
         .importzp _source_ptr,_target_ptr
+
+	.if .match(identifier,"string")
+	  .scope
+          .if .defined(::install_foobar_counter)
+	    ::install_foobar_counter .set ::install_foobar_counter + 1
+	  .else
+	    ::install_foobar_counter .set 1
+	  .endif
+	  jmp over_it
+	  include_file_as identifier,.ident(.sprintf ("x%d_filetype", ::install_foobar_counter))
+	over_it:
+	  install_file2 .ident(.sprintf ("x%d_filetype", ::install_foobar_counter)),target_addr
+	  .endscope
+	  .exitmacro
+	.endif
 
         .ifblank target_addr
           .if ::.ident (.sprintf ("%s_filetype", .string(identifier))) = 0
