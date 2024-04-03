@@ -512,7 +512,7 @@ waitraster:
 	  jmp over_it
 	  include_file_as identifier,.ident(.sprintf ("x%d_filetype", ::install_foobar_counter))
 	over_it:
-	  install_file2 .ident(.sprintf ("x%d_filetype", ::install_foobar_counter)),target_addr
+	  install_file .ident(.sprintf ("x%d_filetype", ::install_foobar_counter)),target_addr
 	  .endscope
 	  .exitmacro
 	.endif
