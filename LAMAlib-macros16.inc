@@ -2,7 +2,7 @@
 
 ;; ldax addr
 ;; ldax #arg
-;; Loads a 16-bit value into A/X, either from an address or as immediate value
+;; Loads a 16-bit value into AX, either from an address or as immediate value
 ;; Note that the zero flag is not indicating 0 but indicating a value <256
 ;; Supports zero page addressing mode
 ;; Registers modified: A,X
@@ -39,9 +39,9 @@
 
 ;; adcax addr
 ;; adcax #arg
-;; Adds a 16 bit value with carry at an addr or as immediate value to 16 bit value in registers A/X
+;; Adds a 16 bit value with carry at an addr or as immediate value to 16 bit value in registers AX
 ;; Supports zero page addressing mode
-;; Result is returned in A/X
+;; Result is returned in AX
 ;; Registers modified: A,X
 .macro adcax arg
 .scope
@@ -67,9 +67,9 @@
 
 ;; addax addr
 ;; adcax #arg
-;; Adds a 16 bit value without carry at an addr or as immediate value to 16 bit value in registers A/X
+;; Adds a 16 bit value without carry at an addr or as immediate value to 16 bit value in registers AX
 ;; Supports zero page addressing mode
-;; Result is returned in A/X
+;; Result is returned in AX
 ;; Registers modified: A,X
 .macro addax arg
 	clc
@@ -78,9 +78,9 @@
 
 ;; sbcax addr
 ;; sbcax #arg
-;; Subtracts the 16 bit value with carry at an addr or as immediate value from  16 bit value in registers A/X
+;; Subtracts the 16 bit value with carry at an addr or as immediate value from  16 bit value in registers AX
 ;; Supports zero page addressing mode
-;; Result is returned in A/X
+;; Result is returned in AX
 ;; Registers modified: A,X
 .macro sbcax arg
 .scope
@@ -106,9 +106,9 @@
 
 ;; subax addr
 ;; sbcax #arg
-;; Subtracts the 16 bit value with carry at an addr or as immediate value from  16 bit value in registers A/X
+;; Subtracts the 16 bit value with carry at an addr or as immediate value from  16 bit value in registers AX
 ;; Supports zero page addressing mode
-;; Result is returned in A/X
+;; Result is returned in AX
 ;; Registers modified: A,X
 .macro subax arg
 	sec
@@ -235,9 +235,9 @@
 
 ;; cmpax addr
 ;; cmpax #arg
-;; Compares the value in A/X with the 16 bit value in addr or the immediate value
+;; Compares the value in AX with the 16 bit value in addr or the immediate value
 ;; Supports zero page addressing mode
-;; Result is returned in A/X
+;; Result is returned in AX
 ;; Registers modified: none
 .macro cmpax arg
 .scope
@@ -258,9 +258,9 @@ end:
 
 ;; orax addr
 ;; orax #arg
-;; Calculates the bitwise OR operation between A/X and a 16 bit value at an addr or as immediate value
+;; Calculates the bitwise OR operation between AX and a 16 bit value at an addr or as immediate value
 ;; Supports zero page addressing mode
-;; Result is returned in A/X
+;; Result is returned in AX
 ;; Registers modified: A,X
 .macro orax arg
 .scope
@@ -291,9 +291,9 @@ end:
 
 ;; andax addr
 ;; andax #arg
-;; Calculates the bitwise AND operation between A/X and a 16 bit value at an addr or as immediate value
+;; Calculates the bitwise AND operation between AX and a 16 bit value at an addr or as immediate value
 ;; Supports zero page addressing mode
-;; Result is returned in A/X
+;; Result is returned in AX
 ;; Registers modified: A,X
 .macro andax arg
 .scope
@@ -324,9 +324,9 @@ end:
 
 ;; eorax addr
 ;; eorax #arg
-;; Calculates the bitwise exclusive-or operation between A/X and a 16 bit value at addr or as immediate value
+;; Calculates the bitwise exclusive-or operation between AX and a 16 bit value at addr or as immediate value
 ;; Supports zero page addressing mode
-;; Result is returned in A/X
+;; Result is returned in AX
 ;; Registers modified: A,X
 .macro eorax arg
 .scope
@@ -356,8 +356,8 @@ end:
 .endmacro
 
 ;; aslax
-;; Performs an arithmetic shift left of A/X (essentially a multiplication with 2, MSB goes into carry)
-;; Result is returned in A/X
+;; Performs an arithmetic shift left of AX (essentially a multiplication with 2, MSB goes into carry)
+;; Result is returned in AX
 ;; Registers modified: A,X
 .macro aslax
 .scope
@@ -382,8 +382,8 @@ end:
 .endmacro
 
 ;; lsrax
-;; Performs a logic shift right of A/X (essentially a division by 2, LSB goes into carry)
-;; Result is returned in A/X
+;; Performs a logic shift right of AX (essentially a division by 2, LSB goes into carry)
+;; Result is returned in AX
 ;; Registers modified: A,X
 .macro lsrax
 .scope
@@ -408,8 +408,8 @@ end:
 .endmacro
 
 ;; rolax
-;; Performs a rotate left of A/X (essentially a multiplication with 2, carry goes into LSB, MSB goes into carry)
-;; Result is returned in A/X
+;; Performs a rotate left of AX (essentially a multiplication with 2, carry goes into LSB, MSB goes into carry)
+;; Result is returned in AX
 ;; Registers modified: A,X
 .macro rolax
 .scope
@@ -434,8 +434,8 @@ end:
 .endmacro
 
 ;; rorax
-;; Performs a rotate right of A/X (essentially a division by 2, carry goes into MSB, LSB goes into carry)
-;; Result is returned in A/X
+;; Performs a rotate right of AX (essentially a division by 2, carry goes into MSB, LSB goes into carry)
+;; Result is returned in AX
 ;; Registers modified: A,X
 .macro  rorax
 .scope
@@ -477,8 +477,8 @@ end:
 .endmacro
 
 ;; negax
-;; Negates the value in A/X
-;; Result is returned in A/X
+;; Negates the value in AX
+;; Result is returned in AX
 ;; Registers modified: A,X
 .macro  negax
 .scope
@@ -509,8 +509,8 @@ end:
 .endmacro
 
 ;; absax
-;; Converts the signed 16-bit value in A/X to an absolute value
-;; Result is returned in A/X
+;; Converts the signed 16-bit value in AX to an absolute value
+;; Result is returned in AX
 ;; Registers modified: A,X
 .macro  absax
 .scope
@@ -522,7 +522,7 @@ end:
 .endmacro
 
 ;; incax
-;; Increments 16 bit value in registers A/X
+;; Increments 16 bit value in registers AX
 ;; Registers modified: A,X
 .macro  incax
 .scope
@@ -711,7 +711,7 @@ end:
 
 
 ;; decax
-;; Decrements 16 bit value in registers A/X
+;; Decrements 16 bit value in registers AX
 ;; Registers modified: A,X
 .macro  decax
 .scope

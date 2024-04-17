@@ -58,6 +58,7 @@ LAMAlib_inc=1
 .include "LAMAlib-gfx.inc"
 .include "LAMAlib-structured.inc"
 .include "LAMAlib-routines.inc"
+.include "LAMAlib-strings.inc"
 .include "LAMAlib-BASIC.inc"
 .include "LAMAlib-C128only.inc"
 

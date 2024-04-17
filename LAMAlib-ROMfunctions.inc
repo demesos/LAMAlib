@@ -18,8 +18,8 @@ BASICSTART=$0801
 
 USE_BASIC_ROM .set 1  ;add USE_BASIC_ROM=0 to your code to make LAMAlib generate code without calls to BASIC ROM
 
-STROUT= $AB1E ;outputs a string at addr A/Y
-LINPRT= $BDCD ;outputs number in A/X
+STROUT= $AB1E ;outputs a string at addr AY
+LINPRT= $BDCD ;outputs number in AX
 FINDARRAYELEMENT=$B218	;part of routine $b1d1 to find or make an array
 
 CLRSCR= $E544 ;clear screen
@@ -55,7 +55,7 @@ CHROUT= $FFD2 ;Outputs the character in A to default output.
 LOAD  = $FFD5 ;Load file, must call SETLFS and SETNAM before
 SAVE  = $FFD8 ;Save file, must call SETLFS and SETNAM before
 SETTIM= $FFDB ;Set Time of Day, at memory address $00A0-$00A2
-RDTIM = $FFDE ;Read Time of Day to A/X/Y
+RDTIM = $FFDE ;Read Time of Day to AX/Y
 STOP  = $FFE1 ;Query Stop key indicator, at memory address $0091; if pressed, call CLRCHN and clear keyboard buffer
 GETIN = $FFE4 ;get a character from keyboard
 CLALL = $FFE7 ;Close all channels and files
@@ -97,7 +97,7 @@ BASICSTART=$1C01
 USE_BASIC_ROM .set 1  ;add USE_BASIC_ROM=0 to your code to make LAMAlib generate code without calls to BASIC ROM
 
 STROUT= $55E2 ;outputs a string at addr A/Y
-LINPRT= $8E32 ;outputs number in A/X
+LINPRT= $8E32 ;outputs number in AX
 FINDARRAYELEMENT=$7CF4	;part of routine $7cAB to find or make an array
 
 CLRSCR= $C142 ;clear screen
@@ -135,7 +135,7 @@ CHROUT= $FFD2 ;Outputs the character in A to default output.
 LOAD  = $FFD5 ;Load file, must call SETLFS and SETNAM before
 SAVE  = $FFD8 ;Save file, must call SETLFS and SETNAM before
 SETTIM= $FFDB ;Set Time of Day, at memory address $00A0-$00A2
-RDTIM = $FFDE ;Read Time of Day to A/X/Y
+RDTIM = $FFDE ;Read Time of Day to AX/Y
 STOP  = $FFE1 ;Query Stop key indicator, at memory address $0091; if pressed, call CLRCHN and clear keyboard buffer
 GETIN = $FFE4 ;get a character from keyboard
 CLALL = $FFE7 ;Close all channels and files
@@ -185,7 +185,7 @@ PTRSCRHI=$288 ;high byte of pointer to screen memory for screen input/output
 BASICSTART=$1001
 
 STROUT= $CB1E ;outputs a string at addr A/Y
-LINPRT= $DDCD ;outputs number in A/X
+LINPRT= $DDCD ;outputs number in AX
 FINDARRAYELEMENT=$D218	;part of routine $D1D1 to find or make an array
 
 CLRSCR= $E55F ;clear screen
@@ -221,7 +221,7 @@ CHROUT= $FFD2 ;Outputs the character in A to default output.
 LOAD  = $FFD5 ;Load file, must call SETLFS and SETNAM before
 SAVE  = $FFD8 ;Save file, must call SETLFS and SETNAM before
 SETTIM= $FFDB ;Set Time of Day, at memory address $00A0-$00A2
-RDTIM = $FFDE ;Read Time of Day to A/X/Y
+RDTIM = $FFDE ;Read Time of Day to AX/Y
 STOP  = $FFE1 ;Query Stop key indicator, at memory address $0091; if pressed, call CLRCHN and clear keyboard buffer
 GETIN = $FFE4 ;get a character from keyboard
 CLALL = $FFE7 ;Close all channels and files

@@ -1,9 +1,8 @@
 ;--------------------------------------------------
 ; test program for LAMAlib functions
 ;
-; test do_every structure
+; test A_between, div8
 ;
-; re-running this test fails, because the state of do_every will be changed by running it
 
 .include "LAMAlib.inc"
 
@@ -12,7 +11,7 @@
 	cmp #lower
 	bcc outside
 	cmp #higher+1
-	.byte $24	;BIT for spipping
+	.byte $24	;BIT for skipping
 
 outside: sec
 .endscope
@@ -23,7 +22,7 @@ outside: sec
 	cmpax #lower
 	bcc outside
 	cmpax #higher+1
-	.byte $24	;BIT for spipping
+	.byte $24	;BIT for skipping
 
 outside: sec
 .endscope
@@ -55,6 +54,28 @@ outside: sec
           bne exit_failure
         restore A
         next
+
+	lda #15
+	div8 #3
+	cmp #5
+	bne exit_failure
+	txa
+	bne exit_failure
+
+	lda #255
+	div8 #6
+	cmp #42
+	bne exit_failure
+	cpx #3
+	bne exit_failure
+
+	ldax #2555
+	div16by8 #12
+	cmp #212
+	bne exit_failure
+	cpx #11
+	bne exit_failure
+
         clc
         rts
 

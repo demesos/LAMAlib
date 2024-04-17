@@ -176,7 +176,7 @@ loop:
 ;; Delays for arg milliseconds using a busy waiting loop. 
 ;; The waiting loop is calibrated to avergage available CPU cycles on a C64 with VIC and interrupts enabled.
 ;; Depending on interrupts or stolen cycles by VIC badlines the actual delay time may vary. 
-;; When AX is given as argument it waits as many ms as the 16 bit value in A/X
+;; When AX is given as argument it waits as many ms as the 16 bit value in AX
 ;; When a number 1-65536 is given as argument it waits this long
 ;; Registers modified: A,X,Y
 .macro  delay_ms arg
@@ -196,7 +196,7 @@ loop:
 ;; Delays for arg milliseconds using a busy waiting loop. 
 ;; The waiting loop is calibrated to avergage available CPU cycles on a C64 with VIC and interrupts enabled.
 ;; Depending on interrupts or stolen cycles by VIC badlines the actual delay time may vary. 
-;; When AX is given as argument it waits as many ms as the 16 bit value in A/X
+;; When AX is given as argument it waits as many ms as the 16 bit value in AX
 ;; When a number 1-65536 is given as argument it waits this long
 ;; If the loop ran through, the carry flag is set upon return
 ;; If firebutton was detected, the loop is aborted and the carry flag is cleared upon return
@@ -310,12 +310,65 @@ sm_to_add=*+1
 	.endscope
 .endmacro
 
+;; div8 arg
+;; div8 #arg
+;; Divides the unsigned 8 bit value in A by an immediate value or the 8 bit value stored at addr
+;; Quotient is returned in A, remainder in X
+;; Registers modified: A,X
+
+.macro div8 arg
+.scope
+	sta quotient
+     	lda #0
+	ldx #8
+	asl quotient
+L1:	rol
+	cmp arg
+	bcc L2
+	sbc arg
+L2:	rol quotient
+	dex
+	bne L1
+	tax
+quotient=*+1
+	lda #00
+.endscope
+.endmacro
+
+;; div16by8 arg
+;; div16by8 #arg
+;; Divides the unsigned 16 bit value in AX by an immediate value or the 8 bit value stored at addr
+;; Resulting quotient must be 8 bit
+;; Quotient is returned in A, remainder in X
+;; Registers modified: A,X
+
+.macro div16by8 arg
+.scope
+	sta quotient
+	txa
+	ldx #8
+	asl quotient
+L1:	rol
+	bcs L2
+	cmp arg
+	bcc L3
+L2:	sbc arg
+	sec
+L3:	rol quotient
+	dex
+	bne L1
+	tax
+quotient=*+1
+	lda #00
+.endscope
+.endmacro
 
 ;; div16 arg
-;; Multiplies the unsigned 16 bit value in A/X with an imediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)
+;; div16 #arg
+;; Divides the unsigned 16 bit value in AX by an immediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)
 ;; Implemented as a subroutinge, link with -lib lamalib.lib
-;; This function is not reentrant, don't use in interrupt and main program simultaneously
-;; Result is returned in A/X
+;; This function is not reentrant, don't use it in interrupt and main program simultaneously
+;; Result is returned in AX
 ;; Registers modified: all
 .import _div16_sr
 .importzp _div16_arg,_div16_rem
@@ -750,13 +803,13 @@ endfilename:
 
 ;; mul16 addr
 ;; compactmul16 addr
-;; Multiplies the unsigned 16 bit value in A/X with the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)
+;; Multiplies the unsigned 16 bit value in AX with the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)
 ;; Implemented as a subroutinge, link with -lib lamalib.lib
 ;; mul16 adds a routine of 51 byte to your program the first time you use it
 ;; compactmul16 adds a routine of 32 byte to your program the first time you use it
 ;; mul16 is about 20% faster than compactmul, we recommend using mul16 in most cases
 ;; This function is not reentrant, don't use in interrupt and main program simultaneously
-;; Result is returned in A/X
+;; Result is returned in AX
 ;; Registers modified: A,X,Y
 
 .import _fastmul16_sr
@@ -1014,7 +1067,7 @@ endfilename:
 .endmacro
 
 ;; printax
-;; Prints the number in A/X as a 16 bit unsigned decimal number
+;; Prints the number in AX as a 16 bit unsigned decimal number
 ;; BASIC and KERNAL ROM need to be enabled when using this function
 ;; Registers modified: A,Y,X
 .macro  printax
@@ -1076,7 +1129,7 @@ setx:     ldx #00
 .endmacro
 
 ;; printax_signed
-;; Prints the number in A/X as a 16 bit signed decimal number
+;; Prints the number in AX as a 16 bit signed decimal number
 ;; BASIC and KERNAL ROM need to be enabled when using this function
 ;; Registers modified: A,Y,X
 .macro  printax_signed
