@@ -1843,6 +1843,26 @@ endfilename:
 .endmacro
 
 
+;; sqrt16 [arg]
+;; sqrt16 #arg
+;; Calculates the squareroot of the argument or, if no argument is given, of AX
+;; Implemented as a subroutinge, link with -lib lamalib.lib
+;; When using this function in interrupt save _llzp_word1 before calling and restore those values afterwards.
+;; Result is returned in A, X will contain the remainder
+;; Registers modified: A,X,Y
+.importzp _llzp_word1
+.import _sqrt16_sr
+.macro sqrt16 arg
+	.if .paramcount = 1
+          .if .not (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))    ;print AX as number
+            ldax arg	;address or immediate number
+          .endif
+        .endif
+	stax _llzp_word1
+	jsr _sqrt16_sr
+.endmacro
+
+
 ;; set_raster_irq rasterline[, isr]
 ;; Changes the IRQ source to VIC raster interrupt
 ;; Turns off the CIA IRQ source

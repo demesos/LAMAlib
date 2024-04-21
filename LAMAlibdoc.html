@@ -54,7 +54,7 @@ The switch can be changed multiple times to create program parts using the ROM a
 <br>
 <b>ldax</b> <i>addr</i><br>
 <b>ldax</b> <i>#arg</i><br>
-Loads a 16-bit value into A/X, either from an address or as immediate value<br>
+Loads a 16-bit value into AX, either from an address or as immediate value<br>
 Note that the zero flag is not indicating 0 but indicating a value <256<br>
 Supports zero page addressing mode<br>
 Registers modified: A,X<br>
@@ -66,30 +66,30 @@ Registers modified: none<br>
 <br>
 <b>adcax</b> <i>addr</i><br>
 <b>adcax</b> <i>#arg</i><br>
-Adds a 16 bit value with carry at an addr or as immediate value to 16 bit value in registers A/X<br>
+Adds a 16 bit value with carry at an addr or as immediate value to 16 bit value in registers AX<br>
 Supports zero page addressing mode<br>
-Result is returned in A/X<br>
+Result is returned in AX<br>
 Registers modified: A,X<br>
 <br>
 <b>addax</b> <i>addr</i><br>
 <b>adcax</b> <i>#arg</i><br>
-Adds a 16 bit value without carry at an addr or as immediate value to 16 bit value in registers A/X<br>
+Adds a 16 bit value without carry at an addr or as immediate value to 16 bit value in registers AX<br>
 Supports zero page addressing mode<br>
-Result is returned in A/X<br>
+Result is returned in AX<br>
 Registers modified: A,X<br>
 <br>
 <b>sbcax</b> <i>addr</i><br>
 <b>sbcax</b> <i>#arg</i><br>
-Subtracts the 16 bit value with carry at an addr or as immediate value from  16 bit value in registers A/X<br>
+Subtracts the 16 bit value with carry at an addr or as immediate value from  16 bit value in registers AX<br>
 Supports zero page addressing mode<br>
-Result is returned in A/X<br>
+Result is returned in AX<br>
 Registers modified: A,X<br>
 <br>
 <b>subax</b> <i>addr</i><br>
 <b>sbcax</b> <i>#arg</i><br>
-Subtracts the 16 bit value with carry at an addr or as immediate value from  16 bit value in registers A/X<br>
+Subtracts the 16 bit value with carry at an addr or as immediate value from  16 bit value in registers AX<br>
 Supports zero page addressing mode<br>
-Result is returned in A/X<br>
+Result is returned in AX<br>
 Registers modified: A,X<br>
 <br>
 <b>rsc</b> <i>arg</i><br>
@@ -130,35 +130,35 @@ Registers modified: A,X<br>
 <br>
 <b>cmpax</b> <i>addr</i><br>
 <b>cmpax</b> <i>#arg</i><br>
-Compares the value in A/X with the 16 bit value in addr or the immediate value<br>
+Compares the value in AX with the 16 bit value in addr or the immediate value<br>
 Supports zero page addressing mode<br>
-Result is returned in A/X<br>
+Result is returned in AX<br>
 Registers modified: none<br>
 <br>
 <b>orax</b> <i>addr</i><br>
 <b>orax</b> <i>#arg</i><br>
-Calculates the bitwise OR operation between A/X and a 16 bit value at an addr or as immediate value<br>
+Calculates the bitwise OR operation between AX and a 16 bit value at an addr or as immediate value<br>
 Supports zero page addressing mode<br>
-Result is returned in A/X<br>
+Result is returned in AX<br>
 Registers modified: A,X<br>
 <br>
 <b>andax</b> <i>addr</i><br>
 <b>andax</b> <i>#arg</i><br>
-Calculates the bitwise AND operation between A/X and a 16 bit value at an addr or as immediate value<br>
+Calculates the bitwise AND operation between AX and a 16 bit value at an addr or as immediate value<br>
 Supports zero page addressing mode<br>
-Result is returned in A/X<br>
+Result is returned in AX<br>
 Registers modified: A,X<br>
 <br>
 <b>eorax</b> <i>addr</i><br>
 <b>eorax</b> <i>#arg</i><br>
-Calculates the bitwise exclusive-or operation between A/X and a 16 bit value at addr or as immediate value<br>
+Calculates the bitwise exclusive-or operation between AX and a 16 bit value at addr or as immediate value<br>
 Supports zero page addressing mode<br>
-Result is returned in A/X<br>
+Result is returned in AX<br>
 Registers modified: A,X<br>
 <br>
 <b>aslax</b><br>
-Performs an arithmetic shift left of A/X (essentially a multiplication with 2, MSB goes into carry)<br>
-Result is returned in A/X<br>
+Performs an arithmetic shift left of AX (essentially a multiplication with 2, MSB goes into carry)<br>
+Result is returned in AX<br>
 Registers modified: A,X<br>
 <br>
 <b>asl16</b> <i>addr</i><br>
@@ -167,8 +167,8 @@ Result at addr, addr+1<br>
 Registers modified: none<br>
 <br>
 <b>lsrax</b><br>
-Performs a logic shift right of A/X (essentially a division by 2, LSB goes into carry)<br>
-Result is returned in A/X<br>
+Performs a logic shift right of AX (essentially a division by 2, LSB goes into carry)<br>
+Result is returned in AX<br>
 Registers modified: A,X<br>
 <br>
 <b>lsr16</b> <i>addr</i><br>
@@ -177,8 +177,8 @@ Result at addr, addr+1<br>
 Registers modified: none<br>
 <br>
 <b>rolax</b><br>
-Performs a rotate left of A/X (essentially a multiplication with 2, carry goes into LSB, MSB goes into carry)<br>
-Result is returned in A/X<br>
+Performs a rotate left of AX (essentially a multiplication with 2, carry goes into LSB, MSB goes into carry)<br>
+Result is returned in AX<br>
 Registers modified: A,X<br>
 <br>
 <b>rol16</b> <i>addr</i><br>
@@ -187,8 +187,8 @@ Result at addr, addr+1<br>
 Registers modified: none<br>
 <br>
 <b>rorax</b><br>
-Performs a rotate right of A/X (essentially a division by 2, carry goes into MSB, LSB goes into carry)<br>
-Result is returned in A/X<br>
+Performs a rotate right of AX (essentially a division by 2, carry goes into MSB, LSB goes into carry)<br>
+Result is returned in AX<br>
 Registers modified: A,X<br>
 <br>
 <b>ror16</b> <i>addr</i><br>
@@ -201,8 +201,8 @@ Negate A<br>
 Registers modified: A<br>
 <br>
 <b>negax</b><br>
-Negates the value in A/X<br>
-Result is returned in A/X<br>
+Negates the value in AX<br>
+Result is returned in AX<br>
 Registers modified: A,X<br>
 <br>
 <b>abs</b><br>
@@ -211,12 +211,12 @@ Result is returned in A<br>
 Registers modified: A<br>
 <br>
 <b>absax</b><br>
-Converts the signed 16-bit value in A/X to an absolute value<br>
-Result is returned in A/X<br>
+Converts the signed 16-bit value in AX to an absolute value<br>
+Result is returned in AX<br>
 Registers modified: A,X<br>
 <br>
 <b>incax</b><br>
-Increments 16 bit value in registers A/X<br>
+Increments 16 bit value in registers AX<br>
 Registers modified: A,X<br>
 <br>
 <b>inc8</b> <i>addr[,increment]</i><br>
@@ -234,7 +234,7 @@ if increment is not specified, an increment of 1 is used<br>
 Registers modified: none in increment = 1, AX otherwise<br>
 <br>
 <b>decax</b><br>
-Decrements 16 bit value in registers A/X<br>
+Decrements 16 bit value in registers AX<br>
 Registers modified: A,X<br>
 <br>
 <b>dec8</b> <i>addr[,decrement]</i><br>
@@ -534,7 +534,7 @@ Registers modified: none (but flags may be messed up)<br>
 Delays for arg milliseconds using a busy waiting loop.<br>
 The waiting loop is calibrated to avergage available CPU cycles on a C64 with VIC and interrupts enabled.<br>
 Depending on interrupts or stolen cycles by VIC badlines the actual delay time may vary.<br>
-When AX is given as argument it waits as many ms as the 16 bit value in A/X<br>
+When AX is given as argument it waits as many ms as the 16 bit value in AX<br>
 When a number 1-65536 is given as argument it waits this long<br>
 Registers modified: A,X,Y<br>
 <br>
@@ -542,7 +542,7 @@ Registers modified: A,X,Y<br>
 Delays for arg milliseconds using a busy waiting loop.<br>
 The waiting loop is calibrated to avergage available CPU cycles on a C64 with VIC and interrupts enabled.<br>
 Depending on interrupts or stolen cycles by VIC badlines the actual delay time may vary.<br>
-When AX is given as argument it waits as many ms as the 16 bit value in A/X<br>
+When AX is given as argument it waits as many ms as the 16 bit value in AX<br>
 When a number 1-65536 is given as argument it waits this long<br>
 If the loop ran through, the carry flag is set upon return<br>
 If firebutton was detected, the loop is aborted and the carry flag is cleared upon return<br>
@@ -593,11 +593,33 @@ Error codes (listed in decimal) are:<br>
 73  Power up message, or write attempt with DOS Mismatch<br>
 74  Drive not ready<br>
 <br>
+<b>div8</b> <i>arg</i><br>
+<b>div8</b> <i>#arg</i><br>
+Divides the unsigned 8 bit value in A by an immediate value or the 8 bit value stored at addr<br>
+Quotient is returned in A, remainder in X<br>
+Registers modified: A,X<br>
+<br>
+<b>div16by8</b> <i>arg</i><br>
+div16by8 #arg<br>
+Divides the unsigned 16 bit value in AX by an immediate value or the 8 bit value stored at addr<br>
+Resulting quotient must be 8 bit<br>
+Quotient is returned in A, remainder in X<br>
+Registers modified: A,X<br>
+<br>
 <b>div16</b> <i>arg</i><br>
-Multiplies the unsigned 16 bit value in A/X with an imediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
+<b>div16</b> <i>#arg</i><br>
+Divides the unsigned 16 bit value in AX by an immediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
 Implemented as a subroutinge, link with -lib lamalib.lib<br>
-This function is not reentrant, don't use in interrupt and main program simultaneously<br>
-Result is returned in A/X<br>
+When using this function in interrupt save _div16_sr, _div16_rem, _div16_arg_lo, and _div16_arg_hi before calling and restore those values afterwards.<br>
+Result is returned in AX<br>
+Registers modified: all<br>
+<br>
+<b>mod16</b> <i>arg</i><br>
+<b>mod16</b> <i>#arg</i><br>
+Divides the unsigned 16 bit value in AX by an immediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte) and returns the remainder of the division<br>
+Implemented as a subroutinge, link with -lib lamalib.lib<br>
+When using this function in interrupt save _div16_sr, _div16_rem, _div16_arg_lo, and _div16_arg_hi before calling and restore those values afterwards.<br>
+Result is returned in AX<br>
 Registers modified: all<br>
 <br>
 <b>disable_cbm_shift</b><br>
@@ -626,6 +648,7 @@ Clears the window that was defined by the window parametes of chrout2window. Whe
 <b>draw_frame</b><br>
 Draws a frame around the window defined by the window parameters<br>
 Note that the frame will go around the window, so it is larger than the defined window<br>
+When using in interrupt, save contents of _llzp_word1,_llzp_word2 before calling and restore afterwards<br>
 Window parameters:<br>
 <tt>.import _window_x1,_window_y1,_window_x2,_window_y2</tt><br>
 Further configuration parameters (default is a white frame using PETSCII characters):<br>
@@ -721,13 +744,13 @@ Registers modified: A<br>
 <br>
 <b>mul16</b> <i>addr</i><br>
 compactmul16 addr<br>
-Multiplies the unsigned 16 bit value in A/X with the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
+Multiplies the unsigned 16 bit value in AX with the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)<br>
 Implemented as a subroutinge, link with -lib lamalib.lib<br>
 mul16 adds a routine of 51 byte to your program the first time you use it<br>
 compactmul16 adds a routine of 32 byte to your program the first time you use it<br>
 mul16 is about 20% faster than compactmul, we recommend using mul16 in most cases<br>
-This function is not reentrant, don't use in interrupt and main program simultaneously<br>
-Result is returned in A/X<br>
+When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.<br>
+Result is returned in AX<br>
 Registers modified: A,X,Y<br>
 <br>
 <b>newline</b><br>
@@ -769,14 +792,14 @@ endchar character to print after print_wrapped command, typical values are 13, 3
 If not all parameter should be changed, the others can be omitted with commas, e.g. print_wrapped_setpars ,,13 sets only the endchar<br>
 <br>
 <b>print_wrapped</b> <i>arg</i><br>
-Write arg to the screen with word wrapping. arg can be a string or AX as a pointer to a null-terminated string<br>
+Write arg to the screen with word wrapping. arg can be a string, an address or AX as a pointer to a null-terminated string.<br>
 Left margin and width of print window are defined via print_wrapped_setpars<br>
 Default parameters for the printing window are 0,40, meaning full screen<br>
 The printing starts at the current cursor position, to support successive print_wrapped calls.<br>
 Using command <i>set_cursor_pos</i> for the first print is suggested.<br>
 <br>
 <b>printax</b><br>
-Prints the number in A/X as a 16 bit unsigned decimal number<br>
+Prints the number in AX as a 16 bit unsigned decimal number<br>
 BASIC and KERNAL ROM need to be enabled when using this function<br>
 Registers modified: A,Y,X<br>
 <br>
@@ -786,7 +809,7 @@ BASIC and KERNAL ROM need to be enabled when using this function<br>
 Registers modified: A,X<br>
 <br>
 <b>printax_signed</b><br>
-Prints the number in A/X as a 16 bit signed decimal number<br>
+Prints the number in AX as a 16 bit signed decimal number<br>
 BASIC and KERNAL ROM need to be enabled when using this function<br>
 Registers modified: A,Y,X<br>
 <br>
@@ -800,6 +823,7 @@ Generate a random number between 0 and 255 which is returned in A.<br>
 The argument is optional and can be a number or the Y register<br>
 If an argument is given, the value is caclulated between 0 and given number-1<br>
 Good and fast random generator for 8bit values based on the X ABC pseudo-random number generator from EternityForest, slight modification by Wil.<br>
+When using this function in interrupt save _llzp_word1 before calling and restore those values afterwards.<br>
 Registers modified: A,Y (Y is only used when an argument is used)<br>
 <br>
 <b>rand16</b> <i>[maxvalue-1]</i><br>
@@ -807,6 +831,7 @@ Get a random number in AX betwenn 0 and 0xFFFF<br>
 The argument is optional and can be a number or AX<br>
 If an argument is given, the value is caclulated between 0 and given number-1<br>
 This function uses the same routine as rand8, therefore calling rand16 will change the state of rand8 as well<br>
+When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.<br>
 Registers modified: A,X,Y (Y is only used when an argument is used)<br>
 <br>
 <b><b>rand_setseed</b></b> <i>AX</i> <i>|</i> <i>[[<i>arg1</i>|A|X|Y],</i> <i><i>arg2</i>|A|X|Y]</i><br>
@@ -871,10 +896,12 @@ Copies the memory area src_addr to src_addr+length over target_addr<br>
 If the areas are overlapping, then target_addr must be < src_addr<br>
 The three parameter version takes three constant numbers<br>
 Alternatively, the function can be configured parameter by parameter, either with AX or a constant<br>
+When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.<br>
 Registers modified: A,X,Y<br>
 <br>
 <b>memset</b> <i>start_addr,end_addr,fillvalue</i><br>
 Fills the memory area between start_addr and end_adder with the byte fillvalue<br>
+When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.<br>
 Registers modified: A,X,Y<br>
 <br>
 <b>save_prg</b> <i>filename,devicenr,startaddr,endaddr</i><br>
@@ -891,6 +918,14 @@ Scrambles/unscrambles a memory area. To unscramble, call scramble with the same 
 <br>
 <b>scratch_file</b> <i>filename[,devicenr]</i><br>
 Deletes a file on disk. If device number is not stated or 0, the last used device number stored in address $BA is used. In case $BA contains 0, 8 is used as default.<br>
+Registers modified: A,X,Y<br>
+<br>
+<b>sqrt16</b> <i>[arg]</i><br>
+<b>sqrt16</b> <i>#arg</i><br>
+Calculates the squareroot of the argument or, if no argument is given, of AX<br>
+Implemented as a subroutinge, link with -lib lamalib.lib<br>
+When using this function in interrupt save _llzp_word1 before calling and restore those values afterwards.<br>
+Result is returned in A, X will contain the remainder<br>
 Registers modified: A,X,Y<br>
 <br>
 <b>set_raster_irq</b> <i>rasterline[,</i> <i>isr]</i><br>
@@ -1024,6 +1059,18 @@ The function always sets a 0 as high bit to avoid an unreachable raster irq line
 <br>
 <b>screen_on</b><br>
 turns the screen back on. Since it is necessary to write to $d011, the high bit of the next raster IRQ will be reset to 0 as a side effect<br>
+<h2>String Routines</h2>
+<br>
+<b>strlen8</b> <i>address</i><br>
+strlen8 AX<br>
+Returns the length of the null-terminated string at address given by the argument or by AX<br>
+String maximum length is 255, use strlen16 to handle longer strings<br>
+Return value in X<br>
+<br>
+<b>strlen16</b> <i>address</i><br>
+strlen16 AX<br>
+Returns the length of the null-terminated string at address given by the argument or by AX<br>
+Return value in AX<br>
 <h2>Interacting with BASIC</h2>
 <br>
 <b>setBasicVarnam</b> <i>"varnam"</i><br>

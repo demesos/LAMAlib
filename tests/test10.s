@@ -6,6 +6,10 @@
 
 .include "LAMAlib.inc"
 
+.if .not .definedmacro(jne)
+.macpack longbranch      
+.endif
+
 .macro ref_A_between lower,higher
 .scope
 	cmp #lower
@@ -27,7 +31,6 @@ outside: sec
 outside: sec
 .endscope
 .endmacro
-
 
 .proc test_no_10
         for A,0,to,255
@@ -51,16 +54,16 @@ outside: sec
           lda #$af
         res2=*+1
           cmp #$fe
-          bne exit_failure
+          jne exit_failure
         restore A
         next
 
 	lda #15
 	div8 #3
 	cmp #5
-	bne exit_failure
+	jne exit_failure
 	txa
-	bne exit_failure
+	jne exit_failure
 
 	lda #255
 	div8 #6
@@ -76,71 +79,29 @@ outside: sec
 	cpx #11
 	bne exit_failure
 
+	pokew sum,0
+	for ax,0,to,65400,100
+	  store AX
+	  sqrt16
+	  clc
+	  adc sum
+	  sta sum
+	  if cs
+	    inc sum+1
+	  endif
+	  restore AX
+	next
+	ldax sum
+	cmpax #45764
+	bne exit_failure
+
         clc
         rts
 
 exit_failure:
 	sec
 	rts
-.endproc
 
-; .proc test_no_10_extensive
-; 	.repeat 21,I
-; 	.repeat 21,J
-; 	  .if I <= J
-; 	.scope
-; 	    for A,0,to,255
-; 	    store A
-; 	      ref_A_between I*11,J*11
-; 	      rol res
-;  	      A_between I*11,J*11
-; 	      rol res
-;               res=*+1
-; 	      lda #$af
-; 	      and #3
-; 	      beq ok
-;               cmp #3
-; 	      beq ok
-;               jmp exit_failure
-;               ok:
-; 	      inc $d020
-; 	    restore A
-; 	    next
-; 	.endscope
-; 	  .endif
-; 	.endrep
-; 	.endrep
-; 
-; 	.repeat 11,I
-; 	.repeat 11,J
-; 	  .if I <= J
-; 	.scope
-; 	    for A,0,to,255
-; 	    store A
-; 	      ldx#0
-; 	      ref_AX_between I*5031,J*5031
-; 	      rol res
-;  	      AX_between I*5031,J*5031
-; 	      rol res
-;               res=*+1
-; 	      lda #$af
-; 	      and #3
-; 	      beq ok
-;               cmp #3
-; 	      beq ok
-;               jmp exit_failure
-;               ok:
-; 	      inc $d021
-; 	    restore A
-; 	    next
-; 	.endscope
-; 	  .endif
-; 	.endrep
-; 	.endrep
-; 	rts
-; 
-; exit_failure:
-; 	sec
-; 	rts
-; 	
-; .endproc
+sum:
+	.byte 00,00
+.endproc
