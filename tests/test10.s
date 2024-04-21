@@ -1,7 +1,7 @@
 ;--------------------------------------------------
 ; test program for LAMAlib functions
 ;
-; test A_between, div8
+; test A_between, division tests
 ;
 
 .include "LAMAlib.inc"

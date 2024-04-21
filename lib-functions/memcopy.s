@@ -1,17 +1,17 @@
-.importzp _source_ptr,_target_ptr
+.importzp _llzp_word1,_llzp_word2
 
 .code
 
 .export _memcopy_sr:=memcopyloop
 
 memcopyloop:
-	lda (_source_ptr),y
-	sta (_target_ptr),y
+	lda (_llzp_word2),y
+	sta (_llzp_word1),y
 	iny
 	bne memcopyloop
 
-	inc _source_ptr+1
-	inc _target_ptr+1
+	inc _llzp_word2+1
+	inc _llzp_word1+1
 
 	dex
 	bne memcopyloop

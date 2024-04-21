@@ -1,14 +1,14 @@
-.importzp _target_ptr
+.importzp _llzp_word1
 
 .code
 
 .export _memset_sr:=memsetloop
 
 memsetloop:
-	sta (_target_ptr),y
+	sta (_llzp_word1),y
 	iny
 	bne memsetloop
-	inc _target_ptr+1
+	inc _llzp_word1+1
 	dex
 	bne memsetloop
 	rts

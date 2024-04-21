@@ -367,7 +367,7 @@ quotient=*+1
 ;; div16 #arg
 ;; Divides the unsigned 16 bit value in AX by an immediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)
 ;; Implemented as a subroutinge, link with -lib lamalib.lib
-;; This function is not reentrant, don't use it in interrupt and main program simultaneously
+;; When using this function in interrupt save _div16_sr, _div16_rem, _div16_arg_lo, and _div16_arg_hi before calling and restore those values afterwards.
 ;; Result is returned in AX
 ;; Registers modified: all
 .import _div16_sr
@@ -378,17 +378,48 @@ quotient=*+1
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
             ldy     #<(.right (.tcount ({arg})-1, {arg}))
-            sty _div16_arg
+            sty _div16_arg_lo
             ldy     #>(.right (.tcount ({arg})-1, {arg}))
-            sty _div16_arg+1
+            sty _div16_arg_hi
         .else
             ; assume absolute or zero page
             ldy     arg
-            sty _div16_arg
+            sty _div16_arg_lo
             ldy     1+(arg)
-            sty _div16_arg+1
+            sty _div16_arg_hi
         .endif  
          jsr _div16_sr ;div16 subroutine
+.endscope
+.endmacro
+
+
+;; mod16 arg
+;; mod16 #arg
+;; Divides the unsigned 16 bit value in AX by an immediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte) and returns the remainder of the division
+;; Implemented as a subroutinge, link with -lib lamalib.lib
+;; When using this function in interrupt save _div16_sr, _div16_rem, _div16_arg_lo, and _div16_arg_hi before calling and restore those values afterwards.
+;; Result is returned in AX
+;; Registers modified: all
+.import _div16_sr
+.importzp _div16_arg,_div16_rem
+
+.macro mod16 arg
+.scope
+        .if (.match (.left (1, {arg}), #))
+            ; immediate mode
+            ldy     #<(.right (.tcount ({arg})-1, {arg}))
+            sty _div16_arg_lo
+            ldy     #>(.right (.tcount ({arg})-1, {arg}))
+            sty _div16_arg_hi
+        .else
+            ; assume absolute or zero page
+            ldy     arg
+            sty _div16_arg_lo
+            ldy     1+(arg)
+            sty _div16_arg_hi
+        .endif  
+         jsr _div16_sr ;div16 subroutine
+	 ldax _div16_rem
 .endscope
 .endmacro
 
@@ -448,6 +479,7 @@ quotient=*+1
 ;; draw_frame
 ;; Draws a frame around the window defined by the window parameters
 ;; Note that the frame will go around the window, so it is larger than the defined window
+;; When using in interrupt, save contents of _llzp_word1,_llzp_word2 before calling and restore afterwards
 ;; Window parameters:
 ;; <tt>.import _window_x1,_window_y1,_window_x2,_window_y2</tt>
 ;; Further configuration parameters (default is a white frame using PETSCII characters):
@@ -553,7 +585,7 @@ waitraster:
 ;; command include_file_as filename,identifier placed before calling install_file.
 .macro install_file identifier,target_addr
         .import _memcopy_sr
-        .importzp _source_ptr,_target_ptr
+        .importzp _llzp_word1,_llzp_word2
 
 	.if .match(identifier,"string")
 	  .scope
@@ -646,9 +678,9 @@ sm_target_addr=*+1
           ; target address is given as argument
           ldax #target_addr - yinit
         .endif
-        stax _target_ptr
+        stax _llzp_word1
         ldax #(::.ident (.sprintf ("%s_filestart", .string(identifier))) - yinit)
-        stax _source_ptr
+        stax _llzp_word2
         ldx #1+>(::.ident (.sprintf ("%s_length", .string(identifier))) -1)
         .endscope
         jsr _memcopy_sr
@@ -808,7 +840,7 @@ endfilename:
 ;; mul16 adds a routine of 51 byte to your program the first time you use it
 ;; compactmul16 adds a routine of 32 byte to your program the first time you use it
 ;; mul16 is about 20% faster than compactmul, we recommend using mul16 in most cases
-;; This function is not reentrant, don't use in interrupt and main program simultaneously
+;; When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.
 ;; Result is returned in AX
 ;; Registers modified: A,X,Y
 
@@ -1041,7 +1073,7 @@ endfilename:
 
 
 ;; print_wrapped arg
-;; Write arg to the screen with word wrapping. arg can be a string or AX as a pointer to a null-terminated string
+;; Write arg to the screen with word wrapping. arg can be a string, an address or AX as a pointer to a null-terminated string.
 ;; Left margin and width of print window are defined via print_wrapped_setpars 
 ;; Default parameters for the printing window are 0,40, meaning full screen
 ;; The printing starts at the current cursor position, to support successive print_wrapped calls.
@@ -1049,10 +1081,14 @@ endfilename:
 
 .macro print_wrapped arg
         .if .not ((.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax})))    ;not AX
-          jmp :++
-          : .byte arg,0
-          : lda #<:--
-          ldx #>:--
+	  .if .match ({arg}, z)	;test if the argument starts with a character, then it is a label
+	    ldax #arg
+	  .else
+            jmp :++
+            : .byte arg,0
+            : lda #<:--
+            ldx #>:--
+	  .endif
         .endif
 .if .def(__C128__)
         .import _print_wrapped_windowed_128
@@ -1186,6 +1222,7 @@ setx:           ldx #00
 ;; The argument is optional and can be a number or the Y register
 ;; If an argument is given, the value is caclulated between 0 and given number-1
 ;; Good and fast random generator for 8bit values based on the X ABC pseudo-random number generator from EternityForest, slight modification by Wil.
+;; When using this function in interrupt save _llzp_word1 before calling and restore those values afterwards.
 ;; Registers modified: A,Y (Y is only used when an argument is used)
 .import _rand16_sr, _seed_low, _seed_high, _a_mod_y_sr
 
@@ -1237,6 +1274,7 @@ setx:           ldx #00
 ;; The argument is optional and can be a number or AX
 ;; If an argument is given, the value is caclulated between 0 and given number-1
 ;; This function uses the same routine as rand8, therefore calling rand16 will change the state of rand8 as well
+;; When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.
 ;; Registers modified: A,X,Y (Y is only used when an argument is used)
 .import _rand16_sr, _seed_low, _seed_high, _ax_mod_zpw1_sr
 .importzp _llzp_word1
@@ -1574,15 +1612,16 @@ setx:           ldx #00
 ;; If the areas are overlapping, then target_addr must be < src_addr
 ;; The three parameter version takes three constant numbers
 ;; Alternatively, the function can be configured parameter by parameter, either with AX or a constant
+;; When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.
 ;; Registers modified: A,X,Y
 .macro  memcopy src_addr,target_addr,length
         .scope
 .import _memcopy_sr
-.importzp _source_ptr,_target_ptr
+.importzp _llzp_word1,_llzp_word2
         .if .paramcount = 3
           yinit=<($100-<(length))
-          pokew _source_ptr,src_addr - yinit
-          pokew _target_ptr,target_addr - yinit
+          pokew _llzp_word2,src_addr - yinit
+          pokew _llzp_word1,target_addr - yinit
   
           ldx #1+>(length-1)
           ldy #yinit
@@ -1593,14 +1632,14 @@ setx:           ldx #00
 
 	    pha
 	    clc
-            adc _source_ptr
-	    sta _source_ptr
-            dec _source_ptr+1
+            adc _llzp_word2
+	    sta _llzp_word2
+            dec _llzp_word2+1
             pla
 	    clc
-            adc _target_ptr
-	    sta _target_ptr
-            dec _target_ptr+1
+            adc _llzp_word1
+	    sta _llzp_word1
+            dec _llzp_word1+1
 
 	    neg
             tay
@@ -1613,14 +1652,14 @@ skipadjust:
 	    .if yinit>0
               lda #<length
               clc
-              adc _source_ptr
-              sta _source_ptr
-              dec _source_ptr+1
+              adc _llzp_word2
+              sta _llzp_word2
+              dec _llzp_word2+1
               lda #<length
               clc
-              adc _target_ptr
-              sta _target_ptr
-              dec _target_ptr+1
+              adc _llzp_word1
+              sta _llzp_word1
+              dec _llzp_word1+1
             .endif
           .endif
 	.else
@@ -1632,44 +1671,45 @@ skipadjust:
 
 .macro memcopy_from src_addr
         .scope
-.importzp _source_ptr
+.importzp _llzp_word2
         .if (.xmatch ({src_addr}, {AX}) .or .xmatch ({src_addr}, {ax}))          ;AX is used as address
-          sta _source_ptr
-          stx _source_ptr+1
+          sta _llzp_word2
+          stx _llzp_word2+1
         .else
           lda #<src_addr
-          sta _source_ptr
+          sta _llzp_word2
           lda #>src_addr
-          stx _source_ptr+1
+          stx _llzp_word2+1
         .endif
         .endscope
 .endmacro
 
 .macro memcopy_to target_addr
         .scope
-.importzp _target_ptr
+.importzp _llzp_word1
         .if (.xmatch ({target_addr}, {AX}) .or .xmatch ({target_addr}}))         ;AX is used as address
-          sta _target_ptr
-          stx _target_ptr+1
+          sta _llzp_word1
+          stx _llzp_word1+1
         .else
           lda #<target_addr
-          sta _target_ptr
+          sta _llzp_word1
           lda #>target_addr
-          stx _target_ptr+1
+          stx _llzp_word1+1
         .endif
         .endscope
 .endmacro
 
 ;; memset start_addr,end_addr,fillvalue
 ;; Fills the memory area between start_addr and end_adder with the byte fillvalue
+;; When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.
 ;; Registers modified: A,X,Y
 .macro  memset start_addr,end_addr,fillvalue
 .import _memset_sr
-.importzp _target_ptr
+.importzp _llzp_word1
         .scope
         length = end_addr - (start_addr) + 1
         yinit=<($100-<(length))
-        pokew _target_ptr,start_addr - yinit
+        pokew _llzp_word1,start_addr - yinit
 
         ldx #1+>(length-1)
         ldy #yinit

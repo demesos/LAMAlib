@@ -1,16 +1,16 @@
 .importzp _llzp_word1,_llzp_word2,_llzp_word3
 
 dividend = _llzp_word1  ;initialized with values from A/X
-divisor = _llzp_word2	;to be set by calling program with the number we are dividing by
-remainder = _llzp_word3
+			;divisor to be set by calling program with the number we are dividing by
+remainder = _llzp_word2
 result = dividend       ;given back in A/X
 
 .code
 
 .include "../LAMAlib-macros16.inc"
 
-.export _div16_sr:=divide16
-.exportzp _div16_arg:=divisor, _div16_rem:=remainder
+.export _div16_sr:=divide16, _div16_arg_lo:=divisor_lo, _div16_arg_hi:=divisor_hi
+.exportzp _div16_rem:=remainder
 
 divide16:
 	sta dividend
@@ -25,10 +25,12 @@ divloop:
 	rol16 remainder	;remainder lb & hb * 2 + msb from carry
 	lda remainder
 	sec
-	sbc divisor	;substract divisor to see if it fits in
+divisor_lo=*+1
+	sbc #$af	;substract divisor to see if it fits in
 	tax	        ;lb result -> X, for we may need it later
 	lda remainder+1
-	sbc divisor+1
+divisor_hi=*+1
+	sbc #$fe
 	bcc :+		;if carry=0 then divisor didn't fit in yet
 
 	sta remainder+1	;else save subtraction result as new remainder
