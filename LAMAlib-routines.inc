@@ -1858,6 +1858,25 @@ endfilename:
 .endmacro
 
 
+;; sqrt8 [arg]
+;; sqrt8 #arg
+;; Calculates the squareroot of the argument or, if no argument is given, of A
+;; Implemented as a subroutinge, link with -lib lamalib.lib
+;; When using this function in interrupt save _llzp_word1 before calling and restore those values afterwards.
+;; Result is returned in A, X will contain the remainder
+;; Registers modified: A,X,Y
+.importzp _llzp_word1
+.import _sqrt8_sr
+.macro sqrt8 arg
+	.if .paramcount = 1
+          .if .not (.xmatch ({arg1}, {A}) .or .xmatch ({arg1}, {a}))
+            lda arg	;address or immediate number
+          .endif
+        .endif
+	jsr _sqrt8_sr
+.endmacro
+
+
 ;; sqrt16 [arg]
 ;; sqrt16 #arg
 ;; Calculates the squareroot of the argument or, if no argument is given, of AX
@@ -1869,7 +1888,7 @@ endfilename:
 .import _sqrt16_sr
 .macro sqrt16 arg
 	.if .paramcount = 1
-          .if .not (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))    ;print AX as number
+          .if .not (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))
             ldax arg	;address or immediate number
           .endif
         .endif
