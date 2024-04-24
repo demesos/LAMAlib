@@ -645,7 +645,7 @@ Restores the original Kernal vector and disables the chrout2window mode<br>
 <b>clear_window</b><br>
 Clears the window that was defined by the window parametes of chrout2window. When chrout2window is enabled, the same effect can be achieved by lda #147, jsr $FFD2<br>
 <br>
-<b>draw_frame</b><br>
+<b>draw_frame</b> <i>[x1</i> <i>[,</i> <i>y1</i> <i>[,</i> <i>x2</i> <i>[,</i> <i>y2]]]]</i><br>
 Draws a frame around the window defined by the window parameters<br>
 Note that the frame will go around the window, so it is larger than the defined window<br>
 When using in interrupt, save contents of _llzp_word1,_llzp_word2 before calling and restore afterwards<br>

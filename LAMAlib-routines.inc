@@ -476,7 +476,7 @@ quotient=*+1
 .endmacro
 
 
-;; draw_frame
+;; draw_frame [x1 [, y1 [, x2 [, y2]]]]
 ;; Draws a frame around the window defined by the window parameters
 ;; Note that the frame will go around the window, so it is larger than the defined window
 ;; When using in interrupt, save contents of _llzp_word1,_llzp_word2 before calling and restore afterwards
@@ -494,11 +494,26 @@ quotient=*+1
 ;; <tt>  .import _frame_color
 ;;   poke _frame_color,5</tt>
 
-.macro draw_frame
-.import _draw_frame_sr
+.macro draw_frame x1,y1,x2,y2
+	.ifnblank x1
+	  .import _window_x1
+	  poke _window_x1,x1
+	.endif
+	.ifnblank y1
+	  .import _window_y1
+	  poke _window_y1,y1
+	.endif
+	.ifnblank x2
+	  .import _window_x2
+	  poke _window_x2,x2
+	.endif
+	.ifnblank y2
+	  .import _window_y2
+	  poke _window_y2,y2
+	.endif
+	.import _draw_frame_sr
 	jsr _draw_frame_sr
 .endmacro
-
 
 ;; getkey
 ;; clears the key buffer, waits for a keypress and returns the ASCII value of the pressed key in A
