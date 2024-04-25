@@ -100,9 +100,16 @@ done:	;y now contains the length of the next word
 	if mi
 	  iny
 	endif
+	cpy width
+	if cs		;is the word too long to even fit the line?
+	  ldy rest
+	  dey
+	  bne printanyway
+	endif
 rest=*+1
         cpy #$af
-        if cc	;does the word fit into current line?
+	if cc		;does the word fit into current line?
+printanyway:
 	  ldx #0
 	  ;dey
 printword:
@@ -132,10 +139,11 @@ indent:
 	  cmp #32
 	  beq skip_text_byte
 	  cmp #13
-	  bne print_loop
+	  bne goto_print_loop
 skip_text_byte:
 	  jsr adv_text_ptr
 	endif
+goto_print_loop:
 	jmp print_loop
 
 .proc adv_text_ptr

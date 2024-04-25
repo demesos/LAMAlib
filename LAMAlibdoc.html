@@ -920,6 +920,14 @@ Scrambles/unscrambles a memory area. To unscramble, call scramble with the same 
 Deletes a file on disk. If device number is not stated or 0, the last used device number stored in address $BA is used. In case $BA contains 0, 8 is used as default.<br>
 Registers modified: A,X,Y<br>
 <br>
+<b>sqrt8</b> <i>[arg]</i><br>
+<b>sqrt8</b> <i>#arg</i><br>
+Calculates the squareroot of the argument or, if no argument is given, of A<br>
+Implemented as a subroutinge, link with -lib lamalib.lib<br>
+When using this function in interrupt save _llzp_word1 before calling and restore those values afterwards.<br>
+Result is returned in A, X will contain the remainder<br>
+Registers modified: A,X,Y<br>
+<br>
 <b>sqrt16</b> <i>[arg]</i><br>
 <b>sqrt16</b> <i>#arg</i><br>
 Calculates the squareroot of the argument or, if no argument is given, of AX<br>
