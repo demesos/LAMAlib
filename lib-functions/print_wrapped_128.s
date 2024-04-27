@@ -101,13 +101,19 @@ done:	;y now contains the length of the next word
 	cpy width
 	if cs		;is the word too long to even fit the line?
 	  ldy rest
+	  beq nextline
+	  ldx #0
+printword1:
+	  lda (text,x)
+	  jsr CHROUT
+	  jsr adv_text_ptr
 	  dey
-	  bne printanyway
+	  bne printword1
+	  jmp nextline
 	endif
 rest=*+1
         cpy #$af
 	if cc		;does the word fit into current line?
-printanyway:
 	  ldx #0
 printword:
 	  lda (text,x)
@@ -120,12 +126,13 @@ printword:
 	  cmp #SCREEN_WIDTH
 	  beq indent
 	else
+nextline:
 	  lda ::CURR_COLUMN
 	  beq indent
 	  cmp #SCREEN_WIDTH
 	  beq indent
 
-	  lda #17
+	  lda #17	;crsr down
 	  jsr CHROUT
 indent:
 	  jsr go_to_left_margin

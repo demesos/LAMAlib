@@ -103,15 +103,20 @@ done:	;y now contains the length of the next word
 	cpy width
 	if cs		;is the word too long to even fit the line?
 	  ldy rest
+	  beq nextline
+	  ldx #0
+printword1:
+	  lda (text,x)
+	  jsr CHROUT
+	  jsr adv_text_ptr
 	  dey
-	  bne printanyway
+	  bne printword1
+	  jmp nextline
 	endif
 rest=*+1
         cpy #$af
 	if cc		;does the word fit into current line?
-printanyway:
 	  ldx #0
-	  ;dey
 printword:
 	  lda (text,x)
 	  jsr CHROUT
@@ -122,13 +127,22 @@ printword:
 	  beq indent
 	  cmp #SCREEN_WIDTH
 	  beq indent
+	  cmp #2*SCREEN_WIDTH
+	  beq indent
+	  cmp #3*SCREEN_WIDTH
+	  beq indent
 	else
+nextline:
 	  lda ::CURR_COLUMN
 	  beq indent
 	  cmp #SCREEN_WIDTH
 	  beq indent
+	  cmp #2*SCREEN_WIDTH
+	  beq indent
+	  cmp #3*SCREEN_WIDTH
+	  beq indent
 
-	  lda #17
+	  lda #17	;crsr down
 	  jsr CHROUT
 indent:
 	  jsr go_to_left_margin
@@ -152,12 +166,18 @@ goto_print_loop:
 .endproc
 
 .proc go_to_left_margin
-	lda ::CURR_COLUMN
-	cmp #SCREEN_WIDTH
-	lda x1
-	if cs		;carry still defined from comparison
-	  adc #SCREEN_WIDTH-1	;we are adding actually 40 b/c carry is set
-	endif
+	lda #SCREEN_WIDTH-1
+findlinestart:
+	cmp ::CURR_COLUMN
+	bcs foundlinestart
+	;clc	;not necessary because of the not taken bcs
+	adc #SCREEN_WIDTH
+	bcc findlinestart
+foundlinestart:
+	;sec	;not necessary because of the taken bcs
+	sbc #SCREEN_WIDTH
+	sec
+	adc x1
         sta ::CURR_COLUMN
 	rts
 .endproc
