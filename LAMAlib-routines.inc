@@ -520,7 +520,6 @@ quotient=*+1
 ;; Function depends on Kernal ROM and the IRQ routine regularily scanning the keyboard
 .macro getkey
 .import _getkey
-.exportzp CHARS_IN_KEYBUF
 	jsr _getkey
 .endmacro
 

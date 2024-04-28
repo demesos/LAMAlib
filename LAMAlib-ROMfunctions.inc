@@ -5,11 +5,13 @@
 PRESSED_KEY_MATRIX_CODE=$C5
 MATRIX_CODE_NO_KEY=$40
 
-VAR_FLAGS      = $0b
+VAR_FLAGS      = $0B
 CURR_VAR_NAME  = $45
 CHARS_IN_KEYBUF= $C6
 CURSORX        = $D3
 CURSORY        = $D6
+REVERSE_MODE_SWITCH = $C7
+CURRENT_OUTPUT_DEVICE_NUMBER = $9A
 
 TEXTCOLOR_ADDR=646
 PTRSCRHI=$288 ;high byte of pointer to screen memory for screen input/output
@@ -22,6 +24,7 @@ STROUT= $AB1E ;outputs a string at addr AY
 LINPRT= $BDCD ;outputs number in AX
 FINDARRAYELEMENT=$B218	;part of routine $b1d1 to find or make an array
 
+DEFAULT_OUTPUT=$F1CA
 CLRSCR= $E544 ;clear screen
 
 SCINIT= $FF81 ;Initialize VIC, clear screen
@@ -88,8 +91,10 @@ CURR_VAR_NAME  = $47
 CHARS_IN_KEYBUF= $D0
 CURSORX        = $EC
 CURSORY        = $EB
-TEXTCOLOR_ADDR = $F1
+REVERSE_MODE_SWITCH = $f3
+CURRENT_OUTPUT_DEVICE_NUMBER = $9A
 
+TEXTCOLOR_ADDR = $F1
 PTRSCRHI=$a3b ;high byte of pointer to screen memory for screen input/output
 
 BASICSTART=$1C01
@@ -100,6 +105,7 @@ STROUT= $55E2 ;outputs a string at addr A/Y
 LINPRT= $8E32 ;outputs number in AX
 FINDARRAYELEMENT=$7CF4	;part of routine $7cAB to find or make an array
 
+DEFAULT_OUTPUT=$EF79
 CLRSCR= $C142 ;clear screen
 INITVIC = $E170
 INITVEC = $E056 
@@ -178,6 +184,8 @@ CURR_VAR_NAME  = $45
 CHARS_IN_KEYBUF= $C6
 CURSORX        = $D3
 CURSORY        = $D6
+REVERSE_MODE_SWITCH = $c7
+CURRENT_OUTPUT_DEVICE_NUMBER = $9A
 
 TEXTCOLOR_ADDR=646
 PTRSCRHI=$288 ;high byte of pointer to screen memory for screen input/output
@@ -188,6 +196,7 @@ STROUT= $CB1E ;outputs a string at addr A/Y
 LINPRT= $DDCD ;outputs number in AX
 FINDARRAYELEMENT=$D218	;part of routine $D1D1 to find or make an array
 
+DEFAULT_OUTPUT=$F27A
 CLRSCR= $E55F ;clear screen
 
 SCINIT= $FF81 ;Initialize VIC, clear screen

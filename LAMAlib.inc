@@ -61,5 +61,6 @@ LAMAlib_inc=1
 .include "LAMAlib-strings.inc"
 .include "LAMAlib-BASIC.inc"
 .include "LAMAlib-C128only.inc"
+.include "LAMAlib-targetdependencies.inc"
 
 .endif

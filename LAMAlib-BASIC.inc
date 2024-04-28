@@ -48,8 +48,6 @@
 ;; On the C128, the bank will be set to 1 after return, so this code needs to be in common RAM or in bank 1.
 .macro getAddrOfBasicArryVar varnam,arrayidx
 .import _getArrayElementAddr_sr
-.export FINDARRAYELEMENT
-.exportzp VAR_FLAGS, CURR_VAR_NAME
 	setBasicVarnam varnam
 	.if .not .xmatch({arrayidx},{AX})
 	  lda #>(arrayidx)

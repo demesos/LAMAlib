@@ -1,0 +1,38 @@
+; Addresses of used ROM routines
+
+.exportzp _PRESSED_KEY_MATRIX_CODE = PRESSED_KEY_MATRIX_CODE
+.exportzp _MATRIX_CODE_NO_KEY = MATRIX_CODE_NO_KEY
+.exportzp _VAR_FLAGS      = VAR_FLAGS
+.exportzp _CURR_VAR_NAME  = CURR_VAR_NAME
+.exportzp _CHARS_IN_KEYBUF= CHARS_IN_KEYBUF
+.exportzp _CURSORX        = CURSORX
+.exportzp _CURSORY        = CURSORY
+.exportzp _REVERSE_MODE_SWITCH    = REVERSE_MODE_SWITCH
+.exportzp _CURRENT_OUTPUT_DEVICE_NUMBER = CURRENT_OUTPUT_DEVICE_NUMBER
+.export _TEXTCOLOR_ADDR=TEXTCOLOR_ADDR
+.export _PTRSCRHI=PTRSCRHI
+.export _BASICSTART=BASICSTART
+.export _STROUT= STROUT
+.export _LINPRT= LINPRT
+.export _FINDARRAYELEMENT=FINDARRAYELEMENT
+.export _CLRSCR= CLRSCR
+.export _DEFAULT_OUTPUT=DEFAULT_OUTPUT
+
+.if .def(__C64__)
+
+.export _INITVIC = $E5A0
+.export _INITVEC = $FD15   
+
+.export _CIABASE=$DD00
+
+.elseif .def(__C128__)
+
+.export _CIABASE=$DD00
+
+.elseif .def(__VIC20__)
+
+.export _VIABASE=$9110
+
+.endif
+
+

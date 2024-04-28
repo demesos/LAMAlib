@@ -3,6 +3,7 @@
 .include "../LAMAlib-ROMfunctions.inc"
 
 .export _restore_sr:=restore
+.import _PTRSCRHI
 
 restore:
 	sei
@@ -17,7 +18,7 @@ restore:
 
 	; tell the KERNAL where the screen is
 	lda #04
-	sta 648
+	sta _PTRSCRHI
 
 	;initialise vectors
 	jsr INITVEC	

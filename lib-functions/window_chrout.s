@@ -42,11 +42,14 @@ support_fileio=1	;set this to 0 if fileio is not needed while windowing is enabl
 ; the following memory addresses are used the same way the Kernal 
 ; uses them for output of a character
 
-cursorx  =$D3
-cursory  =$D6
-rvs_mode =$C7
-charcolor = $286
-scrpage =   $288
+.importzp _CURSORX,_CURSORY,_REVERSE_MODE_SWITCH,_CURRENT_OUTPUT_DEVICE_NUMBER
+.import _DEFAULT_OUTPUT,_TEXTCOLOR_ADDR,_PTRSCRHI
+
+cursorx  =_CURSORX
+cursory  =_CURSORY
+rvs_mode =_REVERSE_MODE_SWITCH
+charcolor = _TEXTCOLOR_ADDR
+scrpage =   _PTRSCRHI
 
 _enable_chrout2window:
 	pokew $0326,_chrout2window
@@ -94,7 +97,7 @@ _enable_chrout2window:
 	rts
 
 _disable_chrout2window:
-	pokew $0326,$F1CA	;Kernal routine for character output
+	pokew $0326,_DEFAULT_OUTPUT	;Kernal routine for character output
 
 rts_address:
 	rts
@@ -105,7 +108,7 @@ rts_address:
 _chrout2window:
 .if support_fileio = 1
 	pha
-	lda $9A		;get device number to write to
+	lda _CURRENT_OUTPUT_DEVICE_NUMBER		;get device number to write to
 	cmp #$03	;screen?
 	beq output_to_screen
 	bcc datasetteorrsr232	;lower than 3?
