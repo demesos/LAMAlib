@@ -105,17 +105,19 @@ rts_address:
 ;---------------------------------------------------
 ; poor man's replacement for CHROUT
 ;---------------------------------------------------
+.import _OUTPUT_BYTE_TO_DATASETTE_OR_RSR232,_OUTPUT_BYTE_TO_SERIAL_BUS
+
 _chrout2window:
 .if support_fileio = 1
 	pha
 	lda _CURRENT_OUTPUT_DEVICE_NUMBER		;get device number to write to
 	cmp #$03	;screen?
 	beq output_to_screen
-	bcc datasetteorrsr232	;lower than 3?
+	bcc datasette_or_rsr232	;lower than 3?
 	pla
-	jmp $EDDD  	;output byte to serial bus
-datasetteorrsr232:
-	jmp $F1DB	;out byte to device 1 or 2
+	jmp _OUTPUT_BYTE_TO_SERIAL_BUS  	;output byte to serial bus
+datasette_or_rsr232:
+	jmp _OUTPUT_BYTE_TO_DATASETTE_OR_RSR232	;output byte to device 1 or 2
 output_to_screen:
 	pla
 .endif
@@ -132,11 +134,20 @@ output_to_screen:
 
 printablechar:
 ;convert to screencode
-	cmp #$60
-	bcc *+7
-	ora #$40
-	and #$7f
-	bit $3F29
+	cmp #$ff
+	bne L0
+	lda #126     ;pi character
+L0:
+        cmp #$60
+        bcc L1+1
+	cmp #$80
+	bcs L2
+	and #$df     ;delete bit $20 to handle uppercase chars
+L2:
+        ora #$40
+        and #$7f
+L1:
+        bit $3f29    ;contains command AND #$3f 
 
 	eor rvs_mode
 
