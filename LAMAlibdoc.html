@@ -643,7 +643,7 @@ poke _window_x1,5</tt><br>
 Restores the original Kernal vector and disables the chrout2window mode<br>
 <br>
 <b>clear_window</b><br>
-Clears the window that was defined by the window parametes of chrout2window. When chrout2window is enabled, the same effect can be achieved by lda #147, jsr $FFD2<br>
+Clears the window that was defined by the window parametes of chrout2window and sets the cursor to the home position. When chrout2window is enabled, the same effect can be achieved by lda #147, jsr $FFD2<br>
 <br>
 <b>draw_frame</b> <i>[x1</i> <i>[,</i> <i>y1</i> <i>[,</i> <i>x2</i> <i>[,</i> <i>y2]]]]</i><br>
 Draws a frame around the window defined by the window parameters<br>
@@ -662,6 +662,9 @@ Further configuration parameters (default is a white frame using PETSCII charact
 For example to change the color of the frame to green, write<br>
 <tt>  .import _frame_color<br>
 poke _frame_color,5</tt><br>
+<br>
+<b>fill_window</b> <i>A|char|#char</i><br>
+Fills the window with the given char and the current textcolor. When using $20 as char this function works similar to clear_window, but the cursor position is not affected.<br>
 <br>
 <b>getkey</b><br>
 clears the key buffer, waits for a keypress and returns the ASCII value of the pressed key in A<br>

@@ -30,6 +30,7 @@
 .export _clear_window
 
 .import _window_x1,_window_y1,_window_x2,_window_y2
+.import _fill_window
 
 .import _mul40_tbl_lo,_mul40_tbl_hi
 mul40_lo:=_mul40_tbl_lo
@@ -303,57 +304,8 @@ ok_down:
 ;clear screen (or rather the window in our case)
 ;---------------------------------------------------
 _clear_window:
-	ldy _window_y1
-	lda _window_x1
-	clc
-	adc mul40_lo,y
-	sta scr_clr_ptr2
-	sta col_clr_ptr2
-	php
-	lda mul40_hi,y
-	adc scrpage
-	sta scr_clr_ptr2+1
-	plp	;recover carry bit
-	lda mul40_hi,y
-	adc #$d8
-	sta col_clr_ptr2+1
-
-	lda _window_x2
-	sec
-	sbc _window_x1
-	sta line_width2
-
-	dey	;because we need to clear one line more
-
-clear_lines:
-line_width2=*+1
-	ldx #00
-
-clear_line:
 	lda #$20
-scr_clr_ptr2=*+1
-	sta $400,x
-	lda charcolor
-col_clr_ptr2=*+1	
-	sta $d800,x
-
-	dex
-	bpl clear_line
-
-	clc
-	lda scr_clr_ptr2
-	adc #40
-	if cs
-	  inc scr_clr_ptr2+1
-	  inc col_clr_ptr2+1
-	endif
-	sta scr_clr_ptr2
-	sta col_clr_ptr2
-
-	iny
-	cpy _window_y2
-	bcc clear_lines
-
+	jsr _fill_window
 	;fallthrough!
 
 ;---------------------------------------------------

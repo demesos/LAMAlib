@@ -469,7 +469,7 @@ quotient=*+1
 
 
 ;; clear_window
-;; Clears the window that was defined by the window parametes of chrout2window. When chrout2window is enabled, the same effect can be achieved by lda #147, jsr $FFD2
+;; Clears the window that was defined by the window parametes of chrout2window and sets the cursor to the home position. When chrout2window is enabled, the same effect can be achieved by lda #147, jsr $FFD2
 .macro clear_window
 .import _clear_window
 	jsr _clear_window
@@ -514,6 +514,18 @@ quotient=*+1
 	.import _draw_frame_sr
 	jsr _draw_frame_sr
 .endmacro
+
+
+;; fill_window A|char|#char
+;; Fills the window with the given char and the current textcolor. When using $20 as char this function works similar to clear_window, but the cursor position is not affected.
+.macro fill_window char
+.import _fill_window
+	.if .not( .xmatch ({char}, {A}) .or .xmatch ({char}, {a}) )
+	  lda char
+	.endif
+	jsr _fill_window
+.endmacro
+
 
 ;; getkey
 ;; clears the key buffer, waits for a keypress and returns the ASCII value of the pressed key in A
