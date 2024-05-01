@@ -1440,7 +1440,34 @@ setx:           ldx #00
 .endscope
 .endmacro
 
+;; restore_screen_area addr
+;; Restores characters and colors according to the stored dimensions of the window
+;; The screen address is derived from memory address 648 (or the respective address with that function on the C128 or the VIC20).
+;; Don't use this function in the interrupt service routine and in the main program at same time.
+;; Registers modified: A,X,Y
+.macro restore_screen_area addr
+.import _restore_screen_area
+	ldax #addr
+	jsr _restore_screen_area
+.endmacro
 
+;; save_screen_area x1,y1,x2,y2,targetaddr
+;; Saves characters and color of the specified screen window to the given memory address. 
+;; The screen address is derived from memory address 648 (or the respective address with that function on the C128 or the VIC20).
+;; The window parameters are saved as well.
+;; The address _save_screen_addr contains a pointer to the next free byte after the saved bytes at targetaddr
+;; Don't use this function in the interrupt service routine and in the main program at same time.
+;; Registers modified: A,X,Y
+.macro save_screen_area x1,y1,x2,y2,targetaddr
+.import _save_screen_window_x1,_save_screen_window_y1,_save_screen_window_x2,_save_screen_window_y2
+.import _save_screen_area,_save_screen_addr
+	poke _save_screen_window_x1,x1
+	poke _save_screen_window_y1,y1
+	poke _save_screen_window_x2,x2
+	poke _save_screen_window_y2,y2
+	ldax #targetaddr
+	jsr _save_screen_area
+.endmacro
 
 ;; set_cursor_pos line,column
 ;; place the cursor at screen position line,column (counted in characters)

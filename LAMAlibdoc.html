@@ -839,6 +839,20 @@ Seed is two 8 bit values. Arguments can be numbers or registers. Specifying seed
 When setting with AX, there is a check to avoid the seed 0 which would cause the PRNG to lock up. The seed affects both, rand8 and rand16 functions.<br>
 Registers modified: normally none, except for the case where lo(AX)==0, then A is set to $FF<br>
 <br>
+<b>restore_screen_area</b> <i>addr</i><br>
+Restores characters and colors according to the stored dimensions of the window<br>
+The screen address is derived from memory address 648 (or the respective address with that function on the C128 or the VIC20).<br>
+Don't use this function in the interrupt service routine and in the main program at same time.<br>
+Registers modified: A,X,Y<br>
+<br>
+<b>save_screen_area</b> <i>x1,y1,x2,y2,targetaddr</i><br>
+Saves characters and color of the specified screen window to the given memory address.<br>
+The screen address is derived from memory address 648 (or the respective address with that function on the C128 or the VIC20).<br>
+The window parameters are saved as well.<br>
+The address _save_screen_addr contains a pointer to the next free byte after the saved bytes at targetaddr<br>
+Don't use this function in the interrupt service routine and in the main program at same time.<br>
+Registers modified: A,X,Y<br>
+<br>
 <b>set_cursor_pos</b> <i>line,column</i><br>
 place the cursor at screen position line,column (counted in characters)<br>
 0,0 is upper left corner, 24,39 the lower right corner<br>
