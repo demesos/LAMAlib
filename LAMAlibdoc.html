@@ -694,6 +694,12 @@ If the filetype is different from PRG, target_addr must be specified.<br>
 If identifier is not a string it refers to a previously included file. In this case, there must be a<br>
 command include_file_as filename,identifier placed before calling install_file.<br>
 <br>
+<b>install_irq_catcher</b><br>
+install_irq_brk_catcher<br>
+Installs an irq vector in FFFE/FFFF pointing to a routine that catches the IRQ, turns on Kernal ROM, calls the ISR via the vector $314/315, and restores the previous state after the isr terminates.<br>
+This allows to use different memory configurations without the need to turn off the interrupt.<br>
+The install_irq_brk_catcher uses code that distinguishes BRK from an IRQ. Since this costs some cycles, this should be used only if BRK is used in your code.<br>
+<br>
 <b>is_alpha</b><br>
 is_alpha tests if value in Accu is between the values 'a' and 'z' (in lowercase mode).<br>
 Return value: Carry set if value is in range, carry cleared otherwise<br>

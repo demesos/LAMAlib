@@ -712,6 +712,27 @@ sm_target_addr=*+1
         jsr _memcopy_sr
 .endmacro
 
+;; install_irq_catcher 
+;; install_irq_brk_catcher 
+;; Installs an irq vector in FFFE/FFFF pointing to a routine that catches the IRQ, turns on Kernal ROM, calls the ISR via the vector $314/315, and restores the previous state after the isr terminates.
+;; This allows to use different memory configurations without the need to turn off the interrupt.
+;; The install_irq_brk_catcher uses code that distinguishes BRK from an IRQ. Since this costs some cycles, this should be used only if BRK is used in your code.
+.macro install_irq_catcher
+.import _catchirq_sr
+	lda #<_catchirq_sr
+	sta $fffe
+	lda #>_catchirq_sr
+	sta $ffff
+	rts
+.endmacro
+.macro install_irq_brk_catcher
+.import _catchirq_brk_sr
+	lda #<_catchirq_brk_sr
+	sta $fffe
+	lda #>_catchirq_brk_sr
+	sta $ffff
+	rts
+.endmacro
 
 ;; is_alpha
 ;; is_alpha tests if value in Accu is between the values 'a' and 'z' (in lowercase mode). 
