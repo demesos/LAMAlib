@@ -37,6 +37,8 @@
 ; <h2>Points to remember</h2>
 ; Please note that the zero flag for 16 operations is not properly set for most macros except CMP. For example after a 16 bit calculation, a CMPAX #00 is necessary to test for zero in AX.
 ; Instead of many zero page variables, the library functions uses self-contained self-modifying codeblocks whenever possible, but some of the more complex functions like division and multiplication use zero page addresses, they are reserved in the segment "ZEROPAGE". 
+; <br>
+; <p>When assembling for the C128 or VIC20 target systems, it needs to be linked to LAMAlib128.lib or LAMAlib20.lib, respectively. The include command in your files will stay the same: <tt>.include "LAMAlib.inc"</tt>
 ; 
 ;
 ; <h1>Command documentation</h1>
