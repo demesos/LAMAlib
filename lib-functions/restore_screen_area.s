@@ -9,11 +9,10 @@
 
 .include "../LAMAlib-macros16.inc"
 .include "../LAMAlib-structured.inc"
-.include "../LAMAlib-ROMfunctions.inc"
 
 .export _restore_screen_area
 
-.import _mul40_tbl_lo,_mul40_tbl_hi
+.import _mul40_tbl_lo,_mul40_tbl_hi,_PTRSCRHI
 
 _restore_screen_area:
 	stax storeaddr
@@ -29,7 +28,7 @@ _restore_screen_area:
 	php
 	lda _mul40_tbl_hi,y
 	tax
-	adc PTRSCRHI
+	adc _PTRSCRHI
 	sta scrptr_src+1
 	plp	;recover carry bit
 	txa

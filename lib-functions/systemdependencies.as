@@ -1,3 +1,5 @@
+.include "../LAMAlib-systemaddresses.inc"
+
 ; Addresses of used ROM routines
 
 .exportzp _PRESSED_KEY_MATRIX_CODE = PRESSED_KEY_MATRIX_CODE
@@ -26,7 +28,7 @@
 .export _OUTPUT_BYTE_TO_DATASETTE_OR_RSR232=$F1DB
 .export _OUTPUT_BYTE_TO_SERIAL_BUS=$EDDD
 
-.export _CIABASE=$DD00
+.export _CIABASE:=$DD00
 
 .elseif .def(__C128__)
 

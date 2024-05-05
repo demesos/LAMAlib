@@ -371,7 +371,8 @@ quotient=*+1
 ;; Result is returned in AX
 ;; Registers modified: all
 .import _div16_sr
-.importzp _div16_arg,_div16_rem
+.import _div16_arg_lo,_div16_arg_hi
+.importzp _div16_rem
 
 .macro div16 arg
 .scope
@@ -401,7 +402,8 @@ quotient=*+1
 ;; Result is returned in AX
 ;; Registers modified: all
 .import _div16_sr
-.importzp _div16_arg,_div16_rem
+.import _div16_arg_lo,_div16_arg_hi
+.importzp _div16_rem
 
 .macro mod16 arg
 .scope
@@ -714,7 +716,7 @@ sm_target_addr=*+1
 
 ;; install_irq_catcher 
 ;; install_irq_brk_catcher 
-;; Installs an irq vector in FFFE/FFFF pointing to a routine that catches the IRQ, turns on Kernal ROM, calls the ISR via the vector $314/315, and restores the previous state after the isr terminates.
+;; Installs an irq vector in $FFFE/$FFFF pointing to a routine that catches the IRQ, turns on Kernal ROM, calls the ISR via the vector $314/315, and restores the previous state after the isr terminates.
 ;; This allows to use different memory configurations without the need to turn off the interrupt.
 ;; The install_irq_brk_catcher uses code that distinguishes BRK from an IRQ. Since this costs some cycles, this should be used only if BRK is used in your code.
 .macro install_irq_catcher

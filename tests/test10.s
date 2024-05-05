@@ -68,15 +68,27 @@ outside: sec
 	lda #255
 	div8 #6
 	cmp #42
-	bne exit_failure
+	jne exit_failure
 	cpx #3
-	bne exit_failure
+	jne exit_failure
 
 	ldax #2555
 	div16by8 #12
 	cmp #212
-	bne exit_failure
+	jne exit_failure
 	cpx #11
+	jne exit_failure
+
+	ldax #389
+	stax valuea
+	ldax #29953
+	div16 valuea
+	cmpax #77
+	bne exit_failure
+
+	ldax #29995
+	mod16 #389
+	cmpax #42
 	bne exit_failure
 
 	pokew sum,0
@@ -101,6 +113,9 @@ outside: sec
 exit_failure:
 	sec
 	rts
+
+valuea:
+	.res 2
 
 sum:
 	.byte 00,00

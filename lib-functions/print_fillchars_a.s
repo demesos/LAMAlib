@@ -1,6 +1,6 @@
 .include "../LAMAlib-macros16.inc"
 .include "../LAMAlib-structured.inc"
-.include "../LAMAlib-ROMfunctions.inc"
+.include "../LAMAlib-systemaddresses.inc"
 
 .export _print_fillchars_a_sr
 

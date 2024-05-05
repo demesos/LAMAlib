@@ -5,7 +5,7 @@
 
 .include "../LAMAlib-macros16.inc"
 .include "../LAMAlib-structured.inc"
-.include "../LAMAlib-ROMfunctions.inc"
+.include "../LAMAlib-systemaddresses.inc"
 
 .export _print_wrapped_x1_128       := x1
 .export _print_wrapped_width_128    := width

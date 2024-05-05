@@ -1,5 +1,4 @@
 .include "../LAMAlib-macros16.inc"
-.include "../LAMAlib-ROMfunctions.inc"
 
 ; 'Disable NMI' by Ninja/The Dreams/TempesT
 ; the trick is to cause an NMI but don't ackowledge it

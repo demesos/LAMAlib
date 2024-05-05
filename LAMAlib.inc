@@ -54,13 +54,12 @@
 LAMAlib_inc=1
 
 .include "LAMAlib-macros16.inc"
-.include "LAMAlib-ROMfunctions.inc"
+.include "LAMAlib-systemaddresses.inc"
 .include "LAMAlib-gfx.inc"
 .include "LAMAlib-structured.inc"
 .include "LAMAlib-routines.inc"
 .include "LAMAlib-strings.inc"
 .include "LAMAlib-BASIC.inc"
 .include "LAMAlib-C128only.inc"
-.include "LAMAlib-targetdependencies.inc"
 
 .endif

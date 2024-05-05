@@ -1,5 +1,5 @@
 .include "../LAMAlib-macros16.inc"
-.include "../LAMAlib-ROMfunctions.inc"
+.include "../LAMAlib-systemaddresses.inc"
 
 ; to be used together with stopwatch_read_stop
 ; returns timer value in A/X

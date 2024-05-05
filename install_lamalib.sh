@@ -44,7 +44,7 @@ popd
 echo Installing library into $installdir
 
 cp LAMAlib*.inc "$installdir/asminc"
-cp LAMAlib.lib "$installdir/lib"
+cp LAMAlib*.lib "$installdir/lib"
 cp ass.sh "$installbindir/ass"
 cp *-basicfriendly-asm.cfg "$installdir/cfg"
 if [ $? -ne 0 ]; then

@@ -1,9 +1,7 @@
 ; restores VIC and I/O vectors
 
-.include "../LAMAlib-ROMfunctions.inc"
-
 .export _restore_sr:=restore
-.import _PTRSCRHI
+.import _PTRSCRHI, _INITVEC, _INITVIC
 
 restore:
 	sei
@@ -21,10 +19,10 @@ restore:
 	sta _PTRSCRHI
 
 	;initialise vectors
-	jsr INITVEC	
+	jsr _INITVEC	
 
 	;initialise vic chip
-	jsr INITVIC
+	jsr _INITVIC
 
 	;set timer interrupt
 	lda #$81

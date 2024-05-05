@@ -5,6 +5,7 @@
 @echo off
 
 set TARGET=c64
+set LIBNAME=LAMAlib.lib
 set ASMDEF= 
 
 if "%1"=="" (
@@ -26,6 +27,7 @@ if "%~1"=="-128" goto do128
 if /i "%~1" neq "-c128" goto not128
 :do128
   set TARGET=c128
+  set LIBNAME=LAMAlib128.lib
   shift
   goto check_options
 :not128
@@ -43,6 +45,7 @@ if /i "%~1"=="-vic20" goto do20
 if /i "%~1" neq "-vc20" goto not20
 :do20
   set TARGET=vic20
+  set LIBNAME=LAMAlib20.lib
   shift
   goto check_options
 :not20
@@ -51,15 +54,15 @@ if "%2"=="" (
   echo assembling %1 for target %TARGET%...
   >nul findstr /c:"makesys" %1 && (
     @echo on
-    cl65 -t %TARGET% %ASMDEF% "%1" -lib LAMAlib.lib -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -o "%~n1.prg"
+    cl65 -t %TARGET% %ASMDEF% "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -o "%~n1.prg"
   ) || (
     @echo on
-    cl65 -t %TARGET% %ASMDEF% "%1" -lib LAMAlib.lib -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -u __EXEHDR__ -o "%~n1.prg"
+    cl65 -t %TARGET% %ASMDEF% "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -u __EXEHDR__ -o "%~n1.prg"
   )
 ) else (
   echo assembling %1 to start address %2 for target %TARGET%...
   @echo on
-  cl65 -t %TARGET% %ASMDEF% "%1" -lib LAMAlib.lib -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" --start-addr %2 -o "%~n1.prg"
+  cl65 -t %TARGET% %ASMDEF% "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" --start-addr %2 -o "%~n1.prg"
 )
 @echo done.
 

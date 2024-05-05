@@ -36,7 +36,7 @@ if errorlevel 1 (
 )
 
 cd lib-functions
-set count=0
+set count=1
 set "o_files="
 for %%f in (*.s) do (
     ca65 -t c64 %%f
@@ -44,9 +44,15 @@ for %%f in (*.s) do (
     set "o_files=!o_files! %%~nf.o"
 )
 
-ar65 a LAMAlib.lib !o_files!
+ca65 -tc64 systemdependencies.as -o systemaddresses_c64.o
+ca65 -tc128 systemdependencies.as -o systemaddresses_c128.o
+ca65 -tvic20 systemdependencies.as -o systemaddresses_vc20.o
 
-move /y LAMAlib.lib ..
+ar65 a LAMAlib.lib !o_files! systemaddresses_c64.o
+ar65 a LAMAlib128.lib !o_files! systemaddresses_c128.o
+ar65 a LAMAlib20.lib !o_files! systemaddresses_vc20.o
+
+move /y LAMAlib*.lib ..
 
 echo Library has been created with %count% modules in it.
 cd ..
@@ -58,6 +64,8 @@ for /F %%I in ('where cc65.exe') do (
 
 @copy LAMAlib*.inc "%CC65PATH%\asminc"
 @copy LAMAlib.lib "%CC65PATH%\lib"
+@copy LAMAlib128.lib "%CC65PATH%\lib"
+@copy LAMAlib20.lib "%CC65PATH%\lib"
 @copy *friendly-asm.cfg "%CC65PATH%\cfg"
 @copy ass.bat "%CC65PATH%\bin"
 

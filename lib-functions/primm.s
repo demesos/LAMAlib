@@ -1,5 +1,5 @@
 .include "../LAMAlib-macros16.inc"
-.include "../LAMAlib-ROMfunctions.inc"
+.include "../LAMAlib-systemaddresses.inc"
 
 ; print immediate implementation by Wil
 ; works with strings up to 254 chars

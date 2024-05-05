@@ -9,12 +9,11 @@
 
 .include "../LAMAlib-macros16.inc"
 .include "../LAMAlib-structured.inc"
-.include "../LAMAlib-ROMfunctions.inc"
 
 .export _save_screen_window_x1,_save_screen_window_y1,_save_screen_window_x2,_save_screen_window_y2
 .export _save_screen_area,_save_screen_addr
 
-.import _mul40_tbl_lo,_mul40_tbl_hi
+.import _mul40_tbl_lo,_mul40_tbl_hi, _PTRSCRHI
 
 _save_screen_area:
 	stax _save_screen_addr
@@ -40,7 +39,7 @@ _save_screen_window_x2=*+1
 	php
 	lda _mul40_tbl_hi,y
 	tax
-	adc PTRSCRHI
+	adc _PTRSCRHI
 	sta scrptr_src+1
 	plp	;recover carry bit
 	txa
