@@ -456,7 +456,47 @@ skip:
 	  sec
 	  jmp exit
 	endif
+inc $cfff
+	;testing memcopy
+	memset $a000,$bfff,0
+	install_file binblock201,$a580 
+	memcopy $a580,$b000,$201
+	checksum_eor $b000,$b200
 
+	cmp #$05	
+	if ne
+	  sec
+	  jmp exit
+	endif
+inc $cfff	
+	;testing memcopy with separate parameters
+	memset $a000,$bfff,0
+	install_file binblock201,$a580 
+	memcopy_from $a580
+	memcopy_to $b000
+	memcopy $201
+	checksum_eor $b000,$b200
+	cmp #$05	
+	if ne
+	  sec
+	  jmp exit
+	endif
+inc $cfff
+	;testing memcopy with length parameter passed as AX
+	memset $a000,$bfff,0
+	install_file binblock201,$a580 
+	memcopy_from $a580
+	memcopy_to $b000
+	ldax #$201
+	memcopy AX
+	checksum_eor $b000,$b200
+	cmp #$05	
+	if ne
+	  sec
+	  jmp exit
+	endif
+
+	clc
 exit:
 	pla
 	sta 1

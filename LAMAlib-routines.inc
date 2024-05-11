@@ -1698,7 +1698,6 @@ setx:           ldx #00
           yinit=<($100-<(length))
           pokew _llzp_word2,src_addr - yinit
           pokew _llzp_word1,target_addr - yinit
-  
           ldx #1+>(length-1)
           ldy #yinit
 	.elseif .paramcount = 1
@@ -1710,32 +1709,39 @@ setx:           ldx #00
 	    clc
             adc _llzp_word2
 	    sta _llzp_word2
-            dec _llzp_word2+1
+	    if cc
+              dec _llzp_word2+1
+	    endif
             pla
 	    clc
             adc _llzp_word1
 	    sta _llzp_word1
-            dec _llzp_word1+1
-
+	    if cc
+              dec _llzp_word1+1
+	    endif
 	    neg
             tay
             inx
-skipadjust:
+skip_adjust:
           .else                                     ;length is given as constant parameter
-            yinit=<($100-<length)
-            ldx #1+>(length-1)
+            yinit=<($100-<src_addr)
+            ldx #1+>(src_addr-1)
             ldy #yinit
 	    .if yinit>0
-              lda #<length
+              lda #<src_addr
               clc
               adc _llzp_word2
               sta _llzp_word2
-              dec _llzp_word2+1
-              lda #<length
+	      if cc
+                dec _llzp_word2+1
+	      endif
+              lda #<src_addr
               clc
               adc _llzp_word1
               sta _llzp_word1
-              dec _llzp_word1+1
+	      if cc
+                dec _llzp_word1+1
+	      endif
             .endif
           .endif
 	.else
@@ -1755,7 +1761,7 @@ skipadjust:
           lda #<src_addr
           sta _llzp_word2
           lda #>src_addr
-          stx _llzp_word2+1
+          sta _llzp_word2+1
         .endif
         .endscope
 .endmacro
@@ -1763,14 +1769,14 @@ skipadjust:
 .macro memcopy_to target_addr
         .scope
 .importzp _llzp_word1
-        .if (.xmatch ({target_addr}, {AX}) .or .xmatch ({target_addr}}))         ;AX is used as address
+        .if (.xmatch ({target_addr}, {AX}) .or .xmatch ({target_addr}, {ax}))         ;AX is used as address
           sta _llzp_word1
           stx _llzp_word1+1
         .else
           lda #<target_addr
           sta _llzp_word1
           lda #>target_addr
-          stx _llzp_word1+1
+          sta _llzp_word1+1
         .endif
         .endscope
 .endmacro
