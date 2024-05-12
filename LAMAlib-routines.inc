@@ -1265,6 +1265,80 @@ setx:           ldx #00
 	.endif
 .endmacro
 
+;; randomize [timer][,raster][,sid]
+;; Sets the seed of the pseudo random number generator using entropy from the system.
+;; When argument "timer" is given, the current timer value is used.
+;; "raster" uses the value in $D012, containing the current rasterline.
+;; "sid" uses the value from the SID noise generator voice #3
+;; If multiple arguments are given tha values are combined with EOR.
+;; On a VIC-20, only "timer" is supported.
+;; If no argument is given, all suported values are combined and used.
+.macro randomize arg1,arg2,arg3
+.scope
+.if .PARAMCOUNT=0
+	.if .def(__VIC20__)
+	  randomize timer
+	.else
+	  randomize timer,raster,sid
+	.endif
+	.endscope
+	.exitmacro
+.endif
+firstload .set 0
+.if (.xmatch ({arg1}, {sid}) .or .xmatch ({arg2}, {sid}) .or .xmatch ({arg3}, {sid}))
+	.if .def(__VIC20__)
+	  .warning "SID as entropy source not support on VIC 20"
+	.else	
+	  lda #$81
+	  sta $D40F
+	  sta $D412
+	.endif
+.endif
+
+.if (.xmatch ({arg1}, {timer}) .or .xmatch ({arg2}, {timer}) .or .xmatch ({arg3}, {timer}))
+	.if .def(__VIC20__)
+	  ldax TIMERAcounter
+	.else
+	        ldax $DC04
+	.endif
+	firstload .set 1
+.endif
+
+.if (.xmatch ({arg1}, {raster}) .or .xmatch ({arg2}, {raster}) .or .xmatch ({arg3}, {raster}))
+	.if .def(__VIC20__)
+	  .warning "Rasterline as entropy source not support on VIC 20"
+	.else	
+	.if firstload=0
+	  lda $D012
+	  tax
+	  firstload .set 1
+	.else
+	  eor $D012
+	.endif
+	.endif
+.endif
+
+.if .not .def(__VIC20__)
+	.if (.xmatch ({arg1}, {sid}) .or .xmatch ({arg2}, {sid}) .or .xmatch ({arg3}, {sid}))
+	  .if firstload=0
+	    lda $D41C
+	    tax
+	  .else
+	    eor $D41C
+	  .endif
+	.endif
+.endif
+
+        rand_setseed AX  
+
+.if .not .def(__VIC20__)
+	.if (.xmatch ({arg1}, {sid}) .or .xmatch ({arg2}, {sid}) .or .xmatch ({arg3}, {sid}))
+	  lda #$0
+	  sta $D412
+	.endif
+.endif
+.endscope
+.endmacro
 
 ;; rand8 [maxvalue-1]
 ;; Generate a random number between 0 and 255 which is returned in A.

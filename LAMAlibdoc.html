@@ -1,8 +1,8 @@
 <html>
 <body>
 <h1>LAMAlib - Lightweight Assembler MAcro library for cc65</h1>
-Version: 0.24<br>
-Date: 2024-04-03<br>
+Version: 0.314<br>
+Date: 2024-05-05<br>
 Author: Wil Elmenreich (wilfried at gmx dot at)<br>
 License: The Unlicense (public domain)<br>
 <br>
@@ -828,6 +828,15 @@ Registers modified: A,Y,X<br>
 Prints the null-terminated string at addr using the STROUT function<br>
 BASIC and KERNAL ROM need to be enabled when using this function<br>
 Registers modified: A,Y,X<br>
+<br>
+<b>randomize</b> <i>[timer][,raster][,sid]</i><br>
+Sets the seed of the pseudo random number generator using entropy from the system.<br>
+When argument "timer" is given, the current timer value is used.<br>
+"raster" uses the value in $D012, containing the current rasterline.<br>
+"sid" uses the value from the SID noise generator voice #3<br>
+If multiple arguments are given tha values are combined with EOR.<br>
+On a VIC-20, only "timer" is supported.<br>
+If no argument is given, all suported values are combined and used.<br>
 <br>
 <b>rand8</b> <i>[maxvalue-1]</i><br>
 Generate a random number between 0 and 255 which is returned in A.<br>

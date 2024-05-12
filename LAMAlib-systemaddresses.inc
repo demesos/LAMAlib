@@ -241,8 +241,8 @@ IOBASE= $FFF3 ;Fetch CIA #1 base address
 
 VIABASE=$9110
 
-TIMERAlatch= VIABASE+4
-TIMERAcounter = VIABASE+6
+TIMERAcounter = VIABASE+4
+TIMERAlatch= VIABASE+6
 TIMERBlatch= VIABASE+8
 
 .endif

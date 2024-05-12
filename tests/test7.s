@@ -456,7 +456,7 @@ skip:
 	  sec
 	  jmp exit
 	endif
-inc $cfff
+
 	;testing memcopy
 	memset $a000,$bfff,0
 	install_file binblock201,$a580 
@@ -468,7 +468,7 @@ inc $cfff
 	  sec
 	  jmp exit
 	endif
-inc $cfff	
+
 	;testing memcopy with separate parameters
 	memset $a000,$bfff,0
 	install_file binblock201,$a580 
@@ -481,7 +481,7 @@ inc $cfff
 	  sec
 	  jmp exit
 	endif
-inc $cfff
+
 	;testing memcopy with length parameter passed as AX
 	memset $a000,$bfff,0
 	install_file binblock201,$a580 
