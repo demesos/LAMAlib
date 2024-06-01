@@ -35,46 +35,46 @@ makesys 1984
 ; Main program starts here
 
 testsuite:
-	jsr test1
+	jsr test1	; testing: for (addr),start,to,end
 	checkerr 1
 
-	jsr test2
+	jsr test2	; tests for AX, store, restore with lowercase characters, do loop, if else endif
 	checkerr 2
 	
-	jsr test3
+	jsr test3	; test the random number generator
 	checkerr 3
 	
-	jsr test4
+	jsr test4	; test reverse subtract macros rsb, rsbax
 	checkerr 4
 	
-	jsr test5
+	jsr test5	; test switch - case
 	checkerr 5
 
-	jsr test6
+	jsr test6	; test delay_ms
 	checkerr 6
 
-	jsr test7
+	jsr test7	; testing the include_file_as macro 
 	checkerr 7
 
-	jsr test8
+	jsr test8	; test hw timer and delay_ms function
 	checkerr 8
 
-	jsr test9
+	jsr test9	; test do_every structure
 	checkerr 9
 
-	jsr test10
+	jsr test10	; test A_between, division tests
 	checkerr 10
 
-	jsr test11
+	jsr test11	; testing inc8, inc16, dec8, dec16 macros
 	checkerr 11
 
-	jsr test12
+	jsr test12	; testing window functions
 	checkerr 12
 
-	jsr test13
+	jsr test13	; testing print_wrapped
 	checkerr 13
 
-	jsr test14
+	jsr test14	; testing strlen functions
 	checkerr 14
 
 	rts

@@ -1,7 +1,7 @@
 ;--------------------------------------------------
 ; test program for LAMAlib functions
 ;
-; testing print_wrapped
+; testing strlen functions
 
 .include "LAMAlib.inc"
 
