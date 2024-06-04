@@ -388,14 +388,14 @@ Registers modified: none<br>
 <b>next</b><br>
 The for loop iterates from the start value to the end value, inclusive. This is similar to the behavior of FOR in BASIC<br>
 Counting variable can be an 8-bit register (A,X,Y), a 16 bit register (AX) or a 16 bit memory address/label (parentheses are optional)<br>
-<i>start</i> can be a constant or a memory address pointing to the value<br>
+<i>start</i> can be a constant or a memory address pointing to the value; (xxx) indicates a 16 bit value at address xxx and xxx+1, [xxx] indicates an 8 bit value at adress xxx<br>
 <i>end</i> can be a constant or a memory address pointing to the value. The loop is continued including an iteration reaching the <i>end</i> value<br>
 <i>start</i> can be a constant or a memory address pointing to the value<br>
 <b>to</b> indicates a loop that counts up, <b>downto</b> indicates a loop that counts down<br>
 <i>end</i> can be a constant or a memory address pointing to the value<br>
 <b>step</b> is optional and defines the increment/decrement (default=1). This value is alway positive, counting down is indicated with <b>downto</b><br>
 <br>
-When the loop variable is an 8 bit register, <i>start</i>, <i>end</i>, and <i>step</i> are a single byte (or a memory reference to a single byte)<br>
+When the loop variable is an 8 bit register or a memory address in square brackets, <i>start</i>, <i>end</i>, and <i>step</i> are a single byte (or a memory reference to a single byte)<br>
 When the loop variable is a 16 bit register (AX) or a 16 bit memory address, <i>start</i>, <i>end</i>, and <i>step</i> are a 16 bit value (or a memory reference to a 16 bit value)<br>
 Memory references can also go to zero page. In this case the zero page addressing mode is used which speeds up the code.<br>
 When <i>step</i> is larger than 1 or no constant, loops that count down can are limited to a 7 bit (for single register loops) or a 15 bit range<br>

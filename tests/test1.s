@@ -13,11 +13,57 @@
 	jsr testforaddr
 	ldax 253
 	cmpax #5050
-	if eq
-	  clc
-	else
+	if ne
 	  sec
+	  rts
 	endif
+
+	pokew 2,5050
+
+	for [253],1,to,100
+	  lda 253
+	  ldx #0
+	  rsbax 2
+	  stax 2
+	next
+	ldax 2
+	cmpax #0
+	if ne
+	  sec
+	  rts
+	endif
+nop
+lda $5880
+	pokew 253,0
+
+	for [2],100,downto,50,5
+	  lda 2
+	  ldx #0
+	  addax 253
+	  stax 253
+	next
+	ldax 253
+	cmpax #825
+	if ne
+	  sec
+	  rts
+	endif
+
+	pokew 253,0
+	for [2],250,downto,50,5
+	  lda 2
+	  ldx #0
+	  addax 253
+	  stax 253
+	next
+	ldax 253
+	cmpax #6150
+	if ne
+	  sec
+	  rts
+	endif
+
+	clc
 	rts
 
 addit:
