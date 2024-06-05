@@ -444,6 +444,7 @@
   .endif
 
   .if (.match (.left (1, {start}), {(})) .and (.match (.right (1, {start}), {)}))	;argument in brackets -> means indirect addressing
+    .ident(.sprintf("for_start%d_indirect", ::nesting_level/10))=1
     .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=0
     .if .ident(.sprintf("for_var%d", ::nesting_level/10))=-2
       ldx 0+start
@@ -455,14 +456,15 @@
       ldax 0+start
     .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-5
       lda 0+start
-      sta .ident(.sprintf("for_var%d", ::nesting_level/10))
+      sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
       lda 0+start+1
-      sta .ident(.sprintf("for_var%d", ::nesting_level/10))+1
+      sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
     .else
       lda 0+start
-      sta .ident(.sprintf("for_var%d", ::nesting_level/10))
+      sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
     .endif
   .else
+    .ident(.sprintf("for_start%d_indirect", ::nesting_level/10))=0
     .if .ident(.sprintf("for_var%d", ::nesting_level/10))=-2
       ldx #start
       .if start<128
@@ -672,7 +674,10 @@
           jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
       .else
-        .if (>.ident(.sprintf("for_start%d", ::nesting_level/10))) <> (>.ident(.sprintf("for_end%d", ::nesting_level/10)))
+        .if .ident(.sprintf("for_start%d_indirect", ::nesting_level/10))=1
+          cpx #>.ident(.sprintf("for_end%d", ::nesting_level/10))
+          longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
+	.elseif (>.ident(.sprintf("for_start%d", ::nesting_level/10))) <> (>.ident(.sprintf("for_end%d", ::nesting_level/10)))
           cpx #>.ident(.sprintf("for_end%d", ::nesting_level/10))
           longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .endif
