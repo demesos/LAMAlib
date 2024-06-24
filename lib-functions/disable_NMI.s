@@ -7,6 +7,7 @@
 .export _disable_NMI_sr := disableNMI
   
 disableNMI:
+	php		; store current state of interrupt flag
         sei             ; disable IRQ
         lda #<nmi       ;
         sta $0318       ; change NMI vector
@@ -21,12 +22,11 @@ disableNMI:
         lda #$01        ;
         sta $DD0E       ; start Timer A -> NMI
 	;nop
-        ;lda #$01        ; if yes, 
+        ;lda #$01       
         sta $DD0D       ; clear Timer A as NMI source
-	cli 
+	plp		; restore previous state of interrupt flag
 	rts 
 
 nmi:        
-        ;inc $D020       ; change border colour, indication for a NMI
         rti             ; exit interrupt
                         ; (not acknowledged!)

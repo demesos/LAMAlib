@@ -1,8 +1,8 @@
 <html>
 <body>
 <h1>LAMAlib - Lightweight Assembler MAcro library for cc65</h1>
-Version: 0.314<br>
-Date: 2024-05-05<br>
+Version: 0.3141<br>
+Date: 2024-06-24<br>
 Author: Wil Elmenreich (wilfried at gmx dot at)<br>
 License: The Unlicense (public domain)<br>
 <br>
@@ -554,6 +554,7 @@ Registers modified: A,X,Y<br>
 Executes a short routine to disable the NMI<br>
 the trick is to cause an NMI but don't ackowledge it<br>
 Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)<br>
+Interrupt flag will be turned off while executing the macro and reset to the previous state afterwards<br>
 Registers modified: A<br>
 <br>
 <b>diskstatus</b> <i>devicenr</i><br>
