@@ -218,7 +218,7 @@ loop:
 ;; Executes a short routine to disable the NMI
 ;; the trick is to cause an NMI but don't ackowledge it
 ;; Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)
-;; Interrupt flag will be turned off while executing the macro and reset to the previous state afterwards
+;; Interrupt flag will be turned off while executing the routine and reset to the previous state afterwards
 ;; Registers modified: A
 .macro  disable_nmi   ;version with all lowercase
 	disable_NMI
@@ -1670,25 +1670,87 @@ firstload .set 0
 .endif
 .endmacro
 
+;; wait_firebutton [joy]
+;; Waits until fire button is pressed. If the fire button is already pressed, the command continues immediately.
+;; Argument can be 1, 2 or 3 for both joysticks. If no argument is given, Joystick 2 is used.
+;; Registers modified: A
+.macro wait_firebutton joy
+:
+	.ifblank joy
+	  lda $dc00
+	.elseif joy=1
+	  lda $dc01
+	.elseif joy=2
+	  lda $dc00
+	.elseif joy=3
+	  lda $dc00
+	  and $dc01
+	.else
+	  .error  "Argument for waitfire must be 1,2,3 or left empty."
+	.endif
+	and #$10
+	bne :-
+.endmacro
 
-;; waitkey
-;; Waits until a key is pressed, no meaningful return value
+;; wait_firebutton_released [joy]
+;; Waits until fire button is released. If the fire button is already released the command continues immediately.
+;; Argument can be 1, 2 or 3 for both joysticks. If no argument is given, Joystick 2 is used.
+;; Registers modified: A
+.macro wait_firebutton_released joy
+:
+	.ifblank joy
+	  lda $dc00
+	.elseif joy=1
+	  lda $dc01
+	.elseif joy=2
+	  lda $dc00
+	.elseif joy=3
+	  lda $dc00
+	  and $dc01
+	.else
+	  .error  "Argument for waitfire must be 1,2,3 or left empty."
+	.endif
+	and #$10
+	beq :-
+.endmacro
+
+;; wait_key
+;; Waits until a key is pressed, no meaningful return value. If a key is already pressed, the command continues immediately.
 ;; Function works independly of IRQ routine or ROM
 ;; Registers modified: A
 .import _waitkey_sr
-.macro waitkey
+.macro wait_key
         jsr _waitkey_sr
 .endmacro
 
-;; waitkeyreleased
-;; Waits until all keys are released
+;; wait_key_released
+;; Waits until all keys are released. If no key is already pressed, the command continues immediately.
 ;; Function works independly of IRQ routine
 ;; Registers modified: A
 .import _waitkeyreleased_sr
-.macro waitkeyreleased
+.macro wait_key_released
         jsr _waitkeyreleased_sr
 .endmacro
 
+;; wait_key_or_button
+;; Waits until either a key is pressed or a joystick button is pressed. 
+;; If either is already pressed, the command continues immediately.
+;; Function works independently of IRQ routine or ROM.
+;; Registers modified: A
+.import _waitkeyorbutton_sr
+.macro wait_key_or_button
+        jsr _waitkeyorbutton_sr
+.endmacro
+
+;; wait_key_or_button_released
+;; Waits until both all keys and joystick buttons are released. 
+;; If both are already released, the command continues immediately.
+;; Function works independently of IRQ routine or ROM.
+;; Registers modified: A
+.import _waitkeyorbuttonreleased_sr
+.macro wait_key_or_button_released
+        jsr _waitkeyorbuttonreleased_sr
+.endmacro
 
 ;; readWASDspace
 ;; Checks the keyboard for keypresses of W, A ,S, D and Space

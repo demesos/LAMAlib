@@ -8,4 +8,6 @@ keychk:
 	lda $dc01
         cmp #$ff
         bne keychk 
+	lda $dc00
+	bne keychk 	;if the ISR changed the register while we did our check we have to redo
 	rts

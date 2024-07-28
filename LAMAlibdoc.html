@@ -1,8 +1,8 @@
 <html>
 <body>
 <h1>LAMAlib - Lightweight Assembler MAcro library for cc65</h1>
-Version: 0.3141<br>
-Date: 2024-06-24<br>
+Version: 0.31415<br>
+Date: 2024-07-28<br>
 Author: Wil Elmenreich (wilfried at gmx dot at)<br>
 License: The Unlicense (public domain)<br>
 <br>
@@ -554,7 +554,7 @@ Registers modified: A,X,Y<br>
 Executes a short routine to disable the NMI<br>
 the trick is to cause an NMI but don't ackowledge it<br>
 Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)<br>
-Interrupt flag will be turned off while executing the macro and reset to the previous state afterwards<br>
+Interrupt flag will be turned off while executing the routine and reset to the previous state afterwards<br>
 Registers modified: A<br>
 <br>
 <b>diskstatus</b> <i>devicenr</i><br>
@@ -898,14 +898,36 @@ Requires the KERNAL IRQ routines to be active<br>
 if this function is used on the C128, a bank with visible ROM must be active.<br>
 Turn off cursor briefly before output of a char, otherwise you get inverse character artifacts when blink phase is on<br>
 <br>
-<b>waitkey</b><br>
-Waits until a key is pressed, no meaningful return value<br>
+<b>wait_firebutton</b> <i>[joy]</i><br>
+Waits until fire button is pressed. If the fire button is already pressed, the command continues immediately.<br>
+Argument can be 1, 2 or 3 for both joysticks. If no argument is given, Joystick 2 is used.<br>
+Registers modified: A<br>
+<br>
+<b>wait_firebutton_released</b> <i>[joy]</i><br>
+Waits until fire button is released. If the fire button is already released the command continues immediately.<br>
+Argument can be 1, 2 or 3 for both joysticks. If no argument is given, Joystick 2 is used.<br>
+Registers modified: A<br>
+<br>
+<b>wait_key</b><br>
+Waits until a key is pressed, no meaningful return value. If a key is already pressed, the command continues immediately.<br>
 Function works independly of IRQ routine or ROM<br>
 Registers modified: A<br>
 <br>
-<b>waitkeyreleased</b><br>
-Waits until all keys are released<br>
+<b>wait_key_released</b><br>
+Waits until all keys are released. If no key is already pressed, the command continues immediately.<br>
 Function works independly of IRQ routine<br>
+Registers modified: A<br>
+<br>
+<b>wait_key_or_button</b><br>
+Waits until either a key is pressed or a joystick button is pressed.<br>
+If either is already pressed, the command continues immediately.<br>
+Function works independently of IRQ routine or ROM.<br>
+Registers modified: A<br>
+<br>
+<b>wait_key_or_button_released</b><br>
+Waits until both all keys and joystick buttons are released.<br>
+If both are already released, the command continues immediately.<br>
+Function works independently of IRQ routine or ROM.<br>
 Registers modified: A<br>
 <br>
 <b>readWASDspace</b><br>
