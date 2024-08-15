@@ -289,7 +289,12 @@
 
 .macro if_A_in arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
   .ifnblank arg1
-    cmp arg1
+    .if (.match (.left (1, {arg1}), #))
+      ; explicitly stated immediate mode
+      cmp arg1
+    .else
+      cmp #arg1
+    .endif
     beq :+
     if_A_in arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
   .else
@@ -301,7 +306,12 @@
 
 .macro if_X_in arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
   .ifnblank arg1
-    cpx arg1
+    .if (.match (.left (1, {arg1}), #))
+      ; explicitly stated immediate mode
+      cpx arg1
+    .else
+      cpx #arg1
+    .endif
     beq :+
     if_X_in arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
   .else
@@ -313,7 +323,12 @@
 
 .macro if_Y_in arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
   .ifnblank arg1
-    cpy arg1
+    .if (.match (.left (1, {arg1}), #))
+      ; explicitly stated immediate mode
+      cpy arg1
+    .else
+      cpy #arg1
+    .endif
     beq :+
     if_Y_in arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
   .else
