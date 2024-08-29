@@ -777,7 +777,8 @@ Registers modified: A<br>
 <br>
 <b>primm</b> <i>str</i><br>
 Prints the given string, string is inlined in program code<br>
-uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
+Uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro<br>
+The string encoding supports escape characters like "\n" or "\xHH" with HH being a hexadecimal number.<br>
 Registers modified: A,Y,X<br>
 <br>
 <b>print</b> <i>arg1</i> <i>[arg2</i> <i>...]</i><br>
@@ -808,6 +809,7 @@ Write arg to the screen with word wrapping. arg can be a string, an address or A
 Left margin and width of print window are defined via print_wrapped_setpars<br>
 Default parameters for the printing window are 0,40, meaning full screen<br>
 The printing starts at the current cursor position, to support successive print_wrapped calls.<br>
+The string encoding supports escape characters like "\n" or "\xHH" with HH being a hexadecimal number.<br>
 Using command <i>set_cursor_pos</i> for the first print is suggested.<br>
 <br>
 <b>printax</b><br>
@@ -879,6 +881,16 @@ place the cursor at screen position line,column (counted in characters)<br>
 0,0 is upper left corner, 24,39 the lower right corner<br>
 arguments can be constants or registers<br>
 <br>
+<b>str_enc</b> <i>string</i><br>
+<br>
+Encodes the given string while respecting escape codes like \n and \xHH, where HH is the hexadecimal code of the character to be inserted.<br>
+This macro serves as an alternative to using .feature string_escapes<br>
+When using .feature string_escapes, string escapes are converted to platform-specific characters in the same way that other characters are converted.<br>
+To avoid this issue, this macro directly parses and converts string escapes into numerical .byte values.<br>
+Note: If .feature string_escapes is enabled, only the escape codes compatible with it will be processed.<br>
+<br>
+Application example: str_enc "\x93\x05hello world in white after a clear screen\n"<br>
+<br>
 <b>textcolor</b> <i>color</i><br>
 sets the text color<br>
 <br>
@@ -940,7 +952,7 @@ Registers modified: A,X<br>
 <b>makesys</b> <i>[linenumber[,text[,</i> <i>address]]]</i><br>
 Generates the code for a BASIC line with a SYS command, an optional text behind the sys command, and an optional specified entry address<br>
 This is similar to the command line option  -u __EXEHDR__<br>
-Difference is that with this function the code segment starts at $801, so .align is off only by 1<br>
+Difference is that with this function the code segment starts at $801, so .align is off only by 1 and the string encoding for the text supports escape characters like "\n" or "\xHH" with HH being a hexadecimal number.<br>
 If no SYS address is given, the target address is calculated to be the address right after the BASIC stub<br>
 Default line number is 2020<br>
 <br>

@@ -968,13 +968,15 @@ endfilename:
 
 ;; primm str
 ;; Prints the given string, string is inlined in program code
-;; uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro
+;; Uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro
+;; The string encoding supports escape characters like "\n" or "\xHH" with HH being a hexadecimal number.
 ;; Registers modified: A,Y,X
 .macro  primm str
 .import _primm_sr
 .scope
        jsr _primm_sr
-       .asciiz str
+       str_enc str
+       .byte 0
 .endscope
 .endmacro
 
@@ -1127,6 +1129,7 @@ endfilename:
 ;; Left margin and width of print window are defined via print_wrapped_setpars 
 ;; Default parameters for the printing window are 0,40, meaning full screen
 ;; The printing starts at the current cursor position, to support successive print_wrapped calls.
+;; The string encoding supports escape characters like "\n" or "\xHH" with HH being a hexadecimal number.
 ;; Using command <i>set_cursor_pos</i> for the first print is suggested.
 
 .macro print_wrapped arg
@@ -1135,7 +1138,8 @@ endfilename:
 	    ldax #arg
 	  .else
             jmp :++
-            : .byte arg,0
+            : str_enc arg
+              .byte 0
             : lda #<:--
             ldx #>:--
 	  .endif
@@ -1622,6 +1626,60 @@ firstload .set 0
 .endmacro
 
 
+;; str_enc string
+;;
+;; Encodes the given string while respecting escape codes like \n and \xHH, where HH is the hexadecimal code of the character to be inserted.
+;; This macro serves as an alternative to using .feature string_escapes
+;; When using .feature string_escapes, string escapes are converted to platform-specific characters in the same way that other characters are converted.
+;; To avoid this issue, this macro directly parses and converts string escapes into numerical .byte values.
+;; Note: If .feature string_escapes is enabled, only the escape codes compatible with it will be processed.
+;;
+;; Application example: str_enc "\x93\x05hello world in white after a clear screen\n"
+
+.macro str_enc str
+        ignore_byte_ctr .set 0
+        .repeat .strlen (str), i
+            .if ignore_byte_ctr
+                ignore_byte_ctr .set ignore_byte_ctr-1
+            .else
+                .if i<.strlen(str)-3
+                    .if (.strat (str, i) = '\') && (.strat (str, i+1) = 'x')
+                        .if .strat (str, i+2) >= '0' && .strat (str, i+2) <= '9'
+                           bytevalue1 .set .strat (str, i+2) - '0'
+                        .elseif .strat (str, i+2) >= 'a' && .strat (str, i+2) < 'g'
+                           bytevalue1 .set .strat (str, i+2) - 'a' + 10
+                        .elseif .strat (str, i+2) >= 'A' && .strat (str, i+2) < 'G'
+                           bytevalue1 .set .strat (str, i+2) - 'A' + 10
+                        .else
+                           .fatal "Illegal characters in hexadecimal escape code!"
+                        .endif
+                        .if .strat (str, i+3) >= '0' && .strat (str, i+3) <= '9'
+                           bytevalue1 .set bytevalue1*16 + .strat (str, i+3) - '0'
+                        .elseif .strat (str, i+3) >= 'a' && .strat (str, i+3) < 'g'
+                           bytevalue1 .set bytevalue1*16 + .strat (str, i+3) - 'a' + 10
+                        .elseif .strat (str, i+3) >= 'A' && .strat (str, i+3) < 'G'
+                           bytevalue1 .set bytevalue1*16 + .strat (str, i+3) - 'A' + 10
+                        .else
+                           .fatal "Illegal characters in hex escape code!"
+                        .endif
+                        .byte bytevalue1
+                        ignore_byte_ctr .set 3
+                    .endif
+                .endif
+                .if i<.strlen(str)-1
+                    .if (.strat (str, i) = '\') && (.strat (str, i+1) = 'n')
+                         .byte 13
+                        ignore_byte_ctr .set 1
+                    .endif
+                .endif
+                .if ignore_byte_ctr=0
+                    .byte .strat (str, i)
+                .endif
+            .endif
+        .endrepeat
+.endmacro
+
+
 ;; textcolor color
 ;; sets the text color
 .macro  textcolor color
@@ -1772,7 +1830,7 @@ firstload .set 0
 ;; makesys [linenumber[,text[, address]]]
 ;; Generates the code for a BASIC line with a SYS command, an optional text behind the sys command, and an optional specified entry address
 ;; This is similar to the command line option  -u __EXEHDR__
-;; Difference is that with this function the code segment starts at $801, so .align is off only by 1
+;; Difference is that with this function the code segment starts at $801, so .align is off only by 1 and the string encoding for the text supports escape characters like "\n" or "\xHH" with HH being a hexadecimal number.
 ;; If no SYS address is given, the target address is calculated to be the address right after the BASIC stub
 ;; Default line number is 2020
 .macro  makesys linenumber,text,address
@@ -1806,10 +1864,11 @@ firstload .set 0
           .elseif .paramcount = 2
                systarget=::BASICSTART+$0c+.strlen(text)
                .byte .sprintf ("%d", systarget)
-               .asciiz text
+               str_enc text
+               .byte 0
           .elseif .paramcount = 3
                .byte .sprintf ("%d", address)
-               .asciiz text
+               str_enc text
           .endif
        .endscope
        .byte $00,$00

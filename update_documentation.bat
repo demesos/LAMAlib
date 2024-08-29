@@ -10,4 +10,4 @@
 @rem License: The Unlicense (public domain)
 
 python parsedoc.py LAMAlib.inc > LAMAlibdoc.html
-pause
+@IF /I %0 EQU "%~dpnx0" PAUSE
