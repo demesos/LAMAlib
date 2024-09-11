@@ -7,23 +7,20 @@
 ;; Supports zero page addressing mode
 ;; Registers modified: A,X
 .macro ldax arg
-.scope
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
-	    iarg=(.right (.tcount ({arg})-1, {arg}))
-            .if .const(iarg) .and (<iarg = >iarg)
-               lda     #<iarg
+            .if .const(.right (.tcount ({arg})-1, {arg})) .and (<(.right (.tcount ({arg})-1, {arg})) = >(.right (.tcount ({arg})-1, {arg})))
+               lda     #<(.right (.tcount ({arg})-1, {arg}))
                tax
             .else
-               lda     #<iarg
-               ldx     #>iarg
+               lda     #<(.right (.tcount ({arg})-1, {arg}))
+               ldx     #>(.right (.tcount ({arg})-1, {arg}))
             .endif
         .else
             ; absolute or zero page
             lda arg
             ldx     1+(arg)
         .endif
-.endscope
 .endmacro
 
 ;; stax addr
@@ -31,10 +28,8 @@
 ;; Supports zero page addressing mode
 ;; Registers modified: none
 .macro stax addr
-.scope
         sta addr
         stx 1+(addr)
-.endscope
 .endmacro
 
 ;; adcax addr
@@ -44,7 +39,6 @@
 ;; Result is returned in AX
 ;; Registers modified: A,X
 .macro adcax arg
-.scope
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
             adc     #<(.right (.tcount ({arg})-1, {arg}))
@@ -62,7 +56,6 @@
             tax
 	    pla
         .endif
-.endscope
 .endmacro
 
 ;; addax addr
@@ -83,7 +76,6 @@
 ;; Result is returned in AX
 ;; Registers modified: A,X
 .macro sbcax arg
-.scope
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
             sbc     #<(.right (.tcount ({arg})-1, {arg}))
@@ -101,7 +93,6 @@
             tax
 	    pla
         .endif
-.endscope
 .endmacro
 
 ;; subax addr
@@ -121,10 +112,8 @@
 ;; if the carry is clear before the command, this behaves like rsb
 ;; If there is an underflow (arg is larger than A), the carry bit will be set, otherwise carry is clear
 .macro rsc arg
-.scope
 	sbc arg
 	eor #$ff
-.endscope
 .endmacro
 
 ;; rsb arg
@@ -133,11 +122,9 @@
 ;; The result is not influenced by the carry
 ;; If there is an underflow (arg is larger than A), the carry bit will be set, otherwise carry is clear
 .macro rsb arg
-.scope
 	clc
 	sbc arg
 	eor #$ff
-.endscope
 .endmacro
 
 ;; rscax arg
@@ -146,7 +133,6 @@
 ;; if the carry is clear before the command, this behaves like rsbax
 ;; If there is an underflow (arg is larger than AX), the carry bit will be set, otherwise carry is clear
 .macro rscax arg
-.scope
         .if (.match (.left (1, {arg}), #))
            ; immediate mode
            sbc #<(.right (.tcount ({arg})-1, {arg}))
@@ -168,7 +154,6 @@
 	   tax
 	   pla	   
 	.endif
-.endscope
 .endmacro
 
 ;; rsbax arg
@@ -177,7 +162,6 @@
 ;; The result is not influenced by the carry
 ;; If there is an underflow (arg is larger than AX), the carry bit will be set, otherwise carry is clear
 .macro rsbax arg
-.scope
         .if (.match (.left (1, {arg}), #))
            ; immediate mode
            clc
@@ -201,7 +185,6 @@
 	   tax
 	   pla	   
 	.endif
-.endscope
 .endmacro
 
 ;; A_between lower,higher
@@ -210,13 +193,11 @@
 ;; If lower <= A <= higher, the carry bit is cleared, otherwise carry is set
 ;; Registers modified: A
 .macro A_between lower,higher
-.scope
 	.if lower>0
 	  sec
 	  sbc #lower
 	.endif
 	cmp #(higher - lower + 1)
-.endscope
 .endmacro
 
 ;; AX_between lower,higher
@@ -225,12 +206,10 @@
 ;; If lower <= AX <= higher, the carry bit is cleared, otherwise carry is set
 ;; Registers modified: A,X
 .macro AX_between lower,higher
-.scope
 	.if lower>0
 	  subax #lower
 	.endif
 	cmpax #(higher - lower + 1)
-.endscope
 .endmacro
 
 ;; cmpax addr
@@ -240,20 +219,18 @@
 ;; Result is returned in AX
 ;; Registers modified: none
 .macro cmpax arg
-.scope
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
 	    cpx     #>(.right (.tcount ({arg})-1, {arg}))
-	    bne end
+	    bne :+
             cmp     #<(.right (.tcount ({arg})-1, {arg}))        
         .else
             ; absolute or zero page
             cpx     1+(arg)
-	    bne end
+	    bne :+
             cmp arg
         .endif
-end:
-.endscope
+:
 .endmacro
 
 ;; orax addr
@@ -263,17 +240,15 @@ end:
 ;; Result is returned in AX
 ;; Registers modified: A,X
 .macro orax arg
-.scope
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
-	    iarg=(.right (.tcount ({arg})-1, {arg}))
-            .if (<iarg > 0)
-                ora     #<iarg
+            .if (<(.right (.tcount ({arg})-1, {arg})) > 0)
+                ora     #<(.right (.tcount ({arg})-1, {arg}))
             .endif
-            .if (>iarg > 0)
+            .if (>(.right (.tcount ({arg})-1, {arg})) > 0)
                 pha
                 txa
-                ora     #>iarg
+                ora     #>(.right (.tcount ({arg})-1, {arg}))
                 tax
                 pla
             .endif
@@ -282,11 +257,10 @@ end:
             ora arg
 	    pha
 	    txa
-            ora     (arg)+1
+            ora     1+(arg)
             tax
 	    pla
         .endif
-.endscope
 .endmacro
 
 ;; andax addr
@@ -296,17 +270,15 @@ end:
 ;; Result is returned in AX
 ;; Registers modified: A,X
 .macro andax arg
-.scope
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
-	    iarg=(.right (.tcount ({arg})-1, {arg}))
-            .if (<iarg < 255)
-                and     #<iarg
+            .if (<(.right (.tcount ({arg})-1, {arg})) < 255)
+                and     #<(.right (.tcount ({arg})-1, {arg}))
             .endif
-            .if (>iarg < 255)
+            .if (>(.right (.tcount ({arg})-1, {arg})) < 255)
                 pha
                 txa
-                and     #>iarg
+                and     #>(.right (.tcount ({arg})-1, {arg}))
                 tax
                 pla
             .endif
@@ -315,11 +287,10 @@ end:
             and arg
 	    pha
 	    txa
-            and     (arg)+1
+            and     1+(arg)
             tax
 	    pla
         .endif
-.endscope
 .endmacro
 
 ;; eorax addr
@@ -329,17 +300,15 @@ end:
 ;; Result is returned in AX
 ;; Registers modified: A,X
 .macro eorax arg
-.scope
         .if (.match (.left (1, {arg}), #))
             ; immediate mode
-	    iarg=(.right (.tcount ({arg})-1, {arg}))
-            .if (<iarg > 0)
-                eor     #<iarg
+            .if (<(.right (.tcount ({arg})-1, {arg})) > 0)
+                eor     #<(.right (.tcount ({arg})-1, {arg}))
             .endif
-            .if (>iarg > 0)
+            .if (>(.right (.tcount ({arg})-1, {arg})) > 0)
                 pha
                 txa
-                eor     #>iarg
+                eor     #>(.right (.tcount ({arg})-1, {arg}))
                 tax
                 pla
             .endif
@@ -348,11 +317,10 @@ end:
             eor arg
 	    pha
 	    txa
-            eor     (arg)+1
+            eor     1+(arg)
             tax
 	    pla
         .endif
-.endscope
 .endmacro
 
 ;; aslax
@@ -360,14 +328,12 @@ end:
 ;; Result is returned in AX
 ;; Registers modified: A,X
 .macro aslax
-.scope
 	asl
 	pha
 	txa
 	rol
 	tax
 	pla
-.endscope
 .endmacro
 
 ;; asl16 addr
@@ -375,10 +341,8 @@ end:
 ;; Result at addr, addr+1
 ;; Registers modified: none
 .macro asl16 addr
-.scope
 	asl addr
 	rol addr+1
-.endscope
 .endmacro
 
 ;; lsrax
@@ -386,14 +350,12 @@ end:
 ;; Result is returned in AX
 ;; Registers modified: A,X
 .macro lsrax
-.scope
 	pha	
 	txa
 	lsr
 	tax
 	pla
 	ror
-.endscope
 .endmacro
 
 ;; lsr16 addr
@@ -401,10 +363,8 @@ end:
 ;; Result at addr, addr+1
 ;; Registers modified: none
 .macro lsr16 addr
-.scope	
 	lsr addr+1
 	ror addr
-.endscope
 .endmacro
 
 ;; rolax
@@ -412,14 +372,12 @@ end:
 ;; Result is returned in AX
 ;; Registers modified: A,X
 .macro rolax
-.scope
 	rol
 	pha
 	txa
 	rol
 	tax
 	pla
-.endscope
 .endmacro
 
 ;; rol16 addr
@@ -427,10 +385,8 @@ end:
 ;; Result at addr, addr+1
 ;; Registers modified: none
 .macro  rol16 addr
-.scope
 	rol addr
 	rol addr+1
-.endscope
 .endmacro
 
 ;; rorax
@@ -438,7 +394,6 @@ end:
 ;; Result is returned in AX
 ;; Registers modified: A,X
 .macro  rorax
-.scope
 	; variant 1: 15 cyc, 6 byte
 	pha	
 	txa
@@ -453,7 +408,6 @@ end:
 ;	ror
 ;sm	ldx #00
 
-.endscope
 .endmacro
 
 ;; ror16 addr
@@ -461,10 +415,8 @@ end:
 ;; Result at addr, addr+1
 ;; Registers modified: none
 .macro  ror16 addr
-.scope
 	ror addr+1
 	ror addr
-.endscope
 .endmacro
 
 ;; neg
@@ -481,7 +433,6 @@ end:
 ;; Result is returned in AX
 ;; Registers modified: A,X
 .macro  negax
-.scope
 	clc
 	eor #$ff
 	adc #$01
@@ -491,7 +442,6 @@ end:
 	adc #$00
 	tax
 	pla
-.endscope
 .endmacro
 
 ;; abs
@@ -499,13 +449,11 @@ end:
 ;; Result is returned in A
 ;; Registers modified: A
 .macro  abs
-.scope
 	cmp #$80
-	bcc end
+	bcc :+
 	eor #$ff
 	adc #0	;the carry is know to be set because of the cmp / bcc instruction
-end:
-.endscope
+:
 .endmacro
 
 ;; absax
@@ -513,25 +461,21 @@ end:
 ;; Result is returned in AX
 ;; Registers modified: A,X
 .macro  absax
-.scope
 	cpx #$80
-	bne end
+	bne :+
 	negax
-end:
-.endscope
+:
 .endmacro
 
 ;; incax
 ;; Increments 16 bit value in registers AX
 ;; Registers modified: A,X
 .macro  incax
-.scope
         clc
         adc #01
-	bne end
+	bne :+
         inx
-end:
-.endscope
+:
 .endmacro
 
 
@@ -714,12 +658,10 @@ end:
 ;; Decrements 16 bit value in registers AX
 ;; Registers modified: A,X
 .macro  decax
-.scope
                 cmp #00 ;test A, sets the carry
-		bne declo
+		bne :+
 		dex
-declo:		sbc #01
-.endscope
+:		sbc #01
 .endmacro
 
 
@@ -920,20 +862,18 @@ declo:		sbc #01
 ;; Registers modified: X
 ;; Flags affected: N,Z,C
 .macro  incx n
-.scope
 	.if .const(n) .and n<8
             .repeat n
               inx
             .endrep
         .else
-          sta recva+1
+          pha
           clc
           txa
           adc #n
           tax
-  recva: lda #00
+	  pla
 	.endif
-.endscope
 .endmacro
 
 ;; decx n
@@ -941,22 +881,18 @@ declo:		sbc #01
 ;; Registers modified: X
 ;; Flags affected: N,Z,C
 .macro  decx n
-.scope
-	.if n<8
+	.if .const(n) .and n<8
             .repeat n
               dex
             .endrep
         .else
-.warning "not const"
-          sta recva+1
+          pha
           sec
           txa
           sbc #n
           tax
-  recva: lda #00
+	  pla
 	.endif
-
-.endscope
 .endmacro
 
 ;; incy n
@@ -964,20 +900,18 @@ declo:		sbc #01
 ;; Registers modified: Y
 ;; Flags affected: N,Z,C
 .macro  incy n
-.scope
 	.if .const(n) .and n<8
             .repeat n
               iny
             .endrep
         .else
-          sta recva+1
+          pha
           clc
           tya
           adc #n
           tay
-  recva: lda #00
+          pla
 	.endif
-.endscope
 .endmacro
 
 ;; decy n
@@ -985,21 +919,18 @@ declo:		sbc #01
 ;; Registers modified: Y
 ;; Flags affected: N,Z,C
 .macro  decy n
-.scope
 	.if .const(n) .and n<8
             .repeat n
               dey
             .endrep
         .else
-          sta recva+1
+          pha
           sec
           tya
           sbc #n
           tay
-  recva: lda #00
+	  pla
 	.endif
-
-.endscope
 .endmacro
 
 ;; pushax 
@@ -1017,11 +948,9 @@ savea:		lda #00
 ;; pullax 
 ;; Pulls AX from the stack
 .macro  pullax
-.scope
                 pla
 		tax
                 pla
-.endscope
 .endmacro
 
 ;; poke arg1,arg2 
@@ -1029,8 +958,9 @@ savea:		lda #00
 ;; arg1 can be a constant or AX
 ;; arg2 can be a constant or A, X or Y
 .macro  poke arg1,arg2
-.scope
+
         .if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))          ;AX is used as address
+.scope
           sta targetsm+1
           stx targetsm+2
           .if (.xmatch ({arg2}, {Y}))         ;value in Y register is to be poked
@@ -1039,6 +969,7 @@ savea:		lda #00
                       lda #arg2
             targetsm: sta $ffff
           .endif
+.endscope
         .else                                ;address is a given constant
           .if (.xmatch ({arg2}, {A}))         ;value in Accu is to be poked
             sta arg1
@@ -1051,7 +982,7 @@ savea:		lda #00
             sta arg1
           .endif
         .endif
-.endscope
+
 .endmacro
 
 
@@ -1063,7 +994,6 @@ savea:		lda #00
 ;; Regs changed: A, Y (in case AX is used as address)
 
 .macro  pokew arg1,arg2
-.scope
         .if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))         ;AX is used as address
 .importzp _zp_ptr1
           sta _zp_ptr1
@@ -1085,7 +1015,6 @@ savea:		lda #00
             sta arg1+1
           .endif
         .endif
-.endscope
 .endmacro
 
 ;; jsr_ind addr

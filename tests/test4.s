@@ -1,7 +1,7 @@
 ;--------------------------------------------------
 ; test program for LAMAlib functions
 ;
-; test reverse subtract macros rsb, rsbax
+; test reverse subtract macros rsb, rsbax, rsc, rscax
 
 .include "LAMAlib.inc"
 
@@ -45,7 +45,15 @@
 	  addax #18
 	next
 	;ax is now 180
-	cmpax #180
+	sec
+	rscax #1180
+	;AX is now 999 = $3e7
+	sec
+	rsc #$f0
+	;A is now 8, AX is $308
+	clc
+	sbcax #$307
+	cmpax #00
 	if eq
 	  clc
 	else

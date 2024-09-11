@@ -63,6 +63,62 @@ lda $5880
 	  rts
 	endif
 
+;testing orax, andax, eorax, aslax, asl16, lsr16, rolax
+	ldax #$a0a0
+	orax #$5
+	eorax #$ffff^$a0a5
+	cmpax #$ffff
+	if ne
+	  sec
+	  rts
+	endif
+	andax #$a55a
+	lsrax
+	lsrax
+	aslax
+	cmpax #$52ac
+	if ne
+	  sec
+	  rts
+	endif	
+	sec
+	rorax
+	sec
+	rolax
+	if cc
+	  sec
+	  rts
+	endif		
+	cmpax #$52ad
+	if ne
+	  sec
+	  rts
+	endif		
+	pokew 2, $a0a0
+	ldax #5
+	orax 2
+	stax 2
+	ldax #$ffff^$a0a5
+	eorax 2
+	stax 2
+	cmpax #$ffff
+	if ne
+	  sec
+	  rts
+	endif
+inc $d020
+	ldax #$a55a
+	andax 2
+	stax 2
+	lsr16 2
+	lsr16 2
+	asl16 2
+	ldax #$52ac
+	cmpax 2
+	if ne
+	  sec
+	  rts
+	endif	
 	clc
 	rts
 
