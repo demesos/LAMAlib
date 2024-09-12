@@ -13,8 +13,10 @@ CURSORY        = $D6
 REVERSE_MODE_SWITCH = $C7
 CURRENT_OUTPUT_DEVICE_NUMBER = $9A
 
-TEXTCOLOR_ADDR=646
-PTRSCRHI=$288 ;high byte of pointer to screen memory for screen input/output
+TEXTCOLOR_ADDR = $286
+PTRSCRHI       = $288 ;high byte of pointer to screen memory for screen input/output
+
+PAL_NTSC_FLAG  = $2a6
 
 BASICSTART=$0801
 
@@ -95,7 +97,9 @@ REVERSE_MODE_SWITCH = $f3
 CURRENT_OUTPUT_DEVICE_NUMBER = $9A
 
 TEXTCOLOR_ADDR = $F1
-PTRSCRHI=$a3b ;high byte of pointer to screen memory for screen input/output
+PTRSCRHI       = $A3B ;high byte of pointer to screen memory for screen input/output
+
+PAL_NTSC_FLAG  = $A03
 
 BASICSTART=$1C01
 
@@ -187,8 +191,8 @@ CURSORY        = $D6
 REVERSE_MODE_SWITCH = $c7
 CURRENT_OUTPUT_DEVICE_NUMBER = $9A
 
-TEXTCOLOR_ADDR=646
-PTRSCRHI=$288 ;high byte of pointer to screen memory for screen input/output
+TEXTCOLOR_ADDR = $286
+PTRSCRHI       = $288 ;high byte of pointer to screen memory for screen input/output
 
 BASICSTART=$1001
 
