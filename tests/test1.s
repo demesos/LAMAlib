@@ -106,7 +106,6 @@ lda $5880
 	  sec
 	  rts
 	endif
-inc $d020
 	ldax #$a55a
 	andax 2
 	stax 2
@@ -119,6 +118,65 @@ inc $d020
 	  sec
 	  rts
 	endif	
+
+	;test abs and absax
+	lda #10
+	abs
+	cmp #10
+	if ne 
+	  sec
+	  rts
+	endif
+
+	lda #0
+	abs
+	cmp #0
+	if ne 
+	  sec
+	  rts
+	endif
+
+	lda #256-10
+	abs
+	cmp #10
+	if ne 
+	  sec
+	  rts
+	endif
+
+	ldax #10
+	absax
+	cmpax #10
+	if ne 
+	  sec
+	  rts
+	endif
+
+	ldax #0
+	absax
+	cmpax #0
+	if ne 
+	  sec
+	  rts
+	endif
+
+	ldax #$10000-10
+	absax
+	cmpax #10
+	if ne 
+	  sec
+	  rts
+	endif
+
+	ldax #$10000-1010
+	absax
+	cmpax #1010
+	if ne 
+	  sec
+	  rts
+	endif
+	;---------
+
 	clc
 	rts
 

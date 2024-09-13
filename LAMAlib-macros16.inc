@@ -462,7 +462,7 @@
 ;; Registers modified: A,X
 .macro  absax
 	cpx #$80
-	bne :+
+	bcc :+
 	negax
 :
 .endmacro
