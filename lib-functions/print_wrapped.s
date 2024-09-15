@@ -20,7 +20,7 @@
 .macpack longbranch      
 .endif
 
-CURR_COLUMN=211
+CURR_COLUMN=211	;address where Kernal stores the column of the current cursor position
 SCREEN_WIDTH=40
 
 .importzp _llzp_word1
@@ -63,7 +63,16 @@ print_loop:
           rts
 	endif
 
-        ;rest = 80 - peek (211);
+	cmp #13
+	if eq
+	  lda #17	;crsr down
+	  jsr CHROUT
+	  jsr go_to_left_margin		
+          jsr adv_text_ptr
+          jmp print_loop
+	endif
+
+        ;rest = 80 - peek (CURR_COLUMN);
         lda #2*SCREEN_WIDTH
         sub ::CURR_COLUMN
         ;if (rest > 40) rest -= 40;
@@ -88,11 +97,11 @@ right_margin=*+1
 next_char:
         iny
         lda (text),y
-        beq done
+        beq done	;0 ends the word (and the string)
         cmp #32
-        beq done
+        beq done	;space ends the word
         cmp #13
-        bne next_char
+        bne next_char	;cr ends the word, everything else continue
 done:	;y now contains the length of the next word
 	dey
 	if mi
@@ -121,9 +130,9 @@ printword:
 	  jsr adv_text_ptr
 	  dey
 	  bpl printword
-	  lda ::CURR_COLUMN
+	  lda ::CURR_COLUMN	;are we at beginning of a line?
 	  beq indent
-	  cmp #SCREEN_WIDTH
+	  cmp #SCREEN_WIDTH	;or are we at first column of extended line
 	  beq indent
 	else
 nextline:
@@ -160,7 +169,7 @@ goto_print_loop:
 	cmp #SCREEN_WIDTH
 	lda x1
 	if cs		;carry still defined from comparison
-	  adc #SCREEN_WIDTH-1	;we are adding actually 40 b/c carry is set
+	  adc #SCREEN_WIDTH-1	;we are actually adding SCREEN_WIDTH b/c carry is set
 	endif
         sta ::CURR_COLUMN
 	rts

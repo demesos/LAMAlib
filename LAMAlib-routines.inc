@@ -1130,7 +1130,7 @@ endfilename:
 ;; Default parameters for the printing window are 0,40, meaning full screen
 ;; The printing starts at the current cursor position, to support successive print_wrapped calls.
 ;; The string encoding supports escape characters like "\n" or "\xHH" with HH being a hexadecimal number.
-;; Using command <i>set_cursor_pos</i> for the first print is suggested.
+;; If unsure about the cursor position, it is suggested to place the cursor with <i>set_cursor_pos</i> beforehand.
 
 .macro print_wrapped arg
         .if .not ((.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax})))    ;not AX
