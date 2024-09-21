@@ -1875,6 +1875,83 @@ firstload .set 0
 .endmacro
 
 
+;; matrix_ptr_tables array,width,height
+;;
+;; Generates two pointer tables derived from the array name, one with suffix _row_lo and one with suffix _row_hi
+;; Each matrix entry is considered to be a byte
+;; These tables are referenced by other matrix macors, for example get_matrix_element and set_matrix_element
+.macro matrix_ptr_tables array,width,height
+.ident(.concat (.string(array), "_row_lo")):
+  .repeat height,i
+        .byte <(array+i*width)
+  .endrep
+.ident(.concat (.string(array), "_row_hi")):
+  .repeat height,i
+        .byte >(array+i*width)
+  .endrep
+.endmacro
+
+
+;; get_matrix_element array,col,row
+;; Gets the element indexed by col and row from the 2-dimensional array.
+;; Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr_tables
+;; col and row can either be the X or Y register (in any order or combination) or a constant.
+;; Registers modified: A, if col is a constant the X-register is used 
+.macro get_matrix_element array,col,row
+  .scope
+    .if (.xmatch ({row}, {x}) .or .xmatch ({row}, {X}) .or .xmatch ({row}, {y}) .or .xmatch ({row}, {Y}))
+        lda .ident(.concat (.string(array), "_row_lo")), row
+        sta :+ + 1
+        lda .ident(.concat (.string(array), "_row_hi")), row
+        sta :+ + 2
+    .else
+        lda .ident(.concat (.string(array), "_row_lo")) +row
+        sta :+ + 1
+        lda .ident(.concat (.string(array), "_row_hi")) +row
+        sta :+ + 2
+    .endif
+    .if (.xmatch ({col}, {x}) .or .xmatch ({col}, {X}) .or .xmatch ({col}, {y}) .or .xmatch ({col}, {Y}))
+:       lda $affe,col
+    .else
+        ldx #col
+:
+        lda $affe,x
+    .endif
+  .endscope
+.endmacro
+
+
+;; get_matrix_element array,col,row
+;; Sets the element indexed by col and row from the 2-dimensional array to the value stored in A.
+;; Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr_tables
+;; col and row can either be the X or Y register (in any order or combination) or a constant.
+;; Registers modified: none, if col is a constant the X-register is overwritten with col 
+.macro set_matrix_element array,col,row
+  .scope
+    pha
+    .if (.xmatch ({row}, {x}) .or .xmatch ({row}, {X}) .or .xmatch ({row}, {y}) .or .xmatch ({row}, {Y}))
+        lda .ident(.concat (.string(array), "_row_lo")), row
+        sta :+ + 1
+        lda .ident(.concat (.string(array), "_row_hi")), row
+        sta :+ + 2
+    .else
+        lda .ident(.concat (.string(array), "_row_lo")) +row
+        sta :+ + 1
+        lda .ident(.concat (.string(array), "_row_hi")) +row
+        sta :+ + 2
+    .endif
+    pla
+    .if (.xmatch ({col}, {x}) .or .xmatch ({col}, {X}) .or .xmatch ({col}, {y}) .or .xmatch ({col}, {Y}))
+:       sta $affe,col
+    .else
+        ldx #col
+:
+        sta $affe,x
+    .endif
+  .endscope
+.endmacro
+
+
 ;; memcopy src_addr,target_addr,length
 ;;
 ;; memcopy_from [AX|addr]

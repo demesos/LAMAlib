@@ -1344,6 +1344,7 @@
   dec_nesting_level
 .endmacro
 
+
 ;; do_every interval[,phase]
 ;;   ...
 ;; <b>end_every</b>
@@ -1370,6 +1371,170 @@
   .ident(.sprintf("end_do_every%d", ::nesting_level_every/10)):
   dec_nesting_level_every
 .endmacro
+
+
+;; on_A_jsr addr1, addr2, ...
+;; Executes a subroutine based on the value of register A.
+;; If A equals 1, the subroutine at the address provided as the first argument is called.
+;; If A equals 2, 3, 4, etc., the subroutine at the corresponding address is called in sequence.
+;; The address list can contain up to 42 entries
+;; If A is zero or greater than the number of specified addresses, no subroutine is called, and execution continues past the macro.
+;; Once the called subroutine completes, execution resumes immediately after the macro.
+;; Registers affected: A
+.macro on_A_jsr arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42
+  .scope
+    .if .PARAMCOUNT < 35
+        beq after_table
+    .else
+        beq jmp_after_table
+    .endif
+        cmp #.PARAMCOUNT + 1
+    .if .PARAMCOUNT < 36
+        bcs after_table
+    .else
+        bcs jmp_after_table
+    .endif
+        jsr *+6
+jmp_after_table:
+        jmp after_table
+        on_A_jmp0_nocheck after_table,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42
+after_table:
+  .endscope
+.endmacro
+
+
+;; on_A_jsr0 addr1, addr2, ...
+;; Similar to on_A_jsr, but uses 0-based indexing.
+;; If A equals 0, the subroutine at the first address is called.
+;; If A equals 1, 2, 3, etc., the corresponding subroutine at the given address is called in sequence.
+;; The address list can contain up to 43 entries
+;; If the value of A exceeds the number of provided addresses, no subroutine is called, and execution continues past the macro.
+;; Once the subroutine returns, execution resumes immediately after the macro.
+;; Registers affected: A
+.macro on_A_jsr0 arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42,arg43
+  .scope
+        cmp #.PARAMCOUNT + 1
+    .if .PARAMCOUNT < 36
+        bcs after_table
+    .else
+        bcs jmp_after_table
+    .endif
+        jsr *+6
+jmp_after_table:
+        jmp after_table
+        on_A_jmp0_nocheck arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42,arg43
+after_table:
+  .endscope
+.endmacro
+
+
+;; on_A_jmp addr1, addr2, ...
+;; Executes a jump based on the value of register A.
+;; If A equals 1, execution jumps to the first specified address.
+;; If A equals 2, 3, 4, etc., execution jumps to the corresponding address in sequence.
+;; The address list can contain up to 42 entries
+;; If A is 0 or greater than the number of provided addresses, no jump occurs, and execution continues after the macro.
+;; The jump transfers control to the target address and does not return to the original point.
+;; Registers affected: A
+.macro on_A_jmp arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42
+  .scope
+        cmp #.PARAMCOUNT + 1
+.if .PARAMCOUNT < 39
+        bcs after_table
+.else
+	if cs
+	   jmp after_table
+	endif
+.endif
+        on_A_jmp0_nocheck after_table,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42
+after_table:
+  .endscope
+.endmacro
+
+
+;; on_A_jmp0 addr1, addr2, ...
+;; Executes a jump based on the value of register A, using 0-based indexing.
+;; If A equals 0, execution jumps to the first specified address.
+;; If A equals 1, 2, 3, etc., execution jumps to the corresponding address in sequence.
+;; The address list can contain up to 43 entries
+;; If the value of A exceeds the number of provided addresses, no jump occurs, and execution continues after the macro.
+;; The jump transfers control to the target address without returning to the original point.
+;; Registers affected: A
+.macro on_A_jmp0 arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42,arg43
+  .scope
+        cmp #.PARAMCOUNT + 1
+.if .PARAMCOUNT < 39
+        bcs after_table
+.else
+	if cs
+	   jmp after_table
+	endif
+.endif
+        on_A_jmp0_nocheck arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42,arg43
+after_table:
+  .endscope
+.endmacro
+
+;; on_A_jmp0_nocheck addr1, addr2, ...
+;; Executes a jump based on the value of register A, using 0-based indexing, without bounds checking.
+;; If A equals 0, execution jumps to the first specified address.
+;; If A equals 1, 2, 3, etc., execution jumps to the corresponding address in sequence.
+;; The address list can contain up to 43 entries
+;; If A exceeds the number of provided addresses, the program will jump to an undefined location, likely causing a crash.
+;; No safety checks are performed to ensure A is within bounds, so the programmer must ensure correct values for A.
+;; on_A_jmp0_nocheck is used internally by other jump constructs.
+;; Depending on the number of provided addresses, it selects between two different implementations: `on_A_jmp_mul3` and `on_A_jmp_mul4`.
+;; These variations handle address alignment and access optimization based on the provided number of addresses.
+;; Registers affected: A
+.macro on_A_jmp0_nocheck  arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42,arg43
+  .if .PARAMCOUNT < 10
+        on_A_jmp_mul4  arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+  .else
+        on_A_jmp_mul3  arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42,arg43
+  .endif
+.endmacro
+
+.macro on_A_jmp_mul3  arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42,arg43
+        sta *+5
+        asl
+        adc #42 ;placholder
+        sta  *+4
+        bne *   ;*is placeholder
+
+        create_jmp_table  arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42,arg43
+.endmacro
+
+.macro on_A_jmp_mul4 arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32
+        asl
+        asl
+        sta *+4
+        bne *   ;*is placeholder
+
+        create_4spced_jmp_table  arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32
+.endmacro
+
+.macro create_4spced_jmp_table  arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32
+  .ifblank arg1
+        .exitmacro
+  .else
+        jmp arg1
+    .ifnblank arg2
+        brk
+    .endif
+  .endif
+        create_4spced_jmp_table  arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32
+.endmacro
+
+.macro create_jmp_table  arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42,arg43
+  .ifblank arg1
+        .exitmacro
+  .else
+        jmp arg1
+  .endif
+        create_jmp_table  arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,arg21,arg22,arg23,arg24,arg25,arg26,arg27,arg28,arg29,arg30,arg31,arg32,arg33,arg34,arg35,arg36,arg37,arg38,arg39,arg40,arg41,arg42,arg43
+.endmacro
+
+
 
 ;; switch </i><b>[A|X|Y|AX]</b><i>
 ;; <b>[case|case_eq|case_lt|case_ge]</b> <i>num1</i>

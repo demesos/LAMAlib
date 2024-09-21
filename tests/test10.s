@@ -1,7 +1,7 @@
 ;--------------------------------------------------
 ; test program for LAMAlib functions
 ;
-; test A_between, division tests
+; test A_between, division tests and the matrix functions
 ;
 
 .include "LAMAlib.inc"
@@ -84,12 +84,12 @@ outside: sec
 	ldax #29953
 	div16 valuea
 	cmpax #77
-	bne exit_failure
+	jne exit_failure
 
 	ldax #29995
 	mod16 #389
 	cmpax #42
-	bne exit_failure
+	jne exit_failure
 
 	pokew sum,0
 	for ax,0,to,65400,100
@@ -107,6 +107,32 @@ outside: sec
 	cmpax #45764
 	bne exit_failure
 
+	;test the matrix functions
+
+        ldx #5
+        ldy #3
+        get_matrix_element maze_data,X,Y
+	cmp #35
+	bne exit_failure
+
+        ldx #2
+        ldy #7
+        get_matrix_element maze_data,1,Y
+	cmp #71
+	bne exit_failure
+
+        ldx #2
+        ldy #7
+        get_matrix_element maze_data,X,2
+	cmp #22
+	bne exit_failure
+	
+	lda #123
+	set_matrix_element maze_data,6,4
+        get_matrix_element maze_data,6,4
+	cmp #123
+	bne exit_failure
+
         clc
         rts
 
@@ -119,4 +145,17 @@ valuea:
 
 sum:
 	.byte 00,00
+
+maze_data:
+        .byte 0, 1, 2, 3, 4, 5, 6, 7 
+        .byte 10,11,12,13,14,15,16,17
+        .byte 20,21,22,23,24,25,26,27
+        .byte 30,31,32,33,34,35,36,37
+        .byte 40,41,42,43,44,45,46,47
+        .byte 50,51,52,53,54,55,56,57
+        .byte 60,61,62,63,64,65,66,67
+        .byte 70,71,72,73,74,75,76,77
+
+	matrix_ptr_tables maze_data,8,8
+
 .endproc

@@ -461,6 +461,54 @@ phase: Determines the phase offset of the first iteration. If 0 the event is tri
 Default value for phase is the interval-1<br>
 Registers modified: A<br>
 <br>
+<b>on_A_jsr</b> <i>addr1,</i> <i>addr2,</i> <i>...</i><br>
+Executes a subroutine based on the value of register A.<br>
+If A equals 1, the subroutine at the address provided as the first argument is called.<br>
+If A equals 2, 3, 4, etc., the subroutine at the corresponding address is called in sequence.<br>
+The address list can contain up to 42 entries<br>
+If A is zero or greater than the number of specified addresses, no subroutine is called, and execution continues past the macro.<br>
+Once the called subroutine completes, execution resumes immediately after the macro.<br>
+Registers affected: A<br>
+<br>
+<b>on_A_jsr0</b> <i>addr1,</i> <i>addr2,</i> <i>...</i><br>
+Similar to on_A_jsr, but uses 0-based indexing.<br>
+If A equals 0, the subroutine at the first address is called.<br>
+If A equals 1, 2, 3, etc., the corresponding subroutine at the given address is called in sequence.<br>
+The address list can contain up to 43 entries<br>
+If the value of A exceeds the number of provided addresses, no subroutine is called, and execution continues past the macro.<br>
+Once the subroutine returns, execution resumes immediately after the macro.<br>
+Registers affected: A<br>
+<br>
+<b>on_A_jmp</b> <i>addr1,</i> <i>addr2,</i> <i>...</i><br>
+Executes a jump based on the value of register A.<br>
+If A equals 1, execution jumps to the first specified address.<br>
+If A equals 2, 3, 4, etc., execution jumps to the corresponding address in sequence.<br>
+The address list can contain up to 42 entries<br>
+If A is 0 or greater than the number of provided addresses, no jump occurs, and execution continues after the macro.<br>
+The jump transfers control to the target address and does not return to the original point.<br>
+Registers affected: A<br>
+<br>
+<b>on_A_jmp0</b> <i>addr1,</i> <i>addr2,</i> <i>...</i><br>
+Executes a jump based on the value of register A, using 0-based indexing.<br>
+If A equals 0, execution jumps to the first specified address.<br>
+If A equals 1, 2, 3, etc., execution jumps to the corresponding address in sequence.<br>
+The address list can contain up to 43 entries<br>
+If the value of A exceeds the number of provided addresses, no jump occurs, and execution continues after the macro.<br>
+The jump transfers control to the target address without returning to the original point.<br>
+Registers affected: A<br>
+<br>
+<b>on_A_jmp0_nocheck</b> <i>addr1,</i> <i>addr2,</i> <i>...</i><br>
+Executes a jump based on the value of register A, using 0-based indexing, without bounds checking.<br>
+If A equals 0, execution jumps to the first specified address.<br>
+If A equals 1, 2, 3, etc., execution jumps to the corresponding address in sequence.<br>
+The address list can contain up to 43 entries<br>
+If A exceeds the number of provided addresses, the program will jump to an undefined location, likely causing a crash.<br>
+No safety checks are performed to ensure A is within bounds, so the programmer must ensure correct values for A.<br>
+on_A_jmp0_nocheck is used internally by other jump constructs.<br>
+Depending on the number of provided addresses, it selects between two different implementations: `on_A_jmp_mul3` and `on_A_jmp_mul4`.<br>
+These variations handle address alignment and access optimization based on the provided number of addresses.<br>
+Registers affected: A<br>
+<br>
 <b>switch</b> <i></i><b>[A|X|Y|AX]</b><i></i><br>
 <b>[case|case_eq|case_lt|case_ge]</b> <i>num1</i><br>
 ...<br>
@@ -955,6 +1003,24 @@ This is similar to the command line option  -u __EXEHDR__<br>
 Difference is that with this function the code segment starts at $801, so .align is off only by 1 and the string encoding for the text supports escape characters like "\n" or "\xHH" with HH being a hexadecimal number.<br>
 If no SYS address is given, the target address is calculated to be the address right after the BASIC stub<br>
 Default line number is 2020<br>
+<br>
+<b>matrix_ptr_tables</b> <i>array,width,height</i><br>
+<br>
+Generates two pointer tables derived from the array name, one with suffix _row_lo and one with suffix _row_hi<br>
+Each matrix entry is considered to be a byte<br>
+These tables are referenced by other matrix macors, for example get_matrix_element and set_matrix_element<br>
+<br>
+<b>get_matrix_element</b> <i>array,col,row</i><br>
+Gets the element indexed by col and row from the 2-dimensional array.<br>
+Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr_tables<br>
+col and row can either be the X or Y register (in any order or combination) or a constant.<br>
+Registers modified: A, if col is a constant the X-register is used<br>
+<br>
+<b>get_matrix_element</b> <i>array,col,row</i><br>
+Sets the element indexed by col and row from the 2-dimensional array to the value stored in A.<br>
+Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr_tables<br>
+col and row can either be the X or Y register (in any order or combination) or a constant.<br>
+Registers modified: none, if col is a constant the X-register is overwritten with col<br>
 <br>
 <b>memcopy</b> <i>src_addr,target_addr,length</i><br>
 <br>
