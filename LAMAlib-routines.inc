@@ -1876,7 +1876,6 @@ firstload .set 0
 
 
 ;; matrix_ptr_tables array,width,height
-;;
 ;; Generates two pointer tables derived from the array name, one with suffix _row_lo and one with suffix _row_hi
 ;; Each matrix entry is considered to be a byte
 ;; These tables are referenced by other matrix macors, for example get_matrix_element and set_matrix_element
