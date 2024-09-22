@@ -1920,14 +1920,16 @@ firstload .set 0
 .endmacro
 
 
-;; get_matrix_element array,col,row
+;; set_matrix_element array,col,row[,value]
 ;; Sets the element indexed by col and row from the 2-dimensional array to the value stored in A.
 ;; Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr_tables
 ;; col and row can either be the X or Y register (in any order or combination) or a constant.
-;; Registers modified: none, if col is a constant the X-register is overwritten with col 
-.macro set_matrix_element array,col,row
-  .scope
+;; if value is not spefified or value is A,then the content of A is used as value
+;; Registers modified: A (if value is a constant), X (if col is a constant)
+.macro set_matrix_element array,col,row,value
+    .if .paramcount < 4 .or  (.xmatch ({value}, {a}) .or .xmatch ({value}, {A}))
     pha
+    .endif
     .if (.xmatch ({row}, {x}) .or .xmatch ({row}, {X}) .or .xmatch ({row}, {y}) .or .xmatch ({row}, {Y}))
         lda .ident(.concat (.string(array), "_row_lo")), row
         sta :+ + 1
@@ -1939,7 +1941,11 @@ firstload .set 0
         lda .ident(.concat (.string(array), "_row_hi")) +row
         sta :+ + 2
     .endif
-    pla
+    .if .paramcount < 4 .or  (.xmatch ({value}, {a}) .or .xmatch ({value}, {A}))
+        pla
+    .else
+        lda #value
+    .endif
     .if (.xmatch ({col}, {x}) .or .xmatch ({col}, {X}) .or .xmatch ({col}, {y}) .or .xmatch ({col}, {Y}))
 :       sta $affe,col
     .else
@@ -1947,7 +1953,6 @@ firstload .set 0
 :
         sta $affe,x
     .endif
-  .endscope
 .endmacro
 
 

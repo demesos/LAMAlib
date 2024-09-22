@@ -1015,11 +1015,12 @@ Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr
 col and row can either be the X or Y register (in any order or combination) or a constant.<br>
 Registers modified: A, if col is a constant the X-register is used<br>
 <br>
-<b>get_matrix_element</b> <i>array,col,row</i><br>
+<b>set_matrix_element</b> <i>array,col,row[,value]</i><br>
 Sets the element indexed by col and row from the 2-dimensional array to the value stored in A.<br>
 Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr_tables<br>
 col and row can either be the X or Y register (in any order or combination) or a constant.<br>
-Registers modified: none, if col is a constant the X-register is overwritten with col<br>
+if value is not spefified or value is A,then the content of A is used as value<br>
+Registers modified: A (if value is a constant), X (if col is a constant)<br>
 <br>
 <b>memcopy</b> <i>src_addr,target_addr,length</i><br>
 <br>
