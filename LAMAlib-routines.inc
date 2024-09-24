@@ -2058,7 +2058,7 @@ skip_adjust:
         .endscope
 .endmacro
 
-;; memset start_addr, end_addr [, fillvalue]
+;; memset start_addr,end_addr[,fillvalue]
 ;; Fills the memory range from start_addr to end_addr with the byte fillvalue.
 ;; If fillvalue is A or not specified, the current content of the A register is used.
 ;; This macro is interrupt-safe and can be used concurrently in both the main program and an interrupt routine.

@@ -1034,7 +1034,7 @@ Alternatively, the function can be configured parameter by parameter, either wit
 When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.<br>
 Registers modified: A,X,Y<br>
 <br>
-<b>memset</b> <i>start_addr,</i> <i>end_addr</i> <i>[,</i> <i>fillvalue]</i><br>
+<b>memset</b> <i>start_addr,end_addr[,fillvalue]</i><br>
 Fills the memory range from start_addr to end_addr with the byte fillvalue.<br>
 If fillvalue is A or not specified, the current content of the A register is used.<br>
 This macro is interrupt-safe and can be used concurrently in both the main program and an interrupt routine.<br>
