@@ -2058,25 +2058,48 @@ skip_adjust:
         .endscope
 .endmacro
 
-;; memset start_addr,end_addr,fillvalue
-;; Fills the memory area between start_addr and end_adder with the byte fillvalue
-;; When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.
-;; Registers modified: A,X,Y
-.macro  memset start_addr,end_addr,fillvalue
-.import _memset_sr
-.importzp _llzp_word1
-        .scope
-        length = end_addr - (start_addr) + 1
-        yinit=<($100-<(length))
-        pokew _llzp_word1,start_addr - yinit
-
-        ldx #1+>(length-1)
-        ldy #yinit
+;; memset start_addr, end_addr [, fillvalue]
+;; Fills the memory range from start_addr to end_addr with the byte fillvalue.
+;; If fillvalue is A or not specified, the current content of the A register is used.
+;; This macro is interrupt-safe and can be used concurrently in both the main program and an interrupt routine.
+;; Registers modified: A, X, (Y if the memory size to fill exceeds 256 bytes)
+.macro memset start_addr,end_addr,fillvalue
+  .scope
+    .if (.paramcount=3) && (.not (.xmatch ({target_addr}, {A}) .or .xmatch ({target_addr}, {a})))
         lda #fillvalue
-        jsr _memset_sr
-        .endscope
+    .endif
+length = end_addr - (start_addr) + 1
+yinit=<($100-<(length))
+    .if .const(length) && length<=2
+      .repeat length,i
+        sta start_addr+i
+      .endrep
+    .elseif .const(length) && length<=128
+        ldx #length-1
+:       sta start_addr,x
+        dex
+        bpl :-
+    .elseif .const(length) && length<128
+        ldx #yinit
+:
+        sta start_addr - yinit,x
+        inx
+        bne :-
+    .else
+        ldy #>(start_addr - yinit)
+        sty :+ +2       ;initialize high byte in case the macro is executed more than once
+        ldy #yinit
+        ldx #1+>(length-1)
+:
+        sta start_addr - yinit,y
+        iny
+        bne :-
+        inc :- +2       ;inc the highbyte
+        dex
+        bne :-
+    .endif
+  .endscope
 .endmacro
-
 
 ;; save_prg filename,devicenr,startaddr,endaddr
 ;; Saves the memory from startaddr to endaddr (including the endaddr) using the CBM ROM save function.

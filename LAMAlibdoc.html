@@ -1034,10 +1034,11 @@ Alternatively, the function can be configured parameter by parameter, either wit
 When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.<br>
 Registers modified: A,X,Y<br>
 <br>
-<b>memset</b> <i>start_addr,end_addr,fillvalue</i><br>
-Fills the memory area between start_addr and end_adder with the byte fillvalue<br>
-When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.<br>
-Registers modified: A,X,Y<br>
+<b>memset</b> <i>start_addr,</i> <i>end_addr</i> <i>[,</i> <i>fillvalue]</i><br>
+Fills the memory range from start_addr to end_addr with the byte fillvalue.<br>
+If fillvalue is A or not specified, the current content of the A register is used.<br>
+This macro is interrupt-safe and can be used concurrently in both the main program and an interrupt routine.<br>
+Registers modified: A, X, (Y if the memory size to fill exceeds 256 bytes)<br>
 <br>
 <b>save_prg</b> <i>filename,devicenr,startaddr,endaddr</i><br>
 Saves the memory from startaddr to endaddr (including the endaddr) using the CBM ROM save function.<br>
