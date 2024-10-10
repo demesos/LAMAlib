@@ -1005,22 +1005,34 @@ If no SYS address is given, the target address is calculated to be the address r
 Default line number is 2020<br>
 <br>
 <b>matrix_ptr_tables</b> <i>array,width,height</i><br>
-Generates two pointer tables derived from the array name, one with suffix _row_lo and one with suffix _row_hi<br>
-Each matrix entry is considered to be a byte<br>
-These tables are referenced by other matrix macors, for example get_matrix_element and set_matrix_element<br>
+Generates two pointer tables derived from the array name, one with suffix _row_lo and one with suffix _row_hi.<br>
+Each matrix entry is considered to be a byte.<br>
+These tables are referenced by other matrix macros, for example, get_matrix_element and set_matrix_element.<br>
 <br>
 <b>get_matrix_element</b> <i>array,col,row</i><br>
 Gets the element indexed by col and row from the 2-dimensional array.<br>
-Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr_tables<br>
+Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr_tables.<br>
 col and row can either be the X or Y register (in any order or combination) or a constant.<br>
-Registers modified: A, if col is a constant the X-register is used<br>
+Registers modified: A. If col is a constant, the X register is used.<br>
 <br>
 <b>set_matrix_element</b> <i>array,col,row[,value]</i><br>
 Sets the element indexed by col and row from the 2-dimensional array to the value stored in A.<br>
-Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr_tables<br>
+Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr_tables.<br>
 col and row can either be the X or Y register (in any order or combination) or a constant.<br>
-if value is not spefified or value is A,then the content of A is used as value<br>
-Registers modified: A (if value is a constant), X (if col is a constant)<br>
+If value is not specified or value is A, the content of A is used as the value.<br>
+Registers modified: A (if value is a constant), X (if col is a constant).<br>
+<br>
+<b>clear_matrix</b> <i>array,width,height</i><br>
+Clears a 2-dimensional matrix of size width x height, starting from the base address of array, by filling it with 0.<br>
+The memory range from array to array + (width * height) is set to 0.<br>
+Uses the memset macro to perform the operation.<br>
+Registers modified: A, X, (potentially Y if the total memory size exceeds 256 bytes)<br>
+<br>
+<b>fill_matrix</b> <i>array,width,height,fillvalue</i><br>
+Fills a 2-dimensional matrix of size width x height, starting from the base address of array, with the byte fillvalue.<br>
+The memory range from array to array + (width * height) is filled.<br>
+If fillvalue is A or not specified, the current content of the A register is used.<br>
+Registers modified: A, X, (potentially Y if the total memory size exceeds 256 bytes)<br>
 <br>
 <b>memcopy</b> <i>src_addr,target_addr,length</i><br>
 <br>

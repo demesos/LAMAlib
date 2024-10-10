@@ -1876,9 +1876,9 @@ firstload .set 0
 
 
 ;; matrix_ptr_tables array,width,height
-;; Generates two pointer tables derived from the array name, one with suffix _row_lo and one with suffix _row_hi
-;; Each matrix entry is considered to be a byte
-;; These tables are referenced by other matrix macors, for example get_matrix_element and set_matrix_element
+;; Generates two pointer tables derived from the array name, one with suffix _row_lo and one with suffix _row_hi.
+;; Each matrix entry is considered to be a byte.
+;; These tables are referenced by other matrix macros, for example, get_matrix_element and set_matrix_element.
 .macro matrix_ptr_tables array,width,height
 .ident(.concat (.string(array), "_row_lo")):
   .repeat height,i
@@ -1893,9 +1893,10 @@ firstload .set 0
 
 ;; get_matrix_element array,col,row
 ;; Gets the element indexed by col and row from the 2-dimensional array.
-;; Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr_tables
+;; Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr_tables.
 ;; col and row can either be the X or Y register (in any order or combination) or a constant.
-;; Registers modified: A, if col is a constant the X-register is used 
+;; Register flags are as if value was loaded with lda, a branch command like BEQ or BPL works right after get_matrix_element
+;; Registers modified: A. If col is a constant, the X register is used.
 .macro get_matrix_element array,col,row
   .scope
     .if (.xmatch ({row}, {x}) .or .xmatch ({row}, {X}) .or .xmatch ({row}, {y}) .or .xmatch ({row}, {Y}))
@@ -1922,10 +1923,10 @@ firstload .set 0
 
 ;; set_matrix_element array,col,row[,value]
 ;; Sets the element indexed by col and row from the 2-dimensional array to the value stored in A.
-;; Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr_tables
+;; Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr_tables.
 ;; col and row can either be the X or Y register (in any order or combination) or a constant.
-;; if value is not spefified or value is A,then the content of A is used as value
-;; Registers modified: A (if value is a constant), X (if col is a constant)
+;; If value is not specified or value is A, the content of A is used as the value.
+;; Registers modified: A (if value is a constant), X (if col is a constant).
 .macro set_matrix_element array,col,row,value
     .if .paramcount < 4 .or  (.xmatch ({value}, {a}) .or .xmatch ({value}, {A}))
     pha
@@ -1953,6 +1954,30 @@ firstload .set 0
 :
         sta $affe,x
     .endif
+.endmacro
+
+
+;; clear_matrix array,width,height
+;; Clears a 2-dimensional matrix of size width x height, starting from the base address of array, by filling it with 0.
+;; The memory range from array to array + (width * height) is set to 0.
+;; Uses the memset macro to perform the operation.
+;; Registers modified: A, X, (potentially Y if the total memory size exceeds 256 bytes)
+.macro clear_matrix array,width,height
+        memset array,array+width*height,0
+.endmacro
+
+
+;; fill_matrix array,width,height,fillvalue
+;; Fills a 2-dimensional matrix of size width x height, starting from the base address of array, with the byte fillvalue.
+;; The memory range from array to array + (width * height) is filled.
+;; If fillvalue is A or not specified, the current content of the A register is used.
+;; Registers modified: A, X, (potentially Y if the total memory size exceeds 256 bytes)
+.macro fill_matrix array,width,height,fillvalue
+.ifblank fillvalue
+        memset array,array+width*height,A
+.else
+        memset array,array+width*height,fillvalue
+.endif
 .endmacro
 
 
@@ -2065,7 +2090,7 @@ skip_adjust:
 ;; Registers modified: A, X, (Y if the memory size to fill exceeds 256 bytes)
 .macro memset start_addr,end_addr,fillvalue
   .scope
-    .if (.paramcount=3) && (.not (.xmatch ({target_addr}, {A}) .or .xmatch ({target_addr}, {a})))
+    .if (.paramcount=3) && (.not (.xmatch ({fillvalue}, {A}) .or .xmatch ({fillvalue}, {a})))
         lda #fillvalue
     .endif
 length = end_addr - (start_addr) + 1
@@ -2645,7 +2670,6 @@ _stabilize_raster_cycle_isr:
 ;; Registers modified: A or the register (A,X, or Y) given as second argument
 
 .macro wait_for_rasterline rasterline,reg
-.scope
 .if rasterline>255 .or rasterline<56
 :	;unnamed label is only set if necessary to avoid a warning
 .endif
@@ -2661,7 +2685,6 @@ _stabilize_raster_cycle_isr:
           _ld_reg reg,$D011		;check highbyte to be cleared
           bmi :--
         .endif
-.endscope
 .endmacro
 
 

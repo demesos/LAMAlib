@@ -13,6 +13,7 @@ CURSORY        = $D6
 REVERSE_MODE_SWITCH = $C7
 CURRENT_OUTPUT_DEVICE_NUMBER = $9A
 
+KEYBUF         = $277
 TEXTCOLOR_ADDR = $286
 PTRSCRHI       = $288 ;high byte of pointer to screen memory for screen input/output
 
@@ -96,6 +97,7 @@ CURSORY        = $EB
 REVERSE_MODE_SWITCH = $f3
 CURRENT_OUTPUT_DEVICE_NUMBER = $9A
 
+KEYBUF         = $277
 TEXTCOLOR_ADDR = $F1
 PTRSCRHI       = $A3B ;high byte of pointer to screen memory for screen input/output
 
@@ -191,6 +193,7 @@ CURSORY        = $D6
 REVERSE_MODE_SWITCH = $c7
 CURRENT_OUTPUT_DEVICE_NUMBER = $9A
 
+KEYBUF         = $277
 TEXTCOLOR_ADDR = $286
 PTRSCRHI       = $288 ;high byte of pointer to screen memory for screen input/output
 
