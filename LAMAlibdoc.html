@@ -990,12 +990,23 @@ If both are already released, the command continues immediately.<br>
 Function works independently of IRQ routine or ROM.<br>
 Registers modified: A<br>
 <br>
-<b>readWASDspace</b><br>
+<b>read_keys_WASDSpace</b><br>
 Checks the keyboard for keypresses of W, A ,S, D and Space<br>
 Output is a byte in A in the same format as a joystick value<br>
+<b>readWASDspace</b> is an alias to <b>read_keys_WASDSpace</b> for backwards compatibility<br>
 Since movement of joystick 1 disturbs the value, no keys are returen if joystick 1 is moved to any direction<br>
 Function does not require the Kernal keyboard routine that is in the IRQ<br>
 Registers modified: A,X<br>
+<br>
+<b>read_keys_CACFFPMX</b><br>
+Reads keys CBM, Arrowleft, Cursor right, F7, F1, +, M, X<br>
+Routine should not be interrupt by another keyboard scan, therefore it is<br>
+recommended to<br>
+- run the function in the interrupt or<br>
+- have the keyboard scan in the interrupt turned off or<br>
+- put a sei / cli around the function call<br>
+Return value is in A, where the respective bit is zero if the key is pressed<br>
+Registers modified: A<br>
 <br>
 <b>makesys</b> <i>[linenumber[,text[,</i> <i>address]]]</i><br>
 Generates the code for a BASIC line with a SYS command, an optional text behind the sys command, and an optional specified entry address<br>
@@ -1013,6 +1024,7 @@ These tables are referenced by other matrix macros, for example, get_matrix_elem
 Gets the element indexed by col and row from the 2-dimensional array.<br>
 Needs tables with suffix _row_lo and _row_hi to be defined with macro matrix_ptr_tables.<br>
 col and row can either be the X or Y register (in any order or combination) or a constant.<br>
+Register flags are as if value was loaded with lda, a branch command like BEQ or BPL works right after get_matrix_element<br>
 Registers modified: A. If col is a constant, the X register is used.<br>
 <br>
 <b>set_matrix_element</b> <i>array,col,row[,value]</i><br>

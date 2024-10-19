@@ -1810,22 +1810,37 @@ firstload .set 0
         jsr _waitkeyorbuttonreleased_sr
 .endmacro
 
-;; readWASDspace
+;; read_keys_WASDSpace
 ;; Checks the keyboard for keypresses of W, A ,S, D and Space
 ;; Output is a byte in A in the same format as a joystick value
+;; <b>readWASDspace</b> is an alias to <b>read_keys_WASDSpace</b> for backwards compatibility
 ;; Since movement of joystick 1 disturbs the value, no keys are returen if joystick 1 is moved to any direction
 ;; Function does not require the Kernal keyboard routine that is in the IRQ
 ;; Registers modified: A,X
-.import _readWASDspace_sr
-.macro readwasdspace   ;version with all lowercase
-        readWASDspace
-.endmacro
+.import _read_keys_WASDspace_sr
 
+.macro read_keys_WASDspace
+        jsr _read_keys_WASDspace_sr
+.endmacro
 
 .macro readWASDspace
-        jsr _readWASDspace_sr
+        jsr _read_keys_WASDspace_sr
 .endmacro
 
+;; read_keys_CACFFPMX
+;; Reads keys CBM, Arrowleft, Cursor right, F7, F1, +, M, X
+;; Routine should not be interrupt by another keyboard scan, therefore it is
+;; recommended to
+;; - run the function in the interrupt or
+;; - have the keyboard scan in the interrupt turned off or
+;; - put a sei / cli around the function call
+;; Return value is in A, where the respective bit is zero if the key is pressed
+;; Registers modified: A
+.import _read_keys_CACFFPMX_sr
+
+.macro read_keys_CACFFPMX
+        jsr _read_keys_CACFFPMX_sr
+.endmacro
 
 ;; makesys [linenumber[,text[, address]]]
 ;; Generates the code for a BASIC line with a SYS command, an optional text behind the sys command, and an optional specified entry address
