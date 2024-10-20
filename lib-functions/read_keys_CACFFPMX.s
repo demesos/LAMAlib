@@ -1,18 +1,18 @@
 ; Reads keys CBM, Arrowleft, Cursor right, F7, F1, +, M, X
-; Routine should not be interrupt by another keyboard scan, therefore it is
-; recommended to
-; - run the function in the interrupt or
-; - have the keyboard scan in the interrupt turned off or
+; Routine should not be interrupted by another keyboard scan, therefore it is
+; recommended to:
+; - run the function in the interrupt, or
+; - have the keyboard scan in the interrupt turned off, or
 ; - put a sei / cli around the function call
 ; Return value is in A, where the respective bit is zero if the key is pressed
 
 .include "../LAMAlib-macros16.inc"
 .include "../LAMAlib-structured.inc"
 
-.export _read_keys_CACFFPMX_sr := _read_keys_CACFFPMX
+.export _read_keys_CACFFPMX_sr
 .import _twopotentials
 
-.proc _read_keys_CACFFPMX
+.proc _read_keys_CACFFPMX_sr
         lda #0
         sta $dc03
         lda #$ff

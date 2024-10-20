@@ -994,18 +994,31 @@ Registers modified: A<br>
 Checks the keyboard for keypresses of W, A ,S, D and Space<br>
 Output is a byte in A in the same format as a joystick value<br>
 <b>readWASDspace</b> is an alias to <b>read_keys_WASDSpace</b> for backwards compatibility<br>
-Since movement of joystick 1 disturbs the value, no keys are returen if joystick 1 is moved to any direction<br>
-Function does not require the Kernal keyboard routine that is in the IRQ<br>
+Since movement of joystick 1 disturbs the reading, no keys are returned if joystick 1 is moved to any direction<br>
+Function is independent of the Kernal keyboard routine<br>
 Registers modified: A,X<br>
+<br>
+<b>read_keys_ACSEP</b><br>
+Reads keys @, :, ;, =, P<br>
+The keys are interpreted as a four-way control like WASD, P is the fire key<br>
+Routine should not be interrupted by another keyboard scan, therefore it is<br>
+recommended to:<br>
+- run the function in the interrupt, or<br>
+- have the keyboard scan in the interrupt turned off, or<br>
+- put a sei / cli around the function call<br>
+Return value is in A, where the respective bit is zero if the key is pressed<br>
+Function is independent of the Kernal keyboard routine<br>
+Registers modified: A<br>
 <br>
 <b>read_keys_CACFFPMX</b><br>
 Reads keys CBM, Arrowleft, Cursor right, F7, F1, +, M, X<br>
-Routine should not be interrupt by another keyboard scan, therefore it is<br>
-recommended to<br>
-- run the function in the interrupt or<br>
-- have the keyboard scan in the interrupt turned off or<br>
+Routine should not be interrupted by another keyboard scan, therefore it is<br>
+recommended to:<br>
+- run the function in the interrupt, or<br>
+- have the keyboard scan in the interrupt turned off, or<br>
 - put a sei / cli around the function call<br>
 Return value is in A, where the respective bit is zero if the key is pressed<br>
+Function is independent of the Kernal keyboard routine<br>
 Registers modified: A<br>
 <br>
 <b>makesys</b> <i>[linenumber[,text[,</i> <i>address]]]</i><br>

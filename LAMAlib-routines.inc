@@ -1814,8 +1814,8 @@ firstload .set 0
 ;; Checks the keyboard for keypresses of W, A ,S, D and Space
 ;; Output is a byte in A in the same format as a joystick value
 ;; <b>readWASDspace</b> is an alias to <b>read_keys_WASDSpace</b> for backwards compatibility
-;; Since movement of joystick 1 disturbs the value, no keys are returen if joystick 1 is moved to any direction
-;; Function does not require the Kernal keyboard routine that is in the IRQ
+;; Since movement of joystick 1 disturbs the reading, no keys are returned if joystick 1 is moved to any direction
+;; Function is independent of the Kernal keyboard routine
 ;; Registers modified: A,X
 .import _read_keys_WASDspace_sr
 
@@ -1827,14 +1827,32 @@ firstload .set 0
         jsr _read_keys_WASDspace_sr
 .endmacro
 
-;; read_keys_CACFFPMX
-;; Reads keys CBM, Arrowleft, Cursor right, F7, F1, +, M, X
-;; Routine should not be interrupt by another keyboard scan, therefore it is
-;; recommended to
-;; - run the function in the interrupt or
-;; - have the keyboard scan in the interrupt turned off or
+;; read_keys_ACSEP
+;; Reads keys @, :, ;, =, P
+;; The keys are interpreted as a four-way control like WASD, P is the fire key
+;; Routine should not be interrupted by another keyboard scan, therefore it is
+;; recommended to:
+;; - run the function in the interrupt, or
+;; - have the keyboard scan in the interrupt turned off, or
 ;; - put a sei / cli around the function call
 ;; Return value is in A, where the respective bit is zero if the key is pressed
+;; Function is independent of the Kernal keyboard routine
+;; Registers modified: A
+.import _read_keys_ACSEP_sr
+
+.macro read_keys_ACSEP
+        jsr _read_keys_ACSEP_sr
+.endmacro
+
+;; read_keys_CACFFPMX
+;; Reads keys CBM, Arrowleft, Cursor right, F7, F1, +, M, X
+;; Routine should not be interrupted by another keyboard scan, therefore it is
+;; recommended to:
+;; - run the function in the interrupt, or
+;; - have the keyboard scan in the interrupt turned off, or
+;; - put a sei / cli around the function call
+;; Return value is in A, where the respective bit is zero if the key is pressed
+;; Function is independent of the Kernal keyboard routine
 ;; Registers modified: A
 .import _read_keys_CACFFPMX_sr
 
