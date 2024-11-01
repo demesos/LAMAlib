@@ -84,6 +84,9 @@ ICR= CIABASE+$D ;Interrupt control reg
 CRA= CIABASE+$E ;Control Timer A
 CRB= CIABASE+$F ;Control Timer B
 
+ISR_DEFAULT=$EA31
+ISR_EXIT   =$EA81
+
 .elseif .def(__C128__)
 
 PRESSED_KEY_MATRIX_CODE=$D4
@@ -178,6 +181,9 @@ ICR= CIABASE+$D ;Interrupt control reg
 CRA= CIABASE+$E ;Control Timer A
 CRB= CIABASE+$F ;Control Timer B
 
+ISR_DEFAULT=$FA65
+ISR_EXIT   =$FF33
+
 .elseif .def(__VIC20__)
 
 USE_BASIC_ROM .set 1  ;add USE_BASIC_ROM=0 to your code to make LAMAlib generate code without calls to BASIC ROM
@@ -251,6 +257,9 @@ VIABASE=$9110
 TIMERAcounter = VIABASE+4
 TIMERAlatch= VIABASE+6
 TIMERBlatch= VIABASE+8
+
+ISR_DEFAULT=$EABF
+ISR_EXIT   =$EB18
 
 .endif
 

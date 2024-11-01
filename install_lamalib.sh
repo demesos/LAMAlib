@@ -43,10 +43,14 @@ popd
 # find cc65 directory
 echo Installing library into $installdir
 
-cp LAMAlib*.inc "$installdir/asminc"
-cp LAMAlib*.lib "$installdir/lib"
+cp LAMAlib*.inc "$installdir/asminc/"
+cp -r modules/* "$installdir/asminc/modules/"
+cp LAMAlib*.lib "$installdir/lib/"
+cp LAMAlib128.lib "$installdir/lib/"
+cp LAMAlib20.lib "$installdir/lib/"
+cp *friendly-asm.cfg "$installdir/cfg/"
 cp ass.sh "$installbindir/ass"
-cp *-basicfriendly-asm.cfg "$installdir/cfg"
+
 if [ $? -ne 0 ]; then
   echo -e $red
   echo -e "*******************************************************************************"
