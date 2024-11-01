@@ -44,7 +44,7 @@ popd
 echo Installing library into $installdir
 
 cp LAMAlib*.inc "$installdir/asminc/"
-cp -r modules/* "$installdir/asminc/modules/"
+cp -r modules "$installdir/asminc/"
 cp LAMAlib*.lib "$installdir/lib/"
 cp LAMAlib128.lib "$installdir/lib/"
 cp LAMAlib20.lib "$installdir/lib/"
