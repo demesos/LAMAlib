@@ -479,7 +479,7 @@ quotient=*+1
 .endmacro
 
 
-;; draw_frame [x1 [, y1 [, x2 [, y2]]]]
+;; draw_frame [x1 [, y1 [, x2 [, y2 [, color]]]]]
 ;; Draws a frame around the window defined by the window parameters
 ;; Note that the frame will go around the window, so it is larger than the defined window
 ;; When using in interrupt, save contents of _llzp_word1,_llzp_word2 before calling and restore afterwards
@@ -493,11 +493,11 @@ quotient=*+1
 ;;  .import _frame_vertical
 ;;  .import _frame_horizontal
 ;;  .import _frame_color</tt>
-;; For example to change the color of the frame to green, write
-;; <tt>  .import _frame_color
-;;   poke _frame_color,5</tt>
+;; For example to change the lower left corner to a rounded one, add
+;; <tt>  .import _frame_lower_left
+;;   poke _frame_lower_left,74</tt>
 
-.macro draw_frame x1,y1,x2,y2
+.macro draw_frame x1,y1,x2,y2,c
 	.ifnblank x1
 	  .import _window_x1
 	  poke _window_x1,x1
@@ -513,6 +513,10 @@ quotient=*+1
 	.ifnblank y2
 	  .import _window_y2
 	  poke _window_y2,y2
+	.endif
+	.ifnblank c
+	  .import _frame_color
+	  poke _frame_color,c
 	.endif
 	.import _draw_frame_sr
 	jsr _draw_frame_sr
