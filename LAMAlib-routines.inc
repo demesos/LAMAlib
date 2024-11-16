@@ -1683,6 +1683,13 @@ firstload .set 0
         .endrepeat
 .endmacro
 
+;; str_enc0 string
+;;
+;; Same as str_enc, but the string will be terminated with a 0 byte
+.macro str_enc0 str
+	str_enc str
+	.byte 0
+.endmacro
 
 ;; textcolor color
 ;; sets the text color
