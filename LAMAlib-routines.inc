@@ -9,57 +9,57 @@
 ;; Those functions are mostly used in other macros.
 
 .macro _ld_reg reg,arg
-	.ifblank reg
-	   lda arg
-	.elseif (.xmatch ({reg}, {A}))  
-	   lda arg
-	.elseif (.xmatch ({reg}, {X}))  
-	   ldx arg
-	.elseif (.xmatch ({reg}, {Y}))  
-	   ldy arg
-	.else
-	   .error "No proper register stated, must be A, X or Y"
-	.endif
+  .ifblank reg
+        lda arg
+  .elseif (.xmatch ({reg}, {A}))
+        lda arg
+  .elseif (.xmatch ({reg}, {X}))
+        ldx arg
+  .elseif (.xmatch ({reg}, {Y}))
+        ldy arg
+  .else
+        .error "No proper register stated, must be A, X or Y"
+  .endif
 .endmacro
 
 .macro _st_reg reg,arg
-	.ifblank reg
-	   sta arg
-	.elseif (.xmatch ({reg}, {A}))  
-	   sta arg
-	.elseif (.xmatch ({reg}, {X}))  
-	   stx arg
-	.elseif (.xmatch ({reg}, {Y}))  
-	   sty arg
-	.else
-	   .error "No proper register stated, must be A, X or Y"
-	.endif
+  .ifblank reg
+        sta arg
+  .elseif (.xmatch ({reg}, {A}))
+        sta arg
+  .elseif (.xmatch ({reg}, {X}))
+        stx arg
+  .elseif (.xmatch ({reg}, {Y}))
+        sty arg
+  .else
+        .error "No proper register stated, must be A, X or Y"
+  .endif
 .endmacro
 
 .macro _cp_reg reg,arg
-	.ifblank reg
-	   cmp arg
-	.elseif (.xmatch ({reg}, {A}))  
-	   cmp arg
-	.elseif (.xmatch ({reg}, {X}))  
-	   cpx arg
-	.elseif (.xmatch ({reg}, {Y}))  
-	   cpy arg
-	.else
-	   .error "No proper register stated, must be A, X or Y"
-	.endif
+  .ifblank reg
+        cmp arg
+  .elseif (.xmatch ({reg}, {A}))
+        cmp arg
+  .elseif (.xmatch ({reg}, {X}))
+        cpx arg
+  .elseif (.xmatch ({reg}, {Y}))
+        cpy arg
+  .else
+        .error "No proper register stated, must be A, X or Y"
+  .endif
 .endmacro
 
 ;; check_C128
 ;; Detects if we are on a C128 in C64 mode
 ;; returns with carry set for C128
 .macro  check_c128   ;version with all lowercase
-	check_C128
+        check_C128
 .endmacro
 
 .macro check_C128
-     lda $d030
-     cmp #$ff
+        lda $d030
+        cmp #$ff
 .endmacro
 
 
@@ -68,40 +68,40 @@
 ;; KERNAL ROM needs to be enabled when using this function
 ;; Registers modified: A,Y,X
 .macro  clrscr
-.scope
-                jsr CLRSCR
-.endscope
+  .scope
+        jsr CLRSCR
+  .endscope
 .endmacro
 
 
 ;; checksum_eor startaddr,endaddr
 ;; Returns an 8-bit checksum calculated by EOR-conjunction over all bytes
 .macro checksum_eor startaddr,endaddr
-	.scope
+  .scope
 .importzp _llzp_word1
-	pokew _llzp_word1,startaddr
-	ldy #0
-	tya
-	pha
+        pokew _llzp_word1,startaddr
+        ldy #0
+        tya
+        pha
 loop:
-	pla
-	eor (_llzp_word1),y
-	pha
-	inc16 _llzp_word1
-	ldax _llzp_word1
-	cmpax #endaddr+1
-	bne loop
-	pla
-        .endscope
+        pla
+        eor (_llzp_word1),y
+        pha
+        inc16 _llzp_word1
+        ldax _llzp_word1
+        cmpax #endaddr+1
+        bne loop
+        pla
+  .endscope
 .endmacro
 
 
 ;; decimal_flag_to_N
 ;; Copies the decimal flag into the negative flag to detect if decimal mode is on
 ;; Macro always returns with a cleared Carry
-;; Registers modified: A 
+;; Registers modified: A
 .macro  decimal_flag_to_n   ;version with all lowercase
-	decimal_flag_to_N
+        decimal_flag_to_N
 .endmacro
 
 .macro  decimal_flag_to_N
@@ -116,86 +116,86 @@ loop:
 ;; generated code does not need to be aligned, but requires around 0.3 bytes/cycle in memory
 ;; Registers modified: none (but flags may be messed up)
 .macro  delay_cycles arg
-       .if (arg)=0
-            .exitmacro
-       .endif
-       .if (arg)=1
-            .error "cannot delay a single cycle since the shortest command takes 2 cycles"
-            .exitmacro
-       .endif
-       .if (arg)=53 .or (arg)>54
-	    .import _delay_53cycles
-	    jsr _delay_53cycles
-            delay_cycles ((arg)-53)
-            .exitmacro
-       .endif
-       .if (arg)=47 .or (arg)>48
-	    .import _delay_47cycles
-	    jsr _delay_47cycles
-            delay_cycles ((arg)-47)
-            .exitmacro
-       .endif
-       .if (arg)=43 .or (arg)>44
-	    .import _delay_43cycles
-	    jsr _delay_43cycles
-            delay_cycles ((arg)-43)
-            .exitmacro
-       .endif
-       .if (arg)=31 .or (arg)>32
-	    .import _delay_31cycles
-	    jsr _delay_31cycles
-            delay_cycles ((arg)-31)
-            .exitmacro
-       .endif
-       .if (arg)=7 .or (arg)>8
-	    pha
-            pla
-            delay_cycles ((arg)-7)
-	    .exitmacro
-       .endif
-       .if (arg)=6 .or (arg)=8
-            cmp ($42,X)
-            delay_cycles ((arg)-6)
-            .exitmacro
-       .endif
-       .if (arg)=3 .or (arg)=5
-            bit $42
-            delay_cycles ((arg)-3)
-            .exitmacro
-       .endif
-       .if (arg)=2 .or (arg)=4
-            nop
-            delay_cycles ((arg)-2)
-            .exitmacro
-       .endif
-       .error "cycle-exact count did not work"
+  .if (arg)=0
+        .exitmacro
+  .endif
+  .if (arg)=1
+        .error "cannot delay a single cycle since the shortest command takes 2 cycles"
+        .exitmacro
+  .endif
+  .if (arg)=53 .or (arg)>54
+.import _delay_53cycles
+        jsr _delay_53cycles
+        delay_cycles ((arg)-53)
+        .exitmacro
+  .endif
+  .if (arg)=47 .or (arg)>48
+.import _delay_47cycles
+        jsr _delay_47cycles
+        delay_cycles ((arg)-47)
+        .exitmacro
+  .endif
+  .if (arg)=43 .or (arg)>44
+.import _delay_43cycles
+        jsr _delay_43cycles
+        delay_cycles ((arg)-43)
+        .exitmacro
+  .endif
+  .if (arg)=31 .or (arg)>32
+.import _delay_31cycles
+        jsr _delay_31cycles
+        delay_cycles ((arg)-31)
+        .exitmacro
+  .endif
+  .if (arg)=7 .or (arg)>8
+        pha
+        pla
+        delay_cycles ((arg)-7)
+        .exitmacro
+  .endif
+  .if (arg)=6 .or (arg)=8
+        cmp ($42,X)
+        delay_cycles ((arg)-6)
+        .exitmacro
+  .endif
+  .if (arg)=3 .or (arg)=5
+        bit $42
+        delay_cycles ((arg)-3)
+        .exitmacro
+  .endif
+  .if (arg)=2 .or (arg)=4
+        nop
+        delay_cycles ((arg)-2)
+        .exitmacro
+  .endif
+        .error "cycle-exact count did not work"
 .endmacro
 
 
 ;; delay_ms arg
-;; Delays for arg milliseconds using a busy waiting loop. 
+;; Delays for arg milliseconds using a busy waiting loop.
 ;; The waiting loop is calibrated to avergage available CPU cycles on a C64 with VIC and interrupts enabled.
-;; Depending on interrupts or stolen cycles by VIC badlines the actual delay time may vary. 
+;; Depending on interrupts or stolen cycles by VIC badlines the actual delay time may vary.
 ;; When AX is given as argument it waits as many ms as the 16 bit value in AX
 ;; When a number 1-65536 is given as argument it waits this long
 ;; Registers modified: A,X,Y
 .macro  delay_ms arg
 .import _delay_ms_sr
-.scope
-       .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
-            jsr _delay_ms_sr
-       .else
-            ldax #arg
-            jsr _delay_ms_sr
-       .endif
-.endscope
+  .scope
+    .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
+        jsr _delay_ms_sr
+    .else
+        ldax #arg
+        jsr _delay_ms_sr
+    .endif
+  .endscope
 .endmacro
 
 
 ;; delay_ms_abort_on_fire arg
-;; Delays for arg milliseconds using a busy waiting loop. 
+;; Delays for arg milliseconds using a busy waiting loop.
 ;; The waiting loop is calibrated to avergage available CPU cycles on a C64 with VIC and interrupts enabled.
-;; Depending on interrupts or stolen cycles by VIC badlines the actual delay time may vary. 
+;; Depending on interrupts or stolen cycles by VIC badlines the actual delay time may vary.
 ;; When AX is given as argument it waits as many ms as the 16 bit value in AX
 ;; When a number 1-65536 is given as argument it waits this long
 ;; If the loop ran through, the carry flag is set upon return
@@ -203,14 +203,14 @@ loop:
 ;; Registers modified: A,X,Y
 .macro  delay_ms_abort_on_fire arg
 .import _delay_ms_abort_on_fire_sr
-.scope
-       .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
-            jsr _delay_ms_abort_on_fire_sr
-       .else
-            ldax #arg
-            jsr _delay_ms_abort_on_fire_sr
-       .endif
-.endscope
+  .scope
+    .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
+        jsr _delay_ms_abort_on_fire_sr
+    .else
+        ldax #arg
+        jsr _delay_ms_abort_on_fire_sr
+    .endif
+  .endscope
 .endmacro
 
 
@@ -221,12 +221,12 @@ loop:
 ;; Interrupt flag will be turned off while executing the routine and reset to the previous state afterwards
 ;; Registers modified: A
 .macro  disable_nmi   ;version with all lowercase
-	disable_NMI
+        disable_NMI
 .endmacro
 
 .macro  disable_NMI
 .import _disable_NMI_sr
-       jsr _disable_NMI_sr
+        jsr _disable_NMI_sr
 .endmacro
 
 
@@ -270,45 +270,45 @@ loop:
 ;;  74  Drive not ready
 .macro diskstatus devicenr
 ;ToDo - this should be a library routine with a short macro stub instead of a long macro
-	.scope
+  .scope
         lda #0
-	jsr SETNAM	;no parameter
-	lda #$0f
-	tay		;open 15,x,15
-	.if devicenr = 0
-	  ldx $BA
-	  bne :+
-	  ldx #$08	;use address 8 as default
-:	  
-	.else
-	  ldx #devicenr
-	.endif
-	jsr SETLFS
-	jsr OPEN
-	ldx #$0f
-	jsr CHKIN
-	jsr CHRIN	;read tens digit
-	sec
-	sbc #$30
-	asl
-	sta sm_tens
-	asl
-	asl
+        jsr SETNAM      ;no parameter
+        lda #$0f
+        tay             ;open 15,x,15
+    .if devicenr = 0
+        ldx $BA
+        bne :+
+        ldx #$08      ;use address 8 as default
+:
+    .else
+        ldx #devicenr
+    .endif
+        jsr SETLFS
+        jsr OPEN
+        ldx #$0f
+        jsr CHKIN
+        jsr CHRIN       ;read tens digit
+        sec
+        sbc #$30
+        asl
+        sta sm_tens
+        asl
+        asl
 sm_tens=*+1
-	adc #00
-	sta sm_to_add
-	jsr CHRIN	;read ones digit
-	sec
-	sbc #$30
-	clc
+        adc #00
+        sta sm_to_add
+        jsr CHRIN       ;read ones digit
+        sec
+        sbc #$30
+        clc
 sm_to_add=*+1
-	adc #00	
-	pha
-	jsr CLRCHN
-	lda #$0f
-	jsr CLOSE
-	pla
-	.endscope
+        adc #00
+        pha
+        jsr CLRCHN
+        lda #$0f
+        jsr CLOSE
+        pla
+  .endscope
 .endmacro
 
 ;; div8 arg
@@ -318,22 +318,22 @@ sm_to_add=*+1
 ;; Registers modified: A,X
 
 .macro div8 arg
-.scope
-	sta quotient
-     	lda #0
-	ldx #8
-	asl quotient
-L1:	rol
-	cmp arg
-	bcc L2
-	sbc arg
-L2:	rol quotient
-	dex
-	bne L1
-	tax
+  .scope
+        sta quotient
+        lda #0
+        ldx #8
+        asl quotient
+L1:     rol
+        cmp arg
+        bcc L2
+        sbc arg
+L2:     rol quotient
+        dex
+        bne L1
+        tax
 quotient=*+1
-	lda #00
-.endscope
+        lda #00
+  .endscope
 .endmacro
 
 ;; div16by8 arg
@@ -344,24 +344,24 @@ quotient=*+1
 ;; Registers modified: A,X
 
 .macro div16by8 arg
-.scope
-	sta quotient
-	txa
-	ldx #8
-	asl quotient
-L1:	rol
-	bcs L2
-	cmp arg
-	bcc L3
-L2:	sbc arg
-	sec
-L3:	rol quotient
-	dex
-	bne L1
-	tax
+  .scope
+        sta quotient
+        txa
+        ldx #8
+        asl quotient
+L1:     rol
+        bcs L2
+        cmp arg
+        bcc L3
+L2:     sbc arg
+        sec
+L3:     rol quotient
+        dex
+        bne L1
+        tax
 quotient=*+1
-	lda #00
-.endscope
+        lda #00
+  .endscope
 .endmacro
 
 ;; div16 arg
@@ -376,22 +376,22 @@ quotient=*+1
 .importzp _div16_rem
 
 .macro div16 arg
-.scope
-        .if (.match (.left (1, {arg}), #))
+  .scope
+    .if (.match (.left (1, {arg}), #))
             ; immediate mode
-            ldy     #<(.right (.tcount ({arg})-1, {arg}))
-            sty _div16_arg_lo
-            ldy     #>(.right (.tcount ({arg})-1, {arg}))
-            sty _div16_arg_hi
-        .else
+        ldy     #<(.right (.tcount ({arg})-1, {arg}))
+        sty _div16_arg_lo
+        ldy     #>(.right (.tcount ({arg})-1, {arg}))
+        sty _div16_arg_hi
+    .else
             ; assume absolute or zero page
-            ldy     arg
-            sty _div16_arg_lo
-            ldy     1+(arg)
-            sty _div16_arg_hi
-        .endif  
-         jsr _div16_sr ;div16 subroutine
-.endscope
+        ldy     arg
+        sty _div16_arg_lo
+        ldy     1+(arg)
+        sty _div16_arg_hi
+    .endif
+        jsr _div16_sr ;div16 subroutine
+  .endscope
 .endmacro
 
 
@@ -407,43 +407,43 @@ quotient=*+1
 .importzp _div16_rem
 
 .macro mod16 arg
-.scope
-        .if (.match (.left (1, {arg}), #))
+  .scope
+    .if (.match (.left (1, {arg}), #))
             ; immediate mode
-            ldy     #<(.right (.tcount ({arg})-1, {arg}))
-            sty _div16_arg_lo
-            ldy     #>(.right (.tcount ({arg})-1, {arg}))
-            sty _div16_arg_hi
-        .else
+        ldy     #<(.right (.tcount ({arg})-1, {arg}))
+        sty _div16_arg_lo
+        ldy     #>(.right (.tcount ({arg})-1, {arg}))
+        sty _div16_arg_hi
+    .else
             ; assume absolute or zero page
-            ldy     arg
-            sty _div16_arg_lo
-            ldy     1+(arg)
-            sty _div16_arg_hi
-        .endif  
-         jsr _div16_sr ;div16 subroutine
-	 ldax _div16_rem
-.endscope
+        ldy     arg
+        sty _div16_arg_lo
+        ldy     1+(arg)
+        sty _div16_arg_hi
+    .endif
+        jsr _div16_sr ;div16 subroutine
+        ldax _div16_rem
+  .endscope
 .endmacro
 
 
 ;; disable_cbm_shift
 ;; disable Commodore-Shift
 .macro  disable_cbm_shift
-.scope
-	lda #8
-	jsr CHROUT
-.endscope
+  .scope
+        lda #8
+        jsr CHROUT
+  .endscope
 .endmacro
 
 
 ;; enable_cbm_shift
 ;; enable Commodore-Shift, this key combination toggles between the uppercase/graphics and lowercase/uppercase character set
 .macro  enable_cbm_shift
-.scope
-	lda #9
-	jsr CHROUT
-.endscope
+  .scope
+        lda #9
+        jsr CHROUT
+  .endscope
 .endmacro
 
 
@@ -454,12 +454,12 @@ quotient=*+1
 ;; Note that control character keypresses in direct mode are not handled via $FFD2, therefore pressing for example CLR/HOME will leave the window in direct mode.
 ;; Window parameters:
 ;; <tt>.import _window_x1,_window_y1,_window_x2,_window_y2</tt>
-;; For example to set a window starting on column 5, write 
+;; For example to set a window starting on column 5, write
 ;; <tt>  .import _window_x1
 ;;   poke _window_x1,5</tt>
 .macro enable_chrout2window
 .import _enable_chrout2window
-	jsr _enable_chrout2window
+        jsr _enable_chrout2window
 .endmacro
 
 
@@ -467,7 +467,7 @@ quotient=*+1
 ;; Restores the original Kernal vector and disables the chrout2window mode
 .macro disable_chrout2window
 .import _disable_chrout2window
-	jsr _disable_chrout2window
+        jsr _disable_chrout2window
 .endmacro
 
 
@@ -475,7 +475,7 @@ quotient=*+1
 ;; Clears the window that was defined by the window parametes of chrout2window and sets the cursor to the home position. When chrout2window is enabled, the same effect can be achieved by lda #147, jsr $FFD2
 .macro clear_window
 .import _clear_window
-	jsr _clear_window
+        jsr _clear_window
 .endmacro
 
 
@@ -498,28 +498,28 @@ quotient=*+1
 ;;   poke _frame_lower_left,74</tt>
 
 .macro draw_frame x1,y1,x2,y2,c
-	.ifnblank x1
-	  .import _window_x1
-	  poke _window_x1,x1
-	.endif
-	.ifnblank y1
-	  .import _window_y1
-	  poke _window_y1,y1
-	.endif
-	.ifnblank x2
-	  .import _window_x2
-	  poke _window_x2,x2
-	.endif
-	.ifnblank y2
-	  .import _window_y2
-	  poke _window_y2,y2
-	.endif
-	.ifnblank c
-	  .import _frame_color
-	  poke _frame_color,c
-	.endif
-	.import _draw_frame_sr
-	jsr _draw_frame_sr
+  .ifnblank x1
+.import _window_x1
+        poke _window_x1,x1
+  .endif
+  .ifnblank y1
+.import _window_y1
+        poke _window_y1,y1
+  .endif
+  .ifnblank x2
+.import _window_x2
+        poke _window_x2,x2
+  .endif
+  .ifnblank y2
+.import _window_y2
+        poke _window_y2,y2
+  .endif
+  .ifnblank c
+.import _frame_color
+        poke _frame_color,c
+  .endif
+.import _draw_frame_sr
+        jsr _draw_frame_sr
 .endmacro
 
 
@@ -527,10 +527,10 @@ quotient=*+1
 ;; Fills the window with the given char and the current textcolor. When using $20 as char this function works similar to clear_window, but the cursor position is not affected.
 .macro fill_window char
 .import _fill_window
-	.if .not( .xmatch ({char}, {A}) .or .xmatch ({char}, {a}) )
-	  lda char
-	.endif
-	jsr _fill_window
+  .if .not( .xmatch ({char}, {A}) .or .xmatch ({char}, {a}) )
+        lda char
+  .endif
+        jsr _fill_window
 .endmacro
 
 
@@ -539,7 +539,7 @@ quotient=*+1
 ;; Function depends on Kernal ROM and the IRQ routine regularily scanning the keyboard
 .macro getkey
 .import _getkey
-	jsr _getkey
+        jsr _getkey
 .endmacro
 
 
@@ -551,30 +551,30 @@ quotient=*+1
 ;; Result is returned in carry
 ;; Carry flag is set for 6581, and clear for 8580
 .macro  identify_sid address   ;version with all lowercase
-	identify_SID address
+        identify_SID address
 .endmacro
 
 .macro identify_SID address
-.scope
-       .if .paramcount > 0
-            SIDbaseaddress=address
-       .else
-            SIDbaseaddress=$d400
-       .endif
-       sei
-       lda #$ff
+  .scope
+    .if .paramcount > 0
+SIDbaseaddress=address
+    .else
+SIDbaseaddress=$d400
+    .endif
+        sei
+        lda #$ff
 waitraster:
-       cmp $D012    ;wait until screen is in border
-       bne waitraster
+        cmp $D012    ;wait until screen is in border
+        bne waitraster
 
-       sta SIDbaseaddress+$12  ;control register voice 3 
-       sta SIDbaseaddress+$0e
-       sta SIDbaseaddress+$0f  ;set frequency in voice 3 to $ffff
-       lda #$20                ;sawtooth wave and gatebit off to start oscillator again
-       sta SIDbaseaddress+$12
-       lda SIDbaseaddress+$1b
-       lsr
-.endscope
+        sta SIDbaseaddress+$12  ;control register voice 3
+        sta SIDbaseaddress+$0e
+        sta SIDbaseaddress+$0f  ;set frequency in voice 3 to $ffff
+        lda #$20                ;sawtooth wave and gatebit off to start oscillator again
+        sta SIDbaseaddress+$12
+        lda SIDbaseaddress+$1b
+        lsr
+  .endscope
 .endmacro
 
 
@@ -583,201 +583,201 @@ waitraster:
 ;; filename should be given as a quoted string. If the filename ends with ".prg" it is assumed that the first two byter are the loading address, these bytes are skipped for the calculation of start address and length
 ;; Example: include_file_as "sprites.bin",sprites
 ;; (identifier)_filestart contains the first address where the file was included (in the example that would be sprites_filestart)s
-;; (identifier)_filestart contains the last address (+1) where the file was included 
+;; (identifier)_filestart contains the last address (+1) where the file was included
 ;; (identifier)_length contains the length in bytes
-;; This macro is convenient for small projects, consider using a linker for projects with many different large components 
+;; This macro is convenient for small projects, consider using a linker for projects with many different large components
 .macro include_file_as filename,identifier
         ; Check if the argument string ends with '.prg' (any case)
-        .if .strlen(filename)>3
-          .if (.strat (filename, .strlen(filename)-4) = '.') .and ((.strat (filename, .strlen(filename)-3) = 'p')  .or (.strat (filename, .strlen(filename)-3) = 'P')) .and ((.strat (filename, .strlen(filename)-2) = 'r')  .or (.strat (filename, .strlen(filename)-2) = 'R')) .and ((.strat (filename, .strlen(filename)-1) = 'g')  .or (.strat (filename, .strlen(filename)-1) = 'G'))
-            ::.ident (.sprintf ("%s_filetype", .string(identifier))) = 1
-          .else
-            ::.ident (.sprintf ("%s_filetype", .string(identifier))) = 0
-          .endif
-        .else
-          ::.ident (.sprintf ("%s_filetype", .string(identifier))) = 0
-        .endif
+  .if .strlen(filename)>3
+    .if (.strat (filename, .strlen(filename)-4) = '.') .and ((.strat (filename, .strlen(filename)-3) = 'p')  .or (.strat (filename, .strlen(filename)-3) = 'P')) .and ((.strat (filename, .strlen(filename)-2) = 'r')  .or (.strat (filename, .strlen(filename)-2) = 'R')) .and ((.strat (filename, .strlen(filename)-1) = 'g')  .or (.strat (filename, .strlen(filename)-1) = 'G'))
+::.ident (.sprintf ("%s_filetype", .string(identifier))) = 1
+    .else
+::.ident (.sprintf ("%s_filetype", .string(identifier))) = 0
+    .endif
+  .else
+::.ident (.sprintf ("%s_filetype", .string(identifier))) = 0
+  .endif
 
-        .if ::.ident (.sprintf ("%s_filetype", .string(identifier))) = 1
-          .incbin filename,0,2  
-::.ident (.sprintf ("%s_filestart", .string(identifier))):
-          .incbin filename,2    
-        .else
-::.ident (.sprintf ("%s_filestart", .string(identifier))):
-          .incbin filename
-        .endif
-::.ident (.sprintf ("%s_fileend", .string(identifier))):
-::.ident (.sprintf ("%s_length", .string(identifier))) .set (::.ident (.sprintf ("%s_fileend", .string(identifier))) - ::.ident (.sprintf ("%s_filestart", .string(identifier)))) 
+  .if ::.ident (.sprintf ("%s_filetype", .string(identifier))) = 1
+        .incbin filename,0,2
+        ::.ident (.sprintf ("%s_filestart", .string(identifier))):
+        .incbin filename,2
+  .else
+        ::.ident (.sprintf ("%s_filestart", .string(identifier))):
+        .incbin filename
+  .endif
+        ::.ident (.sprintf ("%s_fileend", .string(identifier))):
+        ::.ident (.sprintf ("%s_length", .string(identifier))) .set (::.ident (.sprintf ("%s_fileend", .string(identifier))) - ::.ident (.sprintf ("%s_filestart", .string(identifier))))
 .endmacro
 
 ;; install_file identifier[,target_addr]
-;; If identifier is a string, the file with that name is imported here and copied to its start address, 
-;; or if a target address is given to target_addr. 
+;; If identifier is a string, the file with that name is imported here and copied to its start address,
+;; or if a target address is given to target_addr.
 ;; If the filetype is different from PRG, target_addr must be specified.
 ;; If identifier is not a string it refers to a previously included file. In this case, there must be a
 ;; command include_file_as filename,identifier placed before calling install_file.
 .macro install_file identifier,target_addr
-        .import _memcopy_sr
-        .importzp _llzp_word1,_llzp_word2
+.import _memcopy_sr
+.importzp _llzp_word1,_llzp_word2
 
-	.if .match(identifier,"string")
-	  .scope
-          .if .defined(::install_foobar_counter)
-	    ::install_foobar_counter .set ::install_foobar_counter + 1
-	  .else
-	    ::install_foobar_counter .set 1
-	  .endif
-	  jmp over_it
-	  include_file_as identifier,.ident(.sprintf ("x%d_filetype", ::install_foobar_counter))
-	over_it:
-	  install_file .ident(.sprintf ("x%d_filetype", ::install_foobar_counter)),target_addr
-	  .endscope
-	  .exitmacro
-	.endif
+  .if .match(identifier,"string")
+    .scope
+      .if .defined(::install_foobar_counter)
+        ::install_foobar_counter .set ::install_foobar_counter + 1
+      .else
+        ::install_foobar_counter .set 1
+      .endif
+        jmp over_it
+        include_file_as identifier,.ident(.sprintf ("x%d_filetype", ::install_foobar_counter))
+over_it:
+install_file .ident(.sprintf ("x%d_filetype", ::install_foobar_counter)),target_addr
+    .endscope
+        .exitmacro
+  .endif
 
-        .ifblank target_addr
-          .if ::.ident (.sprintf ("%s_filetype", .string(identifier))) = 0
-            .error "Binary files have no load address, missing parameter target_addr"
-          .endif
-        .endif
+  .ifblank target_addr
+    .if ::.ident (.sprintf ("%s_filetype", .string(identifier))) = 0
+        .error "Binary files have no load address, missing parameter target_addr"
+    .endif
+  .endif
 
-	.ifndef ::.ident (.sprintf ("%s_filetype", .string(identifier)))
-	  .error "File object not defined, typo?"
-	.endif
+  .ifndef ::.ident (.sprintf ("%s_filetype", .string(identifier)))
+        .error "File object not defined, typo?"
+  .endif
 
-        .scope
-        .if ::.ident (.sprintf ("%s_length", .string(identifier))) < 256
+  .scope
+    .if ::.ident (.sprintf ("%s_length", .string(identifier))) < 256
           ;code for copying up to 255 bytes
-          .ifblank target_addr
-            ldax ::.ident (.sprintf ("%s_filestart", .string(identifier)))-2
-            stax sm_target_addr
+      .ifblank target_addr
+        ldax ::.ident (.sprintf ("%s_filestart", .string(identifier)))-2
+        stax sm_target_addr
             ;x goes from length-1 down to 0
-            ldx #::.ident (.sprintf ("%s_length", .string(identifier))) - 1
-  copyloop1:
-            lda ::.ident (.sprintf ("%s_filestart", .string(identifier))),x
+        ldx #::.ident (.sprintf ("%s_length", .string(identifier))) - 1
+copyloop1:
+        lda ::.ident (.sprintf ("%s_filestart", .string(identifier))),x
 sm_target_addr=*+1
-            sta $affe,x
-            dex
-	    .if ::.ident (.sprintf ("%s_length", .string(identifier))) <= 128
-	      bpl copyloop1
-	    .else
-	      cpx #$ff
-              bne copyloop1
-	    .endif
-          .else ;ifblank target_addr
+        sta $affe,x
+        dex
+        .if ::.ident (.sprintf ("%s_length", .string(identifier))) <= 128
+        bpl copyloop1
+        .else
+        cpx #$ff
+        bne copyloop1
+        .endif
+      .else ;ifblank target_addr
             ;x goes from length down to 1
-            ldx #<::.ident (.sprintf ("%s_length", .string(identifier)))
-  copyloop_cmp2:
-            lda ::.ident (.sprintf ("%s_filestart", .string(identifier)))-1,x
-            sta target_addr-1,x
-            dex
-            bne copyloop_cmp2
-          .endif
-          .endscope
-          .exitmacro
-        .endif
+        ldx #<::.ident (.sprintf ("%s_length", .string(identifier)))
+copyloop_cmp2:
+        lda ::.ident (.sprintf ("%s_filestart", .string(identifier)))-1,x
+        sta target_addr-1,x
+        dex
+        bne copyloop_cmp2
+      .endif
+    .endscope
+        .exitmacro
+  .endif
 
-        .if ::.ident (.sprintf ("%s_length", .string(identifier))) = 256
+  .if ::.ident (.sprintf ("%s_length", .string(identifier))) = 256
           ;code copying 256 bytes
-          .ifblank target_addr
-            ldax ::.ident (.sprintf ("%s_filestart", .string(identifier)))-2
-            stax sm_target_addr
-          .endif
-          ldx #0	;256 iterations
+    .ifblank target_addr
+        ldax ::.ident (.sprintf ("%s_filestart", .string(identifier)))-2
+        stax sm_target_addr
+    .endif
+        ldx #0        ;256 iterations
 copyloop256:
-          lda ::.ident (.sprintf ("%s_filestart", .string(identifier))),x
-          .ifblank target_addr
+        lda ::.ident (.sprintf ("%s_filestart", .string(identifier))),x
+    .ifblank target_addr
 sm_target_addr=*+1
-            sta $affe,x
-          .else
-            sta target_addr,x
-          .endif
-          dex
-          bne copyloop256
-          .endscope
-          .exitmacro
-        .endif
+        sta $affe,x
+    .else
+        sta target_addr,x
+    .endif
+        dex
+        bne copyloop256
+  .endscope
+        .exitmacro
+.endif
 
         ;code for copying >256 bytes
-        yinit = <($100-<::.ident (.sprintf ("%s_length", .string(identifier))) )
+yinit = <($100-<::.ident (.sprintf ("%s_length", .string(identifier))) )
         ldy #yinit
-        .ifblank target_addr
+.ifblank target_addr
           ; using target address from file
-          ldax ::.ident (.sprintf ("%s_filestart", .string(identifier)))-2
-          .if yinit>0
-            subax #yinit
-          .endif
-        .else
+        ldax ::.ident (.sprintf ("%s_filestart", .string(identifier)))-2
+  .if yinit>0
+        subax #yinit
+  .endif
+.else
           ; target address is given as argument
-          ldax #target_addr - yinit
-        .endif
+        ldax #target_addr - yinit
+.endif
         stax _llzp_word1
         ldax #(::.ident (.sprintf ("%s_filestart", .string(identifier))) - yinit)
         stax _llzp_word2
         ldx #1+>(::.ident (.sprintf ("%s_length", .string(identifier))) -1)
-        .endscope
+.endscope
         jsr _memcopy_sr
 .endmacro
 
-;; install_irq_catcher 
-;; install_irq_brk_catcher 
+;; install_irq_catcher
+;; install_irq_brk_catcher
 ;; Installs an irq vector in $FFFE/$FFFF pointing to a routine that catches the IRQ, turns on Kernal ROM, calls the ISR via the vector $314/315, and restores the previous state after the isr terminates.
 ;; This allows to use different memory configurations without the need to turn off the interrupt.
 ;; The install_irq_brk_catcher uses code that distinguishes BRK from an IRQ. Since this costs some cycles, this should be used only if BRK is used in your code.
 .macro install_irq_catcher
 .import _catchirq_sr
-	lda #<_catchirq_sr
-	sta $fffe
-	lda #>_catchirq_sr
-	sta $ffff
-	rts
+        lda #<_catchirq_sr
+        sta $fffe
+        lda #>_catchirq_sr
+        sta $ffff
+        rts
 .endmacro
 .macro install_irq_brk_catcher
 .import _catchirq_brk_sr
-	lda #<_catchirq_brk_sr
-	sta $fffe
-	lda #>_catchirq_brk_sr
-	sta $ffff
-	rts
+        lda #<_catchirq_brk_sr
+        sta $fffe
+        lda #>_catchirq_brk_sr
+        sta $ffff
+        rts
 .endmacro
 
 ;; is_alpha
-;; is_alpha tests if value in Accu is between the values 'a' and 'z' (in lowercase mode). 
+;; is_alpha tests if value in Accu is between the values 'a' and 'z' (in lowercase mode).
 ;; Return value: Carry set if value is in range, carry cleared otherwise
 ;; Registers modified: none
 .macro is_alpha
-	is_in_range $41,$5a
+        is_in_range $41,$5a
 .endmacro
 
 
 ;; is_not_alpha
-;; is_alpha tests if value in Accu is <b>not</b> between the values 'a' and 'z' (in lowercase mode). 
+;; is_alpha tests if value in Accu is <b>not</b> between the values 'a' and 'z' (in lowercase mode).
 ;; Return value: Carry set if value is outside range, carry cleared otherwise
 ;; Registers modified: none
 .macro is_not_alpha
-	is_not_in_range $41,$5a
+        is_not_in_range $41,$5a
 .endmacro
 
 
 ;; is_digit
-;; is_digit tests if value in Accu is between the values '0' and '9'. 
+;; is_digit tests if value in Accu is between the values '0' and '9'.
 ;; Return value: Carry set if value is a digit, carry cleared otherwise
 ;; Registers modified: none
 .macro is_digit
-	eor #$cf
+        eor #$cf
         cmp #$f5
-	eor #$cf
+        eor #$cf
 .endmacro
 
 
 ;; is_not_digit
-;; is_not_digit tests if value in Accu is <b>not</b> between the values '0' and '9'. 
+;; is_not_digit tests if value in Accu is <b>not</b> between the values '0' and '9'.
 ;; Return value: Carry clear if value is a digit, carry set otherwise
 ;; Registers modified: none
 .macro is_not_digit
-	eor #$30
+        eor #$30
         cmp #$0a
-	eor #$30
+        eor #$30
 .endmacro
 
 
@@ -786,12 +786,12 @@ sm_target_addr=*+1
 ;; Return value: Carry set if value is in range, carry cleared otherwise
 ;; Registers modified: none
 .macro is_in_range lower,higher
-	cmp #lower
-	bcc :+
+        cmp #lower
+        bcc :+
         eor #$ff
-	cmp #$ff-higher
+        cmp #$ff-higher
         eor #$ff
-:	
+:
 .endmacro
 
 ;; is_not_in_range lower,higher
@@ -799,12 +799,12 @@ sm_target_addr=*+1
 ;; Return value: Carry set if value is outside range, carry cleared otherwise
 ;; Registers modified: none
 .macro is_not_in_range lower,higher
-	cmp #higher+1
-	bcs :+
+        cmp #higher+1
+        bcs :+
         eor #$ff
-	cmp #$ff-(lower-1)
+        cmp #$ff-(lower-1)
         eor #$ff
-:	
+:
 .endmacro
 
 
@@ -821,6 +821,7 @@ sm_target_addr=*+1
 
 ;; load_prg filename[,devicenr[,loadaddr]]
 ;; Wrapper around ROM load function, prg means that the file is assumed to have a two-byte load address at its start
+;; filename can be a string or a pointer in AX
 ;; if device number is 0 or not stated, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default
 ;; if loadaddr is omitted, the load address is defined by the first two bytes of the file
 ;; Return value in carry, if carry is set, an error has happened and error code is returned in A:
@@ -830,46 +831,60 @@ sm_target_addr=*+1
 ;;  A = $00 (BREAK, RUN/STOP has been pressed during loading)
 ;; Registers modified: A,X,Y
 .macro load_prg filename,devicenr,loadaddr
-        .scope
+.scope
+.if (.xmatch ({filename}, {AX}) .or .xmatch ({filename}, {ax}))          ;AX is used as filename address
+        sta filenameaddr_lo
+        stx filenameaddr_hi
+        strlen8 AX    ;returns strlen in X
+        txa
+filenameaddr_lo=*+1
+        ldx #0
+filenameaddr_hi=*+1
+        ldy #0
+.else
         lda #endfilename-beginfilename
-	ldx #<beginfilename
-	ldy #>beginfilename
-	jsr SETNAM
-	
-	.ifblank devicenr
-	  devno:=0
-	.else
-	  devno:=devicenr
-	.endif
+        ldx #<beginfilename
+        ldy #>beginfilename
+.endif
+        jsr SETNAM
 
-	.if devno = 0
-	  ldx $BA
-	  bne :+
-	  ldx #$08	;use address 8 as default
-:	  
-	.else
-	  ldx #devno
-	.endif
-	lda #$01
-	.if .paramcount < 3
-	  ldy #$01	;load file to address defined in file
-	.else
-	  ldy #$00	;load file to specified address
-	.endif
-	jsr SETLFS
+.ifblank devicenr
+devno:=0
+.else
+devno:=devicenr
+.endif
 
-	lda #$00	;load (instead of verify)
-	.if .paramcount = 3
-	  ldx #<loadaddr
-	  ldy #>loadaddr
-	.endif
-	jsr LOAD
+.if devno = 0
+        ldx $BA
+        bne :+
+        ldx #$08      ;use address 8 as default
+:
+.else
+        ldx #devno
+.endif
+        lda #$01
+.if .paramcount < 3
+        ldy #$01      ;load file to address defined in file
+.else
+        ldy #$00      ;load file to specified address
+.endif
+        jsr SETLFS
 
-	jmp endfilename	;hop over filename data
+        lda #$00        ;load (instead of verify)
+.if .paramcount = 3
+        ldx #<loadaddr
+        ldy #>loadaddr
+.endif
+        jsr LOAD
+
+.if .not ((.xmatch ({filename}, {AX}) .or .xmatch ({filename}, {ax})))          ;AX was not used as filename address
+        jmp endfilename ;hop over filename data
 beginfilename:
-	.byte filename
+        .byte filename
 endfilename:
-        .endscope
+.endif
+
+.endscope
 .endmacro
 
 
@@ -879,10 +894,10 @@ endfilename:
 ;; Registers modified: A
 .macro  lowercase_mode
 .scope
-                lda #$08
-                jsr CHROUT
-                lda #$0E
-                jsr CHROUT
+        lda #$08
+        jsr CHROUT
+        lda #$0E
+        jsr CHROUT
 .endscope
 .endmacro
 
@@ -903,19 +918,19 @@ endfilename:
 
 .macro mul16 arg
 .scope
-        .if (.match (.left (1, {arg}), #))
+.if (.match (.left (1, {arg}), #))
             ; immediate mode
-            ldy     #<(.right (.tcount ({arg})-1, {arg}))
-            sty _fastmul16_arg
-            ldy     #>(.right (.tcount ({arg})-1, {arg}))
-            sty _fastmul16_arg+1
-        .else
+        ldy     #<(.right (.tcount ({arg})-1, {arg}))
+        sty _fastmul16_arg
+        ldy     #>(.right (.tcount ({arg})-1, {arg}))
+        sty _fastmul16_arg+1
+.else
             ; assume absolute or zero page
-            ldy     arg
-            sty _fastmul16_arg
-            ldy     1+(arg)
-            sty _fastmul16_arg+1
-        .endif  
+        ldy     arg
+        sty _fastmul16_arg
+        ldy     1+(arg)
+        sty _fastmul16_arg+1
+.endif
         jsr _fastmul16_sr ;fastmul16 subroutine
 .endscope
 .endmacro
@@ -925,19 +940,19 @@ endfilename:
 
 .macro compactmul16 arg
 .scope
-        .if (.match (.left (1, {arg}), #))
+.if (.match (.left (1, {arg}), #))
             ; immediate mode
-            ldy     #<(.right (.tcount ({arg})-1, {arg}))
-            sty _mul16_arg
-            ldy     #>(.right (.tcount ({arg})-1, {arg}))
-            sty _mul16_arg+1
-        .else
+        ldy     #<(.right (.tcount ({arg})-1, {arg}))
+        sty _mul16_arg
+        ldy     #>(.right (.tcount ({arg})-1, {arg}))
+        sty _mul16_arg+1
+.else
             ; assume absolute or zero page
-            ldy     arg
-            sty _mul16_arg
-            ldy     1+(arg)
-            sty _mul16_arg+1
-        .endif  
+        ldy     arg
+        sty _mul16_arg
+        ldy     1+(arg)
+        sty _mul16_arg+1
+.endif
         jsr _mul16_sr ;mul16 subroutine
 .endscope
 .endmacro
@@ -950,8 +965,8 @@ endfilename:
 ;; Registers modified: A
 .macro  newline
 .scope
-                lda #$0d
-                jsr CHROUT
+        lda #$0d
+        jsr CHROUT
 .endscope
 .endmacro
 
@@ -962,10 +977,10 @@ endfilename:
 ;; Registers modified: A
 .macro  PETSCII_mode
 .scope
-                lda #$08
-                jsr CHROUT
-                lda #$8E
-                jsr CHROUT
+        lda #$08
+        jsr CHROUT
+        lda #$8E
+        jsr CHROUT
 .endscope
 .endmacro
 
@@ -978,9 +993,9 @@ endfilename:
 .macro  primm str
 .import _primm_sr
 .scope
-       jsr _primm_sr
-       str_enc str
-       .byte 0
+        jsr _primm_sr
+        str_enc str
+        .byte 0
 .endscope
 .endmacro
 
@@ -993,19 +1008,19 @@ endfilename:
 ;; Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)
 ;; Registers modified: none
 .macro print arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
-	.if .defined(::nesting_level_print)
-	  ::nesting_level_print .set ::nesting_level_print+1
-	.else
-	  ::nesting_level_print .set 1
-	.endif
-	sta .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+1
-	stx .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+3
-	sty .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+5
-	print_recursive1 arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
-.ident(.sprintf("print_macro_lbl%d", ::nesting_level_print)):	
-	lda #$af	;value will be overwritten to restore reg value
-	ldx #$fe	;value will be overwritten to restore reg value
-	ldy #$42	;value will be overwritten to restore reg value
+.if .defined(::nesting_level_print)
+        ::nesting_level_print .set ::nesting_level_print+1
+.else
+        ::nesting_level_print .set 1
+.endif
+        sta .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+1
+        stx .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+3
+        sty .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+5
+        print_recursive1 arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+.ident(.sprintf("print_macro_lbl%d", ::nesting_level_print)):
+        lda #$af        ;value will be overwritten to restore reg value
+        ldx #$fe        ;value will be overwritten to restore reg value
+        ldy #$42        ;value will be overwritten to restore reg value
 .endmacro
 
 ;; println arg1 [arg2 ...]
@@ -1016,56 +1031,56 @@ endfilename:
 ;; Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)
 ;; Registers modified: none
 .macro println arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
-	.if .defined(::nesting_level_print)
-	  ::nesting_level_print .set ::nesting_level_print+1
-	.else
-	  ::nesting_level_print .set 1
-	.endif
-	sta .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+1
-	stx .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+3
-	sty .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+5
-	print_recursive1 arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
+.if .defined(::nesting_level_print)
+        ::nesting_level_print .set ::nesting_level_print+1
+.else
+        ::nesting_level_print .set 1
+.endif
+        sta .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+1
+        stx .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+3
+        sty .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+5
+        print_recursive1 arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
         lda #$0d
         jsr CHROUT
-.ident(.sprintf("print_macro_lbl%d", ::nesting_level_print)):	
-	lda #$af	;value will be overwritten to restore reg value
-	ldx #$fe	;value will be overwritten to restore reg value
-	ldy #$42	;value will be overwritten to restore reg value
+.ident(.sprintf("print_macro_lbl%d", ::nesting_level_print)):
+        lda #$af        ;value will be overwritten to restore reg value
+        ldx #$fe        ;value will be overwritten to restore reg value
+        ldy #$42        ;value will be overwritten to restore reg value
 .endmacro
 
 .macro print_recursive1 arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
-  .ifblank arg1
+.ifblank arg1
       ; First parameter is empty
-      .exitmacro
-  .endif
+        .exitmacro
+.endif
 .scope
-        .if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))    ;print AX as number
-           printax
-       .elseif (.xmatch ({arg1}, {A}))                  ;print akku as number
-           printa
-       .elseif (.match (.left (1, {arg1}), #))          ;immediate number
-           iarg=(.right (.tcount ({arg1})-1, {arg1}))
-           .if .const(iarg) .and (<iarg = >iarg)
-              lda     #<iarg
-              tax
-           .else
-              lda     #<iarg
-              ldx     #>iarg
-           .endif
-           printax
-        .elseif (.match (.left (1, {arg1}), {(})) .and (.match (.right (1, {arg1}), {)}))       ;argument in brackets
-           ldax .mid (1, .tcount ({arg1})-2, {arg1})
-           printax
-        .else
-           primm arg1	;immediate string
-       .endif
+.if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))    ;print AX as number
+        printax
+.elseif (.xmatch ({arg1}, {A}))                  ;print akku as number
+        printa
+.elseif (.match (.left (1, {arg1}), #))          ;immediate number
+iarg=(.right (.tcount ({arg1})-1, {arg1}))
+  .if .const(iarg) .and (<iarg = >iarg)
+        lda     #<iarg
+        tax
+  .else
+        lda     #<iarg
+        ldx     #>iarg
+  .endif
+        printax
+.elseif (.match (.left (1, {arg1}), {(})) .and (.match (.right (1, {arg1}), {)}))       ;argument in brackets
+        ldax .mid (1, .tcount ({arg1})-2, {arg1})
+        printax
+.else
+        primm arg1   ;immediate string
+.endif
 .endscope
-        .ifnblank arg2
-	  ;restore A and X to prepare for next print part
-	  lda .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+1
-	  ldx .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+3
-        .endif
-	;recursely process remaining arguments
+.ifnblank arg2
+          ;restore A and X to prepare for next print part
+        lda .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+1
+        ldx .ident(.sprintf("print_macro_lbl%d", ::nesting_level_print))+3
+.endif
+        ;recursely process remaining arguments
         print_recursive1 arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
 .endmacro
 
@@ -1078,84 +1093,84 @@ endfilename:
 
 
 .if .def(__C128__)
-  .macro print_wrapped_setpars x1,width,endchar
-        .import _print_wrapped_x1_128
-        .import _print_wrapped_width_128
-        .import _print_wrapped_endchar_128
+.macro print_wrapped_setpars x1,width,endchar
+.import _print_wrapped_x1_128
+.import _print_wrapped_width_128
+.import _print_wrapped_endchar_128
 
-        .if (.not .blank(x1))
-          poke _print_wrapped_x1_128,x1
-        .endif
-        .if (.not .blank(width))
-          poke _print_wrapped_width_128,width
-        .endif
-        .if (.not .blank(endchar))
-          poke _print_wrapped_endchar_128,endchar
-        .endif
-  .endmacro
+.if (.not .blank(x1))
+        poke _print_wrapped_x1_128,x1
+.endif
+.if (.not .blank(width))
+        poke _print_wrapped_width_128,width
+.endif
+.if (.not .blank(endchar))
+        poke _print_wrapped_endchar_128,endchar
+.endif
+.endmacro
 .elseif .def(__VIC20__)
-  .macro print_wrapped_setpars x1,width,endchar
-        .import _print_wrapped_x1_20
-        .import _print_wrapped_width_20
-        .import _print_wrapped_endchar_20
+.macro print_wrapped_setpars x1,width,endchar
+.import _print_wrapped_x1_20
+.import _print_wrapped_width_20
+.import _print_wrapped_endchar_20
 
-        .if (.not .blank(x1))
-          poke _print_wrapped_x1_20,x1
-        .endif
-        .if (.not .blank(width))
-          poke _print_wrapped_width_20,width
-        .endif
-        .if (.not .blank(endchar))
-          poke _print_wrapped_endchar_20,endchar
-        .endif
-  .endmacro
+.if (.not .blank(x1))
+        poke _print_wrapped_x1_20,x1
+.endif
+.if (.not .blank(width))
+        poke _print_wrapped_width_20,width
+.endif
+.if (.not .blank(endchar))
+        poke _print_wrapped_endchar_20,endchar
+.endif
+.endmacro
 .else
-  .macro print_wrapped_setpars x1,width,endchar
-        .import _print_wrapped_x1
-        .import _print_wrapped_width
-        .import _print_wrapped_endchar
+.macro print_wrapped_setpars x1,width,endchar
+.import _print_wrapped_x1
+.import _print_wrapped_width
+.import _print_wrapped_endchar
 
-        .if (.not .blank(x1))
-          poke _print_wrapped_x1,x1
-        .endif
-        .if (.not .blank(width))
-          poke _print_wrapped_width,width
-        .endif
-        .if (.not .blank(endchar))
-          poke _print_wrapped_endchar,endchar
-        .endif
-  .endmacro
+.if (.not .blank(x1))
+        poke _print_wrapped_x1,x1
+.endif
+.if (.not .blank(width))
+        poke _print_wrapped_width,width
+.endif
+.if (.not .blank(endchar))
+        poke _print_wrapped_endchar,endchar
+.endif
+.endmacro
 .endif
 
 
 ;; print_wrapped arg
 ;; Write arg to the screen with word wrapping. arg can be a string, an address or AX as a pointer to a null-terminated string.
-;; Left margin and width of print window are defined via print_wrapped_setpars 
+;; Left margin and width of print window are defined via print_wrapped_setpars
 ;; Default parameters for the printing window are 0,40, meaning full screen
 ;; The printing starts at the current cursor position, to support successive print_wrapped calls.
 ;; The string encoding supports escape characters like "\n" or "\xHH" with HH being a hexadecimal number.
 ;; If unsure about the cursor position, it is suggested to place the cursor with <i>set_cursor_pos</i> beforehand.
 
 .macro print_wrapped arg
-        .if .not ((.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax})))    ;not AX
-	  .if .match ({arg}, z)	;test if the argument starts with a character, then it is a label
-	    ldax #arg
-	  .else
-            jmp :++
-            : str_enc arg
-              .byte 0
-            : lda #<:--
-            ldx #>:--
-	  .endif
-        .endif
+.if .not ((.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax})))    ;not AX
+.if .match ({arg}, z) ;test if the argument starts with a character, then it is a label
+        ldax #arg
+.else
+        jmp :++
+:       str_enc arg
+        .byte 0
+:       lda #<:--
+        ldx #>:--
+.endif
+.endif
 .if .def(__C128__)
-        .import _print_wrapped_windowed_128
+.import _print_wrapped_windowed_128
         jsr _print_wrapped_windowed_128
 .elseif .def(__VIC20__)
-        .import _print_wrapped_windowed_20
+.import _print_wrapped_windowed_20
         jsr _print_wrapped_windowed_20
 .else
-        .import _print_wrapped_windowed
+.import _print_wrapped_windowed
         jsr _print_wrapped_windowed
 .endif
 .endmacro
@@ -1166,28 +1181,28 @@ endfilename:
 ;; Registers modified: A,Y,X
 .macro  printax
 .scope
-	.if ::USE_BASIC_ROM>0
-          sta setx +1     ;we need to switch A and X
-          txa
-setx:     ldx #00
-          jsr LINPRT
-	.else
-	  .import _printax_sr
-	  jsr _printax_sr
-	.endif
+.if ::USE_BASIC_ROM>0
+        sta setx +1     ;we need to switch A and X
+        txa
+setx:   ldx #00
+        jsr LINPRT
+.else
+.import _printax_sr
+        jsr _printax_sr
+.endif
 .endscope
 .endmacro
 
 .macro  printax_rightaligned fillchar
 .scope
-	.import _print_fillchars_ax_sr
-	.ifblank fillchar
-	  ldy #32	;default fillchar is space
-	.else
-	  ldy #fillchar
-	.endif
-	jsr _print_fillchars_ax_sr
-	printax
+.import _print_fillchars_ax_sr
+.ifblank fillchar
+        ldy #32       ;default fillchar is space
+.else
+        ldy #fillchar
+.endif
+        jsr _print_fillchars_ax_sr
+        printax
 .endscope
 .endmacro
 
@@ -1198,27 +1213,27 @@ setx:     ldx #00
 ;; Registers modified: A,X
 .macro  printa
 .scope
-	.if ::USE_BASIC_ROM>0
-	        tax
-	        lda #00
-                jsr LINPRT
-	.else
-		.import _printa_sr
-		jsr _printa_sr
-	.endif
+.if ::USE_BASIC_ROM>0
+        tax
+        lda #00
+        jsr LINPRT
+.else
+.import _printa_sr
+        jsr _printa_sr
+.endif
 .endscope
 .endmacro
 
 .macro  printa_rightaligned fillchar
 .scope
-	.import _print_fillchars_a_sr
-	.ifblank fillchar
-	  ldy #32	;default fillchar is space
-	.else
-	  ldy #fillchar
-	.endif
-	jsr _print_fillchars_a_sr
-	printa
+.import _print_fillchars_a_sr
+.ifblank fillchar
+        ldy #32       ;default fillchar is space
+.else
+        ldy #fillchar
+.endif
+        jsr _print_fillchars_a_sr
+        printa
 .endscope
 .endmacro
 
@@ -1228,24 +1243,24 @@ setx:     ldx #00
 ;; Registers modified: A,Y,X
 .macro  printax_signed
 .scope
-                cpx #$80        ;is it a negative number?
-                bcc positive
-                negax           ;negate number
-                pha
-                lda #'-'        ;write out minus sign
-                jsr CHROUT
-                pla
-positive:       
+        cpx #$80        ;is it a negative number?
+        bcc positive
+        negax           ;negate number
+        pha
+        lda #'-'        ;write out minus sign
+        jsr CHROUT
+        pla
+positive:
 
-	.if ::USE_BASIC_ROM>0
-                sta setx +1     ;we need to switch A and X
-                txa
-setx:           ldx #00
-                jsr LINPRT
-	.else
-		.import _printax_sr
-		jsr _printax_sr
-	.endif
+.if ::USE_BASIC_ROM>0
+        sta setx +1     ;we need to switch A and X
+        txa
+setx:   ldx #00
+        jsr LINPRT
+.else
+.import _printax_sr
+        jsr _printax_sr
+.endif
 .endscope
 .endmacro
 
@@ -1254,24 +1269,24 @@ setx:           ldx #00
 ;; BASIC and KERNAL ROM need to be enabled when using this function
 ;; Registers modified: A,Y,X
 .macro  printstr   arg
-        .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
-	    ;need to copy X to Y without using A
-	    pha
-	    txa
-	    tay
-	    pla
-        .elseif (.xmatch ({arg}, {AY}) .or .xmatch ({arg}, {ay}))
-	    ;no need to do anything
-        .else
-            lda #<(arg)
-            ldy #>(arg)
-        .endif
-	.if ::USE_BASIC_ROM>0
-            jsr STROUT
-	.else
-	    .import _strout_sr
-	    jsr _strout_sr
-	.endif
+.if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
+            ;need to copy X to Y without using A
+        pha
+        txa
+        tay
+        pla
+.elseif (.xmatch ({arg}, {AY}) .or .xmatch ({arg}, {ay}))
+            ;no need to do anything
+.else
+        lda #<(arg)
+        ldy #>(arg)
+.endif
+.if ::USE_BASIC_ROM>0
+        jsr STROUT
+.else
+.import _strout_sr
+        jsr _strout_sr
+.endif
 .endmacro
 
 ;; randomize [timer][,raster][,sid]
@@ -1285,66 +1300,66 @@ setx:           ldx #00
 .macro randomize arg1,arg2,arg3
 .scope
 .if .PARAMCOUNT=0
-	.if .def(__VIC20__)
-	  randomize timer
-	.else
-	  randomize timer,raster,sid
-	.endif
-	.endscope
-	.exitmacro
+  .if .def(__VIC20__)
+        randomize timer
+  .else
+        randomize timer,raster,sid
+  .endif
+.endscope
+        .exitmacro
 .endif
-firstload .set 0
+        firstload .set 0
 .if (.xmatch ({arg1}, {sid}) .or .xmatch ({arg2}, {sid}) .or .xmatch ({arg3}, {sid}))
-	.if .def(__VIC20__)
-	  .warning "SID as entropy source not support on VIC 20"
-	.else	
-	  lda #$81
-	  sta $D40F
-	  sta $D412
-	.endif
+.if .def(__VIC20__)
+        .warning "SID as entropy source not support on VIC 20"
+.else
+        lda #$81
+        sta $D40F
+        sta $D412
+.endif
 .endif
 
 .if (.xmatch ({arg1}, {timer}) .or .xmatch ({arg2}, {timer}) .or .xmatch ({arg3}, {timer}))
-	.if .def(__VIC20__)
-	  ldax TIMERAcounter
-	.else
-	        ldax $DC04
-	.endif
-	firstload .set 1
+.if .def(__VIC20__)
+        ldax TIMERAcounter
+.else
+        ldax $DC04
+.endif
+        firstload .set 1
 .endif
 
 .if (.xmatch ({arg1}, {raster}) .or .xmatch ({arg2}, {raster}) .or .xmatch ({arg3}, {raster}))
-	.if .def(__VIC20__)
-	  .warning "Rasterline as entropy source not support on VIC 20"
-	.else	
-	.if firstload=0
-	  lda $D012
-	  tax
-	  firstload .set 1
-	.else
-	  eor $D012
-	.endif
-	.endif
+.if .def(__VIC20__)
+        .warning "Rasterline as entropy source not support on VIC 20"
+.else
+  .if firstload=0
+        lda $D012
+        tax
+        firstload .set 1
+  .else
+        eor $D012
+  .endif
+.endif
 .endif
 
 .if .not .def(__VIC20__)
-	.if (.xmatch ({arg1}, {sid}) .or .xmatch ({arg2}, {sid}) .or .xmatch ({arg3}, {sid}))
-	  .if firstload=0
-	    lda $D41C
-	    tax
-	  .else
-	    eor $D41C
-	  .endif
-	.endif
+.if (.xmatch ({arg1}, {sid}) .or .xmatch ({arg2}, {sid}) .or .xmatch ({arg3}, {sid}))
+  .if firstload=0
+        lda $D41C
+        tax
+  .else
+        eor $D41C
+  .endif
+.endif
 .endif
 
-        rand_setseed AX  
+        rand_setseed AX
 
 .if .not .def(__VIC20__)
-	.if (.xmatch ({arg1}, {sid}) .or .xmatch ({arg2}, {sid}) .or .xmatch ({arg3}, {sid}))
-	  lda #$0
-	  sta $D412
-	.endif
+.if (.xmatch ({arg1}, {sid}) .or .xmatch ({arg2}, {sid}) .or .xmatch ({arg3}, {sid}))
+        lda #$0
+        sta $D412
+.endif
 .endif
 .endscope
 .endmacro
@@ -1360,43 +1375,43 @@ firstload .set 0
 
 .macro rand8 max
 .scope
-        .if .paramcount = 1
-	  .if (.xmatch ({max}, {A}))                  ;calc mod A
-	    tay
-	  .elseif (.xmatch ({max}, {X}))              ;calc mod X
-	    txa
-	    tay
-	  .endif
-	.endif
+.if .paramcount = 1
+.if (.xmatch ({max}, {A}))                  ;calc mod A
+        tay
+.elseif (.xmatch ({max}, {X}))              ;calc mod X
+        txa
+        tay
+.endif
+.endif
         jsr _rand16_sr
-        .if .paramcount = 1
-	  .if (.xmatch ({max}, {A}))                  ;calc mod A, value already in Y
-	    jsr a_mod_y_sr
-	  .elseif (.xmatch ({max}, {X}))              ;calc mod X, value already in Y
-	    jsr a_mod_y_sr
-	  .elseif (.xmatch ({max}, {Y}))              ;calc mod Y         
-	    jsr a_mod_y_sr
-	  .elseif max <= 1
-	    and #0
-	  .elseif max = 2
-	    and #1
-	  .elseif max = 4
-	    and #3
-	  .elseif max = 8
-	    and #7
-	  .elseif max = 16
-	    and #15
-	  .elseif max = 32
-	    and #31
-	  .elseif max = 64
-	    and #63
-	  .elseif max = 128
-	    and #127
-	  .else
-	    ldy #max
-	    jsr _a_mod_y_sr
-	  .endif
-	.endif
+.if .paramcount = 1
+.if (.xmatch ({max}, {A}))                  ;calc mod A, value already in Y
+        jsr a_mod_y_sr
+.elseif (.xmatch ({max}, {X}))              ;calc mod X, value already in Y
+        jsr a_mod_y_sr
+.elseif (.xmatch ({max}, {Y}))              ;calc mod Y
+        jsr a_mod_y_sr
+.elseif max <= 1
+        and #0
+.elseif max = 2
+        and #1
+.elseif max = 4
+        and #3
+.elseif max = 8
+        and #7
+.elseif max = 16
+        and #15
+.elseif max = 32
+        and #31
+.elseif max = 64
+        and #63
+.elseif max = 128
+        and #127
+.else
+        ldy #max
+        jsr _a_mod_y_sr
+.endif
+.endif
 .endscope
 .endmacro
 
@@ -1412,92 +1427,92 @@ firstload .set 0
 .importzp _llzp_word1
 .macro rand16 max
 .scope
-        .if .paramcount = 1
-	  .if (.xmatch ({max}, {AX}) .or .xmatch ({max}, {ax}))                 ;calc mod AX
-	    stax _llzp_word1
-	  .endif
-	.endif
+.if .paramcount = 1
+.if (.xmatch ({max}, {AX}) .or .xmatch ({max}, {ax}))                 ;calc mod AX
+        stax _llzp_word1
+.endif
+.endif
         jsr _rand16_sr
-	ldx _seed_low
-        .if .paramcount = 1
-	  .if (.xmatch ({max}, {AX}) .or .xmatch ({max}, {ax}))                 ;calc mod AX
-	     jsr _ax_mod_zpw1_sr
-	  .elseif max <= 1
-	    ldx #0
-	    and #0
-	  .elseif max = 2
-	    ldx #0
-	    and #1
-	  .elseif max = 4
-	    ldx #0
-	    and #3
-	  .elseif max = 8
-	    ldx #0
-	    and #7
-	  .elseif max = 16
-	    ldx #0
-	    and #15
-	  .elseif max = 32
-	    ldx #0
-	    and #31
-	  .elseif max = 64
-	    ldx #0
-	    and #63
-	  .elseif max = 128
-	    ldx #0
-	    and #127
-	  .elseif max = 256
-	    ldx #0
-	  .elseif max = 512
-	    pha
-	    txa
-	    and #1
-	    tax
-	    pla
-	  .elseif max = 1024
-	    pha
-	    txa
-	    and #3
-	    tax
-	    pla
-	  .elseif max = 2048
-	    pha
-	    txa
-	    and #7
-	    tax
-	    pla
-	  .elseif max = 4096
-	    pha
-	    txa
-	    and #15
-	    tax
-	    pla
-	  .elseif max = 8192
-	    pha
-	    txa
-	    and #31
-	    tax
-	    pla
-	  .elseif max = 16384
-	    pha
-	    txa
-	    and #63
-	    tax
-	    pla
-	  .elseif max = 32768
-	    pha
-	    txa
-	    and #127
-	    tax
-	    pla
-	  .else
-	    ldy #<(max)
-	    sty _llzp_word1
-	    ldy #>(max)
-	    sty _llzp_word1+1
-	    jsr _ax_mod_zpw1_sr
-	  .endif
-	.endif
+        ldx _seed_low
+.if .paramcount = 1
+.if (.xmatch ({max}, {AX}) .or .xmatch ({max}, {ax}))                 ;calc mod AX
+        jsr _ax_mod_zpw1_sr
+.elseif max <= 1
+        ldx #0
+        and #0
+.elseif max = 2
+        ldx #0
+        and #1
+.elseif max = 4
+        ldx #0
+        and #3
+.elseif max = 8
+        ldx #0
+        and #7
+.elseif max = 16
+        ldx #0
+        and #15
+.elseif max = 32
+        ldx #0
+        and #31
+.elseif max = 64
+        ldx #0
+        and #63
+.elseif max = 128
+        ldx #0
+        and #127
+.elseif max = 256
+        ldx #0
+.elseif max = 512
+        pha
+        txa
+        and #1
+        tax
+        pla
+.elseif max = 1024
+        pha
+        txa
+        and #3
+        tax
+        pla
+.elseif max = 2048
+        pha
+        txa
+        and #7
+        tax
+        pla
+.elseif max = 4096
+        pha
+        txa
+        and #15
+        tax
+        pla
+.elseif max = 8192
+        pha
+        txa
+        and #31
+        tax
+        pla
+.elseif max = 16384
+        pha
+        txa
+        and #63
+        tax
+        pla
+.elseif max = 32768
+        pha
+        txa
+        and #127
+        tax
+        pla
+.else
+        ldy #<(max)
+        sty _llzp_word1
+        ldy #>(max)
+        sty _llzp_word1+1
+        jsr _ax_mod_zpw1_sr
+.endif
+.endif
 .endscope
 .endmacro
 
@@ -1509,51 +1524,51 @@ firstload .set 0
 .import _seed_low, _seed_high
 .macro rand_setseed arg1,arg2
 .scope
-        .if .paramcount = 0
-	  lda #$33
-	  sta _seed_low
-	  sta _seed_high
-	  .endscope
-          .exitmacro
-	.endif	
+.if .paramcount = 0
+        lda #$33
+        sta _seed_low
+        sta _seed_high
+.endscope
+        .exitmacro
+.endif
 
-        .if .paramcount = 1 .and (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))
-	    cmp #1		;set carry if value != 0
-	    sbc #0
-	    sta _seed_low
-	    stx _seed_high
-	    
-	.else
-          .if .paramcount >= 1
-	    .if .xmatch ({arg1}, {A})
-	      sta _seed_low
-	    .elseif .xmatch ({arg1}, {X})
-	      stx _seed_low 
-	    .elseif .xmatch ({arg1}, {Y})
-	      sty _seed_low 
-	    .else 
-	      lda #arg1
-	      sta _seed_low
-	      .if .paramcount = 1
-	        sta _seed_high
-	      .endif
-	    .endif
-	  .endif
+.if .paramcount = 1 .and (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))
+        cmp #1              ;set carry if value != 0
+        sbc #0
+        sta _seed_low
+        stx _seed_high
 
-          .if .paramcount = 2
-	    .if .xmatch ({arg2}, {A})
-	      sta _seed_high
-	    .elseif .xmatch ({arg2}, {X})
-	      stx _seed_high 
-	    .elseif .xmatch ({arg2}, {Y})
-	      sty _seed_high 
-	    .else 
-	      lda #arg2
-	      sta _seed_high
-	    .endif
-	  .endif
+.else
+.if .paramcount >= 1
+.if .xmatch ({arg1}, {A})
+        sta _seed_low
+.elseif .xmatch ({arg1}, {X})
+        stx _seed_low
+.elseif .xmatch ({arg1}, {Y})
+        sty _seed_low
+.else
+        lda #arg1
+        sta _seed_low
+  .if .paramcount = 1
+        sta _seed_high
+  .endif
+.endif
+.endif
 
-	.endif	
+.if .paramcount = 2
+.if .xmatch ({arg2}, {A})
+        sta _seed_high
+.elseif .xmatch ({arg2}, {X})
+        stx _seed_high
+.elseif .xmatch ({arg2}, {Y})
+        sty _seed_high
+.else
+        lda #arg2
+        sta _seed_high
+.endif
+.endif
+
+.endif
 
 .endscope
 .endmacro
@@ -1565,12 +1580,12 @@ firstload .set 0
 ;; Registers modified: A,X,Y
 .macro restore_screen_area addr
 .import _restore_screen_area
-	ldax #addr
-	jsr _restore_screen_area
+        ldax #addr
+        jsr _restore_screen_area
 .endmacro
 
 ;; save_screen_area x1,y1,x2,y2,targetaddr
-;; Saves characters and color of the specified screen window to the given memory address. 
+;; Saves characters and color of the specified screen window to the given memory address.
 ;; The screen address is derived from memory address 648 (or the respective address with that function on the C128 or the VIC20).
 ;; The window parameters are saved as well.
 ;; The address _save_screen_addr contains a pointer to the next free byte after the saved bytes at targetaddr
@@ -1579,12 +1594,12 @@ firstload .set 0
 .macro save_screen_area x1,y1,x2,y2,targetaddr
 .import _save_screen_window_x1,_save_screen_window_y1,_save_screen_window_x2,_save_screen_window_y2
 .import _save_screen_area,_save_screen_addr
-	poke _save_screen_window_x1,x1
-	poke _save_screen_window_y1,y1
-	poke _save_screen_window_x2,x2
-	poke _save_screen_window_y2,y2
-	ldax #targetaddr
-	jsr _save_screen_area
+        poke _save_screen_window_x1,x1
+        poke _save_screen_window_y1,y1
+        poke _save_screen_window_x2,x2
+        poke _save_screen_window_y2,y2
+        ldax #targetaddr
+        jsr _save_screen_area
 .endmacro
 
 ;; set_cursor_pos line,column
@@ -1593,39 +1608,39 @@ firstload .set 0
 ;; arguments can be constants or registers
 .macro  set_cursor_pos   line,column
 .scope
-	.if ( .not .xmatch ({line}, {X}) )
-	  .if .xmatch ({line}, {Y})
-            sty to_x
-            xvalue:=0
-          .elseif .xmatch ({line}, {A})
-	    sta to_x
-            xvalue:=0
-          .else
-            xvalue:=line
-          .endif
-        .endif 
+.if ( .not .xmatch ({line}, {X}) )
+.if .xmatch ({line}, {Y})
+        sty to_x
+xvalue:=0
+.elseif .xmatch ({line}, {A})
+        sta to_x
+xvalue:=0
+.else
+xvalue:=line
+.endif
+.endif
 
-	.if ( .not .xmatch ({column}, {Y}) )
-	  .if .xmatch ({column}, {X})
-            stx to_y
-            yvalue:=0
-          .elseif .xmatch ({column}, {A})
-	    sty to_y
-            yvalue:=0
-          .else
-            yvalue:=column
-          .endif
-          to_y=*+1
-          ldy #yvalue
-        .endif 
+.if ( .not .xmatch ({column}, {Y}) )
+.if .xmatch ({column}, {X})
+        stx to_y
+yvalue:=0
+.elseif .xmatch ({column}, {A})
+        sty to_y
+yvalue:=0
+.else
+yvalue:=column
+.endif
+to_y=*+1
+        ldy #yvalue
+.endif
 
-	.if ( .not .xmatch ({line}, {X}) )
-	  to_x=*+1
-          ldx #xvalue
-        .endif
+.if ( .not .xmatch ({line}, {X}) )
+to_x=*+1
+        ldx #xvalue
+.endif
 
-	clc
-	jsr PLOT
+        clc
+        jsr PLOT
 .endscope
 .endmacro
 
@@ -1642,66 +1657,66 @@ firstload .set 0
 
 .macro str_enc str
         ignore_byte_ctr .set 0
-        .repeat .strlen (str), i
-            .if ignore_byte_ctr
-                ignore_byte_ctr .set ignore_byte_ctr-1
-            .else
-                .if i<.strlen(str)-3
-                    .if (.strat (str, i) = '\') && (.strat (str, i+1) = 'x')
-                        .if .strat (str, i+2) >= '0' && .strat (str, i+2) <= '9'
-                           bytevalue1 .set .strat (str, i+2) - '0'
-                        .elseif .strat (str, i+2) >= 'a' && .strat (str, i+2) < 'g'
-                           bytevalue1 .set .strat (str, i+2) - 'a' + 10
-                        .elseif .strat (str, i+2) >= 'A' && .strat (str, i+2) < 'G'
-                           bytevalue1 .set .strat (str, i+2) - 'A' + 10
-                        .else
-                           .fatal "Illegal characters in hexadecimal escape code!"
-                        .endif
-                        .if .strat (str, i+3) >= '0' && .strat (str, i+3) <= '9'
-                           bytevalue1 .set bytevalue1*16 + .strat (str, i+3) - '0'
-                        .elseif .strat (str, i+3) >= 'a' && .strat (str, i+3) < 'g'
-                           bytevalue1 .set bytevalue1*16 + .strat (str, i+3) - 'a' + 10
-                        .elseif .strat (str, i+3) >= 'A' && .strat (str, i+3) < 'G'
-                           bytevalue1 .set bytevalue1*16 + .strat (str, i+3) - 'A' + 10
-                        .else
-                           .fatal "Illegal characters in hex escape code!"
-                        .endif
-                        .byte bytevalue1
-                        ignore_byte_ctr .set 3
-                    .endif
-                .endif
-                .if i<.strlen(str)-1
-                    .if (.strat (str, i) = '\') && (.strat (str, i+1) = 'n')
-                         .byte 13
-                        ignore_byte_ctr .set 1
-                    .endif
-                .endif
-                .if ignore_byte_ctr=0
-                    .byte .strat (str, i)
-                .endif
-            .endif
-        .endrepeat
+.repeat .strlen (str), i
+.if ignore_byte_ctr
+        ignore_byte_ctr .set ignore_byte_ctr-1
+.else
+.if i<.strlen(str)-3
+.if (.strat (str, i) = '\') && (.strat (str, i+1) = 'x')
+  .if .strat (str, i+2) >= '0' && .strat (str, i+2) <= '9'
+        bytevalue1 .set .strat (str, i+2) - '0'
+  .elseif .strat (str, i+2) >= 'a' && .strat (str, i+2) < 'g'
+        bytevalue1 .set .strat (str, i+2) - 'a' + 10
+  .elseif .strat (str, i+2) >= 'A' && .strat (str, i+2) < 'G'
+        bytevalue1 .set .strat (str, i+2) - 'A' + 10
+  .else
+        .fatal "Illegal characters in hexadecimal escape code!"
+  .endif
+  .if .strat (str, i+3) >= '0' && .strat (str, i+3) <= '9'
+        bytevalue1 .set bytevalue1*16 + .strat (str, i+3) - '0'
+  .elseif .strat (str, i+3) >= 'a' && .strat (str, i+3) < 'g'
+        bytevalue1 .set bytevalue1*16 + .strat (str, i+3) - 'a' + 10
+  .elseif .strat (str, i+3) >= 'A' && .strat (str, i+3) < 'G'
+        bytevalue1 .set bytevalue1*16 + .strat (str, i+3) - 'A' + 10
+  .else
+        .fatal "Illegal characters in hex escape code!"
+  .endif
+        .byte bytevalue1
+        ignore_byte_ctr .set 3
+.endif
+.endif
+.if i<.strlen(str)-1
+.if (.strat (str, i) = '\') && (.strat (str, i+1) = 'n')
+        .byte 13
+        ignore_byte_ctr .set 1
+.endif
+.endif
+.if ignore_byte_ctr=0
+        .byte .strat (str, i)
+.endif
+.endif
+.endrepeat
 .endmacro
 
 ;; str_enc0 string
 ;;
 ;; Same as str_enc, but the string will be terminated with a 0 byte
 .macro str_enc0 str
-	str_enc str
-	.byte 0
+        str_enc str
+        .byte 0
 .endmacro
 
 ;; textcolor color
 ;; sets the text color
 .macro  textcolor color
 .scope
-                poke TEXTCOLOR_ADDR,color
+        poke TEXTCOLOR_ADDR,color
 .endscope
 .endmacro
 
 
 ;; toggle_carry
-;; Toggles the carry 
+;; Toggles the carry
 ;; Registers modified: none
 .macro  toggle_carry
         rol
@@ -1717,12 +1732,12 @@ firstload .set 0
 ;; Use this before output of a char, otherwise you get inverse character artifacts when blink phase is on
 .macro turn_off_cursor
 .if .def(__C128__)
-	jsr $CD9F	;bank 15 needs to be enabled
+        jsr $CD9F       ;bank 15 needs to be enabled
 .else
 .import _turn_off_cursor_sr
-	jsr _turn_off_cursor_sr
+        jsr _turn_off_cursor_sr
 .endif
-.endmacro	
+.endmacro
 
 
 ;; turn_on_cursor
@@ -1732,10 +1747,10 @@ firstload .set 0
 ;; Turn off cursor briefly before output of a char, otherwise you get inverse character artifacts when blink phase is on
 .macro turn_on_cursor
 .if .def(__C128__)
-	jsr $CD6F	;Bank 15 needs to be enabled
+        jsr $CD6F       ;Bank 15 needs to be enabled
 .else
-	lda #0
-	sta 204		;cursor visibility switch for C64, VIC20
+        lda #0
+        sta 204         ;cursor visibility switch for C64, VIC20
 .endif
 .endmacro
 
@@ -1745,20 +1760,20 @@ firstload .set 0
 ;; Registers modified: A
 .macro wait_firebutton joy
 :
-	.ifblank joy
-	  lda $dc00
-	.elseif joy=1
-	  lda $dc01
-	.elseif joy=2
-	  lda $dc00
-	.elseif joy=3
-	  lda $dc00
-	  and $dc01
-	.else
-	  .error  "Argument for waitfire must be 1,2,3 or left empty."
-	.endif
-	and #$10
-	bne :-
+.ifblank joy
+        lda $dc00
+.elseif joy=1
+        lda $dc01
+.elseif joy=2
+        lda $dc00
+.elseif joy=3
+        lda $dc00
+        and $dc01
+.else
+        .error  "Argument for waitfire must be 1,2,3 or left empty."
+.endif
+        and #$10
+        bne :-
 .endmacro
 
 ;; wait_firebutton_released [joy]
@@ -1767,20 +1782,20 @@ firstload .set 0
 ;; Registers modified: A
 .macro wait_firebutton_released joy
 :
-	.ifblank joy
-	  lda $dc00
-	.elseif joy=1
-	  lda $dc01
-	.elseif joy=2
-	  lda $dc00
-	.elseif joy=3
-	  lda $dc00
-	  and $dc01
-	.else
-	  .error  "Argument for waitfire must be 1,2,3 or left empty."
-	.endif
-	and #$10
-	beq :-
+.ifblank joy
+        lda $dc00
+.elseif joy=1
+        lda $dc01
+.elseif joy=2
+        lda $dc00
+.elseif joy=3
+        lda $dc00
+        and $dc01
+.else
+        .error  "Argument for waitfire must be 1,2,3 or left empty."
+.endif
+        and #$10
+        beq :-
 .endmacro
 
 ;; wait_key
@@ -1802,7 +1817,7 @@ firstload .set 0
 .endmacro
 
 ;; wait_key_or_button
-;; Waits until either a key is pressed or a joystick button is pressed. 
+;; Waits until either a key is pressed or a joystick button is pressed.
 ;; If either is already pressed, the command continues immediately.
 ;; Function works independently of IRQ routine or ROM.
 ;; Registers modified: A
@@ -1812,7 +1827,7 @@ firstload .set 0
 .endmacro
 
 ;; wait_key_or_button_released
-;; Waits until both all keys and joystick buttons are released. 
+;; Waits until both all keys and joystick buttons are released.
 ;; If both are already released, the command continues immediately.
 ;; Function works independently of IRQ routine or ROM.
 ;; Registers modified: A
@@ -1878,44 +1893,44 @@ firstload .set 0
 ;; If no SYS address is given, the target address is calculated to be the address right after the BASIC stub
 ;; Default line number is 2020
 .macro  makesys linenumber,text,address
-       .scope
-         lama_nextlineptr .set ::BASICSTART+10
-          .if .not .blank(address)
-            .if (address<10)
-              lama_nextlineptr .set lama_nextlineptr-3
-            .elseif (address<100)
-              lama_nextlineptr .set lama_nextlineptr-2
-            .elseif (address<1000)
-              lama_nextlineptr .set lama_nextlineptr-1
-            .elseif (address>9999)
-              lama_nextlineptr .set lama_nextlineptr+1
-            .endif
-          .endif
-          .ifnblank text
-            lama_nextlineptr .set lama_nextlineptr + .strlen(text)
-          .endif 
-          .word lama_nextlineptr
+.scope
+        lama_nextlineptr .set ::BASICSTART+10
+.if .not .blank(address)
+.if (address<10)
+        lama_nextlineptr .set lama_nextlineptr-3
+.elseif (address<100)
+        lama_nextlineptr .set lama_nextlineptr-2
+.elseif (address<1000)
+        lama_nextlineptr .set lama_nextlineptr-1
+.elseif (address>9999)
+        lama_nextlineptr .set lama_nextlineptr+1
+.endif
+.endif
+.ifnblank text
+        lama_nextlineptr .set lama_nextlineptr + .strlen(text)
+.endif
+        .word lama_nextlineptr
           ;
-          .if .paramcount > 0
-               .byte <linenumber,>linenumber
-          .else
-               .byte <2020,>2020
-          .endif
-          .byte $9e   ;SYS token
-          .if .paramcount < 2
-               systarget=::BASICSTART+$0c
-               .byte .sprintf ("%d", systarget), $00
-          .elseif .paramcount = 2
-               systarget=::BASICSTART+$0c+.strlen(text)
-               .byte .sprintf ("%d", systarget)
-               str_enc text
-               .byte 0
-          .elseif .paramcount = 3
-               .byte .sprintf ("%d", address)
-               str_enc text
-          .endif
-       .endscope
-       .byte $00,$00
+.if .paramcount > 0
+        .byte <linenumber,>linenumber
+.else
+        .byte <2020,>2020
+.endif
+        .byte $9e   ;SYS token
+.if .paramcount < 2
+systarget=::BASICSTART+$0c
+        .byte .sprintf ("%d", systarget), $00
+.elseif .paramcount = 2
+systarget=::BASICSTART+$0c+.strlen(text)
+        .byte .sprintf ("%d", systarget)
+        str_enc text
+        .byte 0
+.elseif .paramcount = 3
+        .byte .sprintf ("%d", address)
+        str_enc text
+.endif
+.endscope
+        .byte $00,$00
 .endmacro
 
 
@@ -1925,13 +1940,13 @@ firstload .set 0
 ;; These tables are referenced by other matrix macros, for example, get_matrix_element and set_matrix_element.
 .macro matrix_ptr_tables array,width,height
 .ident(.concat (.string(array), "_row_lo")):
-  .repeat height,i
+.repeat height,i
         .byte <(array+i*width)
-  .endrep
+.endrep
 .ident(.concat (.string(array), "_row_hi")):
-  .repeat height,i
+.repeat height,i
         .byte >(array+i*width)
-  .endrep
+.endrep
 .endmacro
 
 
@@ -1942,26 +1957,26 @@ firstload .set 0
 ;; Register flags are as if value was loaded with lda, a branch command like BEQ or BPL works right after get_matrix_element
 ;; Registers modified: A. If col is a constant, the X register is used.
 .macro get_matrix_element array,col,row
-  .scope
-    .if (.xmatch ({row}, {x}) .or .xmatch ({row}, {X}) .or .xmatch ({row}, {y}) .or .xmatch ({row}, {Y}))
+.scope
+.if (.xmatch ({row}, {x}) .or .xmatch ({row}, {X}) .or .xmatch ({row}, {y}) .or .xmatch ({row}, {Y}))
         lda .ident(.concat (.string(array), "_row_lo")), row
         sta :+ + 1
         lda .ident(.concat (.string(array), "_row_hi")), row
         sta :+ + 2
-    .else
+.else
         lda .ident(.concat (.string(array), "_row_lo")) +row
         sta :+ + 1
         lda .ident(.concat (.string(array), "_row_hi")) +row
         sta :+ + 2
-    .endif
-    .if (.xmatch ({col}, {x}) .or .xmatch ({col}, {X}) .or .xmatch ({col}, {y}) .or .xmatch ({col}, {Y}))
+.endif
+.if (.xmatch ({col}, {x}) .or .xmatch ({col}, {X}) .or .xmatch ({col}, {y}) .or .xmatch ({col}, {Y}))
 :       lda $affe,col
-    .else
+.else
         ldx #col
 :
         lda $affe,x
-    .endif
-  .endscope
+.endif
+.endscope
 .endmacro
 
 
@@ -1972,32 +1987,32 @@ firstload .set 0
 ;; If value is not specified or value is A, the content of A is used as the value.
 ;; Registers modified: A (if value is a constant), X (if col is a constant).
 .macro set_matrix_element array,col,row,value
-    .if .paramcount < 4 .or  (.xmatch ({value}, {a}) .or .xmatch ({value}, {A}))
-    pha
-    .endif
-    .if (.xmatch ({row}, {x}) .or .xmatch ({row}, {X}) .or .xmatch ({row}, {y}) .or .xmatch ({row}, {Y}))
+.if .paramcount < 4 .or  (.xmatch ({value}, {a}) .or .xmatch ({value}, {A}))
+        pha
+.endif
+.if (.xmatch ({row}, {x}) .or .xmatch ({row}, {X}) .or .xmatch ({row}, {y}) .or .xmatch ({row}, {Y}))
         lda .ident(.concat (.string(array), "_row_lo")), row
         sta :+ + 1
         lda .ident(.concat (.string(array), "_row_hi")), row
         sta :+ + 2
-    .else
+.else
         lda .ident(.concat (.string(array), "_row_lo")) +row
         sta :+ + 1
         lda .ident(.concat (.string(array), "_row_hi")) +row
         sta :+ + 2
-    .endif
-    .if .paramcount < 4 .or  (.xmatch ({value}, {a}) .or .xmatch ({value}, {A}))
+.endif
+.if .paramcount < 4 .or  (.xmatch ({value}, {a}) .or .xmatch ({value}, {A}))
         pla
-    .else
+.else
         lda #value
-    .endif
-    .if (.xmatch ({col}, {x}) .or .xmatch ({col}, {X}) .or .xmatch ({col}, {y}) .or .xmatch ({col}, {Y}))
+.endif
+.if (.xmatch ({col}, {x}) .or .xmatch ({col}, {X}) .or .xmatch ({col}, {y}) .or .xmatch ({col}, {Y}))
 :       sta $affe,col
-    .else
+.else
         ldx #col
 :
         sta $affe,x
-    .endif
+.endif
 .endmacro
 
 
@@ -2037,94 +2052,94 @@ firstload .set 0
 ;; When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.
 ;; Registers modified: A,X,Y
 .macro  memcopy src_addr,target_addr,length
-        .scope
+.scope
 .import _memcopy_sr
 .importzp _llzp_word1,_llzp_word2
-        .if .paramcount = 3
-          yinit=<($100-<(length))
-          pokew _llzp_word2,src_addr - yinit
-          pokew _llzp_word1,target_addr - yinit
-          ldx #1+>(length-1)
-          ldy #yinit
-	.elseif .paramcount = 1
-          .if (.xmatch ({src_addr}, {AX}) .or .xmatch ({src_addr}, {ax}))          ;AX is used as length
-            tay
-            beq skip_adjust
+.if .paramcount = 3
+yinit=<($100-<(length))
+        pokew _llzp_word2,src_addr - yinit
+        pokew _llzp_word1,target_addr - yinit
+        ldx #1+>(length-1)
+        ldy #yinit
+.elseif .paramcount = 1
+.if (.xmatch ({src_addr}, {AX}) .or .xmatch ({src_addr}, {ax}))          ;AX is used as length
+        tay
+        beq skip_adjust
 
-	    pha
-	    clc
-            adc _llzp_word2
-	    sta _llzp_word2
-	    if cc
-              dec _llzp_word2+1
-	    endif
-            pla
-	    clc
-            adc _llzp_word1
-	    sta _llzp_word1
-	    if cc
-              dec _llzp_word1+1
-	    endif
-	    neg
-            tay
-            inx
+        pha
+        clc
+        adc _llzp_word2
+        sta _llzp_word2
+        if cc
+            dec _llzp_word2+1
+        endif
+        pla
+        clc
+        adc _llzp_word1
+        sta _llzp_word1
+        if cc
+            dec _llzp_word1+1
+        endif
+        neg
+        tay
+        inx
 skip_adjust:
-          .else                                     ;length is given as constant parameter
-            yinit=<($100-<src_addr)
-            ldx #1+>(src_addr-1)
-            ldy #yinit
-	    .if yinit>0
-              lda #<src_addr
-              clc
-              adc _llzp_word2
-              sta _llzp_word2
-	      if cc
-                dec _llzp_word2+1
-	      endif
-              lda #<src_addr
-              clc
-              adc _llzp_word1
-              sta _llzp_word1
-	      if cc
-                dec _llzp_word1+1
-	      endif
-            .endif
-          .endif
-	.else
-	  .error "Wrong number of parameters for memcopy!"
-	.endif
+.else                                     ;length is given as constant parameter
+yinit=<($100-<src_addr)
+        ldx #1+>(src_addr-1)
+        ldy #yinit
+.if yinit>0
+        lda #<src_addr
+        clc
+        adc _llzp_word2
+        sta _llzp_word2
+        if cc
+            dec _llzp_word2+1
+        endif
+        lda #<src_addr
+        clc
+        adc _llzp_word1
+        sta _llzp_word1
+        if cc
+            dec _llzp_word1+1
+        endif
+.endif
+.endif
+.else
+        .error "Wrong number of parameters for memcopy!"
+.endif
         jsr _memcopy_sr
-        .endscope
+.endscope
 .endmacro
 
 .macro memcopy_from src_addr
-        .scope
+.scope
 .importzp _llzp_word2
-        .if (.xmatch ({src_addr}, {AX}) .or .xmatch ({src_addr}, {ax}))          ;AX is used as address
-          sta _llzp_word2
-          stx _llzp_word2+1
-        .else
-          lda #<src_addr
-          sta _llzp_word2
-          lda #>src_addr
-          sta _llzp_word2+1
-        .endif
-        .endscope
+.if (.xmatch ({src_addr}, {AX}) .or .xmatch ({src_addr}, {ax}))          ;AX is used as address
+        sta _llzp_word2
+        stx _llzp_word2+1
+.else
+        lda #<src_addr
+        sta _llzp_word2
+        lda #>src_addr
+        sta _llzp_word2+1
+.endif
+.endscope
 .endmacro
 
 .macro memcopy_to target_addr
-        .scope
+.scope
 .importzp _llzp_word1
-        .if (.xmatch ({target_addr}, {AX}) .or .xmatch ({target_addr}, {ax}))         ;AX is used as address
-          sta _llzp_word1
-          stx _llzp_word1+1
-        .else
-          lda #<target_addr
-          sta _llzp_word1
-          lda #>target_addr
-          sta _llzp_word1+1
-        .endif
-        .endscope
+.if (.xmatch ({target_addr}, {AX}) .or .xmatch ({target_addr}, {ax}))         ;AX is used as address
+        sta _llzp_word1
+        stx _llzp_word1+1
+.else
+        lda #<target_addr
+        sta _llzp_word1
+        lda #>target_addr
+        sta _llzp_word1+1
+.endif
+.endscope
 .endmacro
 
 ;; memset start_addr,end_addr[,fillvalue]
@@ -2133,28 +2148,28 @@ skip_adjust:
 ;; This macro is interrupt-safe and can be used concurrently in both the main program and an interrupt routine.
 ;; Registers modified: A, X, (Y if the memory size to fill exceeds 256 bytes)
 .macro memset start_addr,end_addr,fillvalue
-  .scope
-    .if (.paramcount=3) && (.not (.xmatch ({fillvalue}, {A}) .or .xmatch ({fillvalue}, {a})))
+.scope
+.if (.paramcount=3) && (.not (.xmatch ({fillvalue}, {A}) .or .xmatch ({fillvalue}, {a})))
         lda #fillvalue
-    .endif
+.endif
 length = end_addr - (start_addr) + 1
 yinit=<($100-<(length))
-    .if .const(length) && length<=2
-      .repeat length,i
+.if .const(length) && length<=2
+.repeat length,i
         sta start_addr+i
-      .endrep
-    .elseif .const(length) && length<=128
+.endrep
+.elseif .const(length) && length<=128
         ldx #length-1
 :       sta start_addr,x
         dex
         bpl :-
-    .elseif .const(length) && length<128
+.elseif .const(length) && length<128
         ldx #yinit
 :
         sta start_addr - yinit,x
         inx
         bne :-
-    .else
+.else
         ldy #>(start_addr - yinit)
         sty :+ +2       ;initialize high byte in case the macro is executed more than once
         ldy #yinit
@@ -2166,8 +2181,8 @@ yinit=<($100-<(length))
         inc :- +2       ;inc the highbyte
         dex
         bne :-
-    .endif
-  .endscope
+.endif
+.endscope
 .endmacro
 
 ;; save_prg filename,devicenr,startaddr,endaddr
@@ -2179,32 +2194,32 @@ yinit=<($100-<(length))
 ;;  A = $00 (BREAK, RUN/STOP has been pressed during saving)
 ;; Registers modified: A,X,Y
 .macro save_prg filename,devicenr,startaddr,endaddr
-        .scope
+.scope
         lda #endfilename-beginfilename
-	ldx #<beginfilename
-	ldy #>beginfilename
-	jsr SETNAM
+        ldx #<beginfilename
+        ldy #>beginfilename
+        jsr SETNAM
 
-	.if devicenr = 0
-	  ldx $BA
-	  bne :+
-	  ldx #$08	;use address 8 as default
-:	  
-	.else
-	  ldx #devicenr
-	.endif
+.if devicenr = 0
+        ldx $BA
+        bne :+
+        ldx #$08      ;use address 8 as default
+:
+.else
+        ldx #devicenr
+.endif
 .importzp _llzp_word1
-	pokew _llzp_word1,startaddr
-	lda #_llzp_word1
-	ldx #<(endaddr+1)
-	ldy #>(endaddr+1)
-	jsr SAVE
+        pokew _llzp_word1,startaddr
+        lda #_llzp_word1
+        ldx #<(endaddr+1)
+        ldy #>(endaddr+1)
+        jsr SAVE
 
-	jmp endfilename	;hop over filename data
+        jmp endfilename ;hop over filename data
 beginfilename:
-	.byte filename
+        .byte filename
 endfilename:
-        .endscope
+.endscope
 .endmacro
 
 
@@ -2212,45 +2227,45 @@ endfilename:
 ;; scramble startaddr,endaddr
 ;; Scrambles/unscrambles a memory area. To unscramble, call scramble with the same parameters again
 .macro scramble startaddr,endaddr
-	.scope
+.scope
 .importzp _llzp_word1,_llzp_byte1,_llzp_byte2
-	checksum_eor startaddr,endaddr
-	sta _llzp_byte1
+        checksum_eor startaddr,endaddr
+        sta _llzp_byte1
 
-	;now do the scrambling
-	pokew _llzp_word1,startaddr
-	ldy #0
-	sty _llzp_byte2
+        ;now do the scrambling
+        pokew _llzp_word1,startaddr
+        ldy #0
+        sty _llzp_byte2
 loop:
-	;generate next byte from a pseudo random sequence
-sm:	lda _llzp_byte1
-	beq doEor
+        ;generate next byte from a pseudo random sequence
+sm:     lda _llzp_byte1
+        beq doEor
         asl
-	beq noEor
+        beq noEor
         bcc noEor
-doEor:	eor #$e7
+doEor:  eor #$e7
 noEor:  sta _llzp_byte1
-	pha
-	eor (_llzp_word1),y
-	sta (_llzp_word1),y
-	pla
+        pha
+        eor (_llzp_word1),y
+        sta (_llzp_word1),y
+        pla
 
-	eor _llzp_byte2
-	sta _llzp_byte2
+        eor _llzp_byte2
+        sta _llzp_byte2
 
-	inc16 _llzp_word1
-	ldax _llzp_word1
-	cmpax #endaddr
+        inc16 _llzp_word1
+        ldax _llzp_word1
+        cmpax #endaddr
 
-	bne loop
+        bne loop
 
-	;the last eor byte will be chosen to match the same eor checksum
+        ;the last eor byte will be chosen to match the same eor checksum
 
-	lda _llzp_byte2
-	eor (_llzp_word1),y
-	sta (_llzp_word1),y
+        lda _llzp_byte2
+        eor (_llzp_word1),y
+        sta (_llzp_word1),y
 
-        .endscope
+.endscope
 .endmacro
 
 
@@ -2258,39 +2273,39 @@ noEor:  sta _llzp_byte1
 ;; Deletes a file on disk. If device number is not stated or 0, the last used device number stored in address $BA is used. In case $BA contains 0, 8 is used as default.
 ;; Registers modified: A,X,Y
 .macro scratch_file filename,devicenr
-	.if .paramcount = 1
-          scratch_file filename,0
-          .exitmacro
-        .endif
+.if .paramcount = 1
+        scratch_file filename,0
+        .exitmacro
+.endif
 
-	.scope
-	lda #$0f
-	tay		;open 15,x,15
-	.if devicenr = 0
-	  ldx $BA
-	  bne :+
-	  ldx #$08	;use address 8 as default
-:	  
-	.else
-	  ldx #devicenr
-	.endif
-	jsr SETLFS
+.scope
+        lda #$0f
+        tay             ;open 15,x,15
+.if devicenr = 0
+        ldx $BA
+        bne :+
+        ldx #$08      ;use address 8 as default
+:
+.else
+        ldx #devicenr
+.endif
+        jsr SETLFS
 
         lda #endfilename-beginfilename
-	ldx #<beginfilename
-	ldy #>beginfilename
-	jsr SETNAM
+        ldx #<beginfilename
+        ldy #>beginfilename
+        jsr SETNAM
 
-	jsr OPEN
-	lda #$0f
-	jsr CLOSE
-	jmp endfilename	;hop over filename data
+        jsr OPEN
+        lda #$0f
+        jsr CLOSE
+        jmp endfilename ;hop over filename data
 
 beginfilename:
-	.byte "s:"
-	.byte filename
+        .byte "s:"
+        .byte filename
 endfilename:
-	.endscope
+.endscope
 .endmacro
 
 
@@ -2304,12 +2319,12 @@ endfilename:
 .importzp _llzp_word1
 .import _sqrt8_sr
 .macro sqrt8 arg
-	.if .paramcount = 1
-          .if .not (.xmatch ({arg1}, {A}) .or .xmatch ({arg1}, {a}))
-            lda arg	;address or immediate number
-          .endif
-        .endif
-	jsr _sqrt8_sr
+.if .paramcount = 1
+.if .not (.xmatch ({arg1}, {A}) .or .xmatch ({arg1}, {a}))
+        lda arg     ;address or immediate number
+.endif
+.endif
+        jsr _sqrt8_sr
 .endmacro
 
 
@@ -2323,13 +2338,13 @@ endfilename:
 .importzp _llzp_word1
 .import _sqrt16_sr
 .macro sqrt16 arg
-	.if .paramcount = 1
-          .if .not (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))
-            ldax arg	;address or immediate number
-          .endif
-        .endif
-	stax _llzp_word1
-	jsr _sqrt16_sr
+.if .paramcount = 1
+.if .not (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))
+        ldax arg    ;address or immediate number
+.endif
+.endif
+        stax _llzp_word1
+        jsr _sqrt16_sr
 .endmacro
 
 
@@ -2340,84 +2355,84 @@ endfilename:
 ;; IRQ routine must acknowledge the IRQ source
 ;; Interrupt flag will be turned off while executing the macro and reset to the previous state afterwards
 .macro set_raster_irq rasterline, isr
-	.ifblank rasterline
-	  rline_value .set 0
-	.else
-	  rline_value .set rasterline
-	.endif
+.ifblank rasterline
+        rline_value .set 0
+.else
+        rline_value .set rasterline
+.endif
 
-	php		; store current state of interrupt flag
-	sei
+        php             ; store current state of interrupt flag
+        sei
 
-	.ifnblank isr
-	  lda #<isr
-	  sta $314
-	  lda #>isr
-	  sta $315
-	.endif
+.ifnblank isr
+        lda #<isr
+        sta $314
+        lda #>isr
+        sta $315
+.endif
 
         lda #$7f
         sta $dc0d       ; disable timer interrupts
         sta $dd0d
 
         and $d011       ; accu is still $7f
-        .if rline_value>255
+.if rline_value>255
         ora #$80
-        .endif
+.endif
         sta $d011       ; Clear most significant bit in VIC's raster register
 
         lda $dc0d       ; acknowledge CIA interrupts
 
         lda #<rline_value
-        sta $d012       ; Set the raster line number where interrupt should occur 
+        sta $d012       ; Set the raster line number where interrupt should occur
 
         lda #01
         sta $d01A       ; set raster interrupt
 
-	plp
+        plp
 .endmacro
 
 ;; set_irq_rasterline rasterline|A|AX|X|Y
-;; Sets the raster line where the IRQ should occur. This macro does not set the IRQ source, use set_raster_irq for this. 
+;; Sets the raster line where the IRQ should occur. This macro does not set the IRQ source, use set_raster_irq for this.
 ;; Used registers: A
 .macro set_irq_rasterline rasterline
-	.if (.xmatch ({rasterline}, {AX}) .or .xmatch ({arg1}, {ax}))          ;AX is used as argument
-	  sta $d012
-	  lda $d011
-	  and #$7f
-	  cpx #1
-	  if eq
-	    ora #$80
-	  endif
-	  sta $d011
-	.elseif (.xmatch ({rasterline}, {A}) .or .xmatch ({arg1}, {a}))          ;A is used as argument
-	  sta $d012
-	  lda $d011
-	  and #$7f
-	  sta $d011	
-	.elseif (.xmatch ({rasterline}, {X}) .or .xmatch ({arg1}, {x}))          ;X is used as argument
-	  stx $d012
-	  lda $d011
-	  and #$7f
-	  sta $d011	
-	.elseif (.xmatch ({rasterline}, {Y}) .or .xmatch ({arg1}, {y}))          ;Y is used as argument
-	  sty $d012
-	  lda $d011
-	  and #$7f
-	  sta $d011	
-	.else          							  ;argument is a number
-          poke $d012,<rasterline
-          lda $d011
-          .if rasterline<256
-            and #$7f
-          .else
+.if (.xmatch ({rasterline}, {AX}) .or .xmatch ({arg1}, {ax}))          ;AX is used as argument
+        sta $d012
+        lda $d011
+        and #$7f
+        cpx #1
+        if eq
             ora #$80
-          .endif
-          sta $d011
-        .endif
+        endif
+        sta $d011
+.elseif (.xmatch ({rasterline}, {A}) .or .xmatch ({arg1}, {a}))          ;A is used as argument
+        sta $d012
+        lda $d011
+        and #$7f
+        sta $d011
+.elseif (.xmatch ({rasterline}, {X}) .or .xmatch ({arg1}, {x}))          ;X is used as argument
+        stx $d012
+        lda $d011
+        and #$7f
+        sta $d011
+.elseif (.xmatch ({rasterline}, {Y}) .or .xmatch ({arg1}, {y}))          ;Y is used as argument
+        sty $d012
+        lda $d011
+        and #$7f
+        sta $d011
+.else                                                             ;argument is a number
+        poke $d012,<rasterline
+        lda $d011
+.if rasterline<256
+        and #$7f
+.else
+        ora #$80
+.endif
+        sta $d011
+.endif
 .endmacro
 
-;; set_isr_for_stabilize_raster_cycle 
+;; set_isr_for_stabilize_raster_cycle
 ;; Puts the isr address of the IRQ wedge routine of stabilize_raster_cycle into $FFFE/$FFFF
 ;; When using the raster stabilization from a Kernal IRQ ($314) this macro should be used once during setup
 ;; When using the raster stabilization with banked out Kernal, this macro should be always before the stabilize macro (or stabilize_raster_cycle_with_isr_set is used, which puts both macros together).
@@ -2470,13 +2485,13 @@ endfilename:
 ;; Syncs to raster cycle 3 at current raster line+2 (cycle perfect)
 ;; The current and the next two rasterlines must not be badlines
 ;; Uses the double IRQ method with a NOP slide and a conditional jump to eliminate jitter
-;; Assembling may fail if the conditional branch goes of a page boundary, enable the option extranops in this case. 
+;; Assembling may fail if the conditional branch goes of a page boundary, enable the option extranops in this case.
 ;; Used registers: A,X
 ;; Minimal example showing a typical usage:
 ;;<tt>init:&nbsp;&nbsp;&nbsp;set_isr_for_stabilize_raster_cycle
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set_raster_irq 48,isr
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rts
-;;isr:&nbsp;&nbsp;&nbsp;&nbsp;poke 1,$35      
+;;isr:&nbsp;&nbsp;&nbsp;&nbsp;poke 1,$35
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stabilize_raster_cycle
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; we are perfectly synchronized, do stuff
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;poke 1,$37
@@ -2487,7 +2502,7 @@ endfilename:
         ; **************************************************
         ; Raster Stabilizing Code
         ; based on: https://codebase64.org/doku.php?id=base:stable_raster_routine
-	; by TWW / Creators
+        ; by TWW / Creators
         ; **************************************************
         ; A Raster Compare IRQ is triggered on cycle 0 on the current $d012 line
         ; The CPU needs to finish its current OP code before starting the Interrupt Handler,
@@ -2500,7 +2515,7 @@ endfilename:
         ; Store current Stack Pointer (will be messed up when the next IRQ occurs)
         tsx
         ; Set the Raster IRQ to trigger on the next Raster line
-	inc $d012
+        inc $d012
         ; Allow IRQ to happen (Remember, the Interrupt flag is set by the Interrupt Handler).
         cli
         ; Execute nops until the raster line changes and the Raster IRQ triggers
@@ -2518,12 +2533,12 @@ endfilename:
         nop
         nop
         nop
-	jmp :-	;if this jmp is reached it can spoil the timing, but avoid a crash
-	.if .xmatch ({extranops}, {extranops})
-	  ; add two extra nops, to be used in case of the beq goes over a page limit
-	  nop
-	  nop
-	.endif
+        jmp :-  ;if this jmp is reached it can spoil the timing, but avoid a crash
+.if .xmatch ({extranops}, {extranops})
+          ; add two extra nops, to be used in case of the beq goes over a page limit
+        nop
+        nop
+.endif
         ; Add one extra nop for 65 cycles NTSC machines
         ; CYCLECOUNT: [64 -> 71]
 _stabilize_raster_cycle_isr:
@@ -2531,7 +2546,7 @@ _stabilize_raster_cycle_isr:
         ; CYCLECOUNT: [7 -> 8] (7 cycles for the interrupt handler + [0 -> 1] cycle Jitter for the nop)
         ; Restore previous Stack Pointer (undo the last stack manipulation by the IRQ)
         txs
-	delay_cycles 44	;44 for PAL, 45 for NTSC-64, 46 for NTSC-65  
+        delay_cycles 44 ;44 for PAL, 45 for NTSC-64, 46 for NTSC-65
         ; Check if $d012 is incremented and rectify with an additional cycle if necessary
         lda $d012
         cmp $d012  ; <- critical instruction (ZERO-Flag will indicate if Jitter = 0 or 1)
@@ -2540,7 +2555,7 @@ _stabilize_raster_cycle_isr:
         ; 5th cycle responsible for calculating the result is executed simultaneously
         ; with the next OP fetch cycle (first cycle of beq *+2).
         ; Add one cycle if $d012 wasn't incremented (Jitter / ZERO-Flag = 0)
-	.assert >* = >(*+2), error, "Time critical branch goes over page limit, please use *stabilize_raster_cycle extranops* in your code"
+        .assert >* = >(*+2), error, "Time critical branch goes over page limit, please use *stabilize_raster_cycle extranops* in your code"
         beq *+2 ;remove remaining jitter of 1 cycle
         ; we are now stable
 .endmacro
@@ -2552,22 +2567,22 @@ _stabilize_raster_cycle_isr:
 ;; Note that the value specifies the reload value of the timer, not the current counter value
 ;; Used registers: A
 .macro set_timerA_latch arg1, base_addr
-	.scope
-	.ifblank base_addr
-	  base_addr_value .set $DC00
-	.else
-	  base_addr_value .set base_addr
-	.endif
-	.if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))          ;AX is used as argument
-	  sta base_addr_value+4
-	  stx base_addr_value+5	
-	.else
-	  lda #<arg1
-	  sta base_addr_value+4
-	  lda #>arg1
-	  sta base_addr_value+5
-	.endif
-	.endscope
+.scope
+.ifblank base_addr
+        base_addr_value .set $DC00
+.else
+        base_addr_value .set base_addr
+.endif
+.if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))          ;AX is used as argument
+        sta base_addr_value+4
+        stx base_addr_value+5
+.else
+        lda #<arg1
+        sta base_addr_value+4
+        lda #>arg1
+        sta base_addr_value+5
+.endif
+.endscope
 .endmacro
 
 ;; set_timerA value|AX[,CIA base address]
@@ -2575,8 +2590,8 @@ _stabilize_raster_cycle_isr:
 ;; If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.
 ;; Used registers: A
 .macro set_timerA arg1, base_addr
-	set_timerA_latch arg1, base_addr
-	force_load_timerA base_addr
+        set_timerA_latch arg1, base_addr
+        force_load_timerA base_addr
 .endmacro
 
 ;; force_load_timerA [CIA base address]
@@ -2584,16 +2599,16 @@ _stabilize_raster_cycle_isr:
 ;; If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.
 ;; Used registers: A
 .macro force_load_timerA base_addr
-	.scope
-	.ifblank base_addr
-	  base_addr_value .set $DC00
-	.else
-	  base_addr_value .set base_addr
-	.endif
-	lda base_addr_value+$e		;force load timer A
-	ora #$10
-	sta base_addr_value+$e
-	.endscope
+.scope
+.ifblank base_addr
+        base_addr_value .set $DC00
+.else
+        base_addr_value .set base_addr
+.endif
+        lda base_addr_value+$e          ;force load timer A
+        ora #$10
+        sta base_addr_value+$e
+.endscope
 .endmacro
 
 ;; stop_timerA [CIA base address]
@@ -2601,16 +2616,16 @@ _stabilize_raster_cycle_isr:
 ;; If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.
 ;; Used registers: A
 .macro stop_timerA base_addr
-	.scope
-	.ifblank base_addr
-	  base_addr_value .set $DC00
-	.else
-	  base_addr_value .set base_addr
-	.endif
-	lda base_addr_value+$e		;force load timer A
-	and #$fe
-	sta base_addr_value+$e
-	.endscope
+.scope
+.ifblank base_addr
+        base_addr_value .set $DC00
+.else
+        base_addr_value .set base_addr
+.endif
+        lda base_addr_value+$e          ;force load timer A
+        and #$fe
+        sta base_addr_value+$e
+.endscope
 .endmacro
 
 ;; start_timerA [CIA base address]
@@ -2618,16 +2633,16 @@ _stabilize_raster_cycle_isr:
 ;; If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.
 ;; Used registers: A
 .macro start_timerA base_addr
-	.scope
-	.ifblank base_addr
-	  base_addr_value .set $DC00
-	.else
-	  base_addr_value .set base_addr
-	.endif
-	lda base_addr_value+$e		;force load timer A
-	ora #$01
-	sta base_addr_value+$e
-	.endscope
+.scope
+.ifblank base_addr
+        base_addr_value .set $DC00
+.else
+        base_addr_value .set base_addr
+.endif
+        lda base_addr_value+$e          ;force load timer A
+        ora #$01
+        sta base_addr_value+$e
+.endscope
 .endmacro
 
 ;; read_timerA [AX[,cia base address]]
@@ -2635,21 +2650,21 @@ _stabilize_raster_cycle_isr:
 ;; If the high byte changes during the reading, the reading is done again
 ;; Used registers: A,X
 .macro read_timerA regs, base_addr
-	.scope
-	.ifblank base_addr
-	  base_addr_value .set $DC00
-	.else
-	  base_addr_value .set base_addr
-	.endif
-	.if .blank(regs) .or (.xmatch ({regs}, {AX}) .or .xmatch ({regs}, {ax}))          ;AX is used as argument
-:	  ldx base_addr_value+5
-	  lda base_addr_value+4
-	  cpx base_addr_value+5
-	  bne :-
-	.else
-	  .error "Wrong argument for read_timerA"
-	.endif
-	.endscope
+.scope
+.ifblank base_addr
+        base_addr_value .set $DC00
+.else
+        base_addr_value .set base_addr
+.endif
+.if .blank(regs) .or (.xmatch ({regs}, {AX}) .or .xmatch ({regs}, {ax}))          ;AX is used as argument
+:       ldx base_addr_value+5
+        lda base_addr_value+4
+        cpx base_addr_value+5
+        bne :-
+.else
+        .error "Wrong argument for read_timerA"
+.endif
+.endscope
 .endmacro
 
 
@@ -2659,40 +2674,40 @@ _stabilize_raster_cycle_isr:
 ;; Note that the value specifies the reload value of the timer, not the current counter value
 ;; Used registers: A
 .macro set_timerB_latch arg1, base_addr
-	.scope
-	.ifblank base_addr
-	  base_addr_value .set $DC00
-	.else
-	  base_addr_value .set base_addr
-	.endif
-	.if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))          ;AX is used as argument
-	  sta base_addr_value+6
-	  stx base_addr_value+7	
-	.else
-	  lda #<arg1
-	  sta base_addr_value+6
-	  lda #>arg1
-	  sta base_addr_value+7
-	.endif
-	.endscope
+.scope
+.ifblank base_addr
+        base_addr_value .set $DC00
+.else
+        base_addr_value .set base_addr
+.endif
+.if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))          ;AX is used as argument
+        sta base_addr_value+6
+        stx base_addr_value+7
+.else
+        lda #<arg1
+        sta base_addr_value+6
+        lda #>arg1
+        sta base_addr_value+7
+.endif
+.endscope
 .endmacro
 
 ;; sync_to_rasterline256
-;; A sturdy version of waiting for the rasterline transition from 255 to 256. 
+;; A sturdy version of waiting for the rasterline transition from 255 to 256.
 ;; Does busy waiting and comes with some jitter, so setting an IRQ might be the better option.
 ;; Might be delayed if an IRQ occurs, but will still trigger.
 ;; see also wait_for_rasterline
 ;; Registers modified: A
-.macro sync_to_rasterline256 
+.macro sync_to_rasterline256
 .scope
         ;wait for a rasterline under 255
-        waitsync1:
-          lda $d011
-          bmi waitsync1
+waitsync1:
+        lda $d011
+        bmi waitsync1
         ;wait for a rasterline over 255
-        waitsync2:
-          lda $d011
-          bpl waitsync2
+waitsync2:
+        lda $d011
+        bpl waitsync2
 .endscope
 .endmacro
 
@@ -2701,8 +2716,8 @@ _stabilize_raster_cycle_isr:
 ;; Control codes will lead to an arbitrary byte.
 ;; Used registers: A
 .macro to_scrcode
-	.import _to_scrcode_sr
-	jsr _to_scrcode_sr
+.import _to_scrcode_sr
+        jsr _to_scrcode_sr
 .endmacro
 
 
@@ -2715,20 +2730,20 @@ _stabilize_raster_cycle_isr:
 
 .macro wait_for_rasterline rasterline,reg
 .if rasterline>255 .or rasterline<56
-:	;unnamed label is only set if necessary to avoid a warning
+:       ;unnamed label is only set if necessary to avoid a warning
 .endif
         _ld_reg reg,#<(rasterline)
 :
-        _cp_reg reg,$D012    		;wait until lobyte matches
+        _cp_reg reg,$D012               ;wait until lobyte matches
         bne :-
-        .if rasterline>255
-          _ld_reg reg,$D011		;check highbyte to be set
-          bpl :--
-        .endif
-        .if rasterline<56
-          _ld_reg reg,$D011		;check highbyte to be cleared
-          bmi :--
-        .endif
+.if rasterline>255
+        _ld_reg reg,$D011             ;check highbyte to be set
+        bpl :--
+.endif
+.if rasterline<56
+        _ld_reg reg,$D011             ;check highbyte to be cleared
+        bmi :--
+.endif
 .endmacro
 
 
@@ -2738,7 +2753,7 @@ _stabilize_raster_cycle_isr:
 
 .macro screen_off
 .import _screen_off
-	jsr _screen_off
+        jsr _screen_off
 .endmacro
 
 ;; wait_screen_off
@@ -2747,7 +2762,7 @@ _stabilize_raster_cycle_isr:
 
 .macro wait_screen_off
 .import _wait_screen_off
-	jsr _wait_screen_off
+        jsr _wait_screen_off
 .endmacro
 
 ;; screen_on
@@ -2755,5 +2770,5 @@ _stabilize_raster_cycle_isr:
 
 .macro screen_on
 .import _screen_on
-	jsr _screen_on
+        jsr _screen_on
 .endmacro

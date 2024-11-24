@@ -788,6 +788,7 @@ Registers modified: A<br>
 <br>
 <b>load_prg</b> <i>filename[,devicenr[,loadaddr]]</i><br>
 Wrapper around ROM load function, prg means that the file is assumed to have a two-byte load address at its start<br>
+filename can be a string or a pointer in AX<br>
 if device number is 0 or not stated, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default<br>
 if loadaddr is omitted, the load address is defined by the first two bytes of the file<br>
 Return value in carry, if carry is set, an error has happened and error code is returned in A:<br>
