@@ -2694,7 +2694,7 @@ _stabilize_raster_cycle_isr:
 
 ;; sync_to_rasterline256
 ;; A sturdy version of waiting for the rasterline transition from 255 to 256.
-;; Does busy waiting and comes with some jitter, so setting an IRQ might be the better option.
+;; Does busy waiting and comes with some jitter.
 ;; Might be delayed if an IRQ occurs, but will still trigger.
 ;; see also wait_for_rasterline
 ;; Registers modified: A

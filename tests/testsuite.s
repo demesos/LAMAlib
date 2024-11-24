@@ -77,6 +77,9 @@ testsuite:
 	jsr test14	; testing strlen functions
 	checkerr 14
 
+	jsr test15	; testing strlen functions
+	checkerr 15
+
 	rts
 
 .proc checkerr
@@ -102,3 +105,4 @@ test11:	.include "test11.s"
 test12:	.include "test12.s"
 test13:	.include "test13.s"
 test14:	.include "test14.s"
+test15:	.include "test15.s"

@@ -532,20 +532,20 @@ Only a fallthrough into the default part works correctly.<br>
 Registers modified: none<br>
 <br>
 Example:<br>
-	<pre><br>
-	switch A<br>
-	case 1:<br>
-	   print "one"<br>
-	   break<br>
-	case 2:<br>
-	   print "two"<br>
-	   break<br>
-	case 3:<br>
-	   print "one"<br>
-	   break<br>
-	default:<br>
-	   print "?"<br>
-	endswitch<br>
+	<pre>
+	switch A
+	case 1:
+	   print "one"
+	   break
+	case 2:
+	   print "two"
+	   break
+	case 3:
+	   print "one"
+	   break
+	default:
+	   print "?"
+	endswitch
 	</pre><br>
 <h2>Useful Routines</h2>
 <br>
@@ -1218,7 +1218,7 @@ Used registers: A<br>
 <br>
 <b>sync_to_rasterline256</b><br>
 A sturdy version of waiting for the rasterline transition from 255 to 256.<br>
-Does busy waiting and comes with some jitter, so setting an IRQ might be the better option.<br>
+Does busy waiting and comes with some jitter.<br>
 Might be delayed if an IRQ occurs, but will still trigger.<br>
 see also wait_for_rasterline<br>
 Registers modified: A<br>
@@ -1292,5 +1292,109 @@ Tell the MMU to feed RAM bank 0 or 1 to the VIC<br>
 This is a C128-only feature<br>
 Bank must be 0 or 1<br>
 I/O must be enabled for this macro to work<br>
+<h2>Assembler macros to control VIC sprites (no multiplexing)</h2>
+To use these macros, they need to be included separately with <pre>
+.include "LAMAlib-sprites.inc"
+</pre><br>
+<br>
+<b>showSprite</b> <i>n</i><br>
+Make sprite n visible<br>
+Registers modified: A<br>
+<br>
+<b>hideSprite</b> <i>n</i><br>
+Hide sprite n<br>
+Registers modified: A<br>
+<br>
+<b>enableMultiColorSprite</b> <i>n</i><br>
+Enable multicolor mode for sprite n<br>
+Registers modified: A<br>
+<br>
+<b>disableMultiColorSprite</b> <i>n</i><br>
+Disable multicolor mode for sprite n<br>
+Registers modified: A<br>
+<br>
+<b>enableXexpandSprite</b> <i>n</i><br>
+Enable horizontal expansion for sprite n<br>
+Registers modified: A<br>
+<br>
+<b>disableXexpandSprite</b> <i>n</i><br>
+Disable horizontal expansion for sprite n<br>
+Registers modified: A<br>
+<br>
+<b>enableYexpandSprite</b> <i>n</i><br>
+Enable vertical expansion for sprite n<br>
+Registers modified: A<br>
+<br>
+<b>disableYexpandSprite</b> <i>n</i><br>
+Disable vertical expansion for sprite n<br>
+Registers modified: A<br>
+<br>
+<b>spriteBeforeBackground</b> <i>n</i><br>
+Make sprite n appear in front of the background<br>
+Registers modified: A<br>
+<br>
+<b>spriteBehindBackground</b> <i>n</i><br>
+Make sprite n appear behind the background<br>
+Registers modified: A<br>
+<br>
+<b>setSpriteColor</b> <i>n,arg</i><br>
+Set the color for sprite n<br>
+Registers modified: A, X, or Y (depending on input)<br>
+<br>
+<b>getSpriteColor</b> <i>n,reg</i><br>
+Get the color of sprite n into register reg<br>
+Registers modified: A, X, Y<br>
+<br>
+<b>setSpriteMultiColor1</b> <i>arg</i><br>
+Set the first multicolor for sprites<br>
+Registers modified: A, X, Y<br>
+<br>
+<b>getSpriteMultiColor1</b> <i>reg</i><br>
+Get the first multicolor of sprites into register reg<br>
+Registers modified: A, X, Y<br>
+<br>
+<b>setSpriteMultiColor2</b> <i>arg</i><br>
+Set the second multicolor for sprites<br>
+Registers modified: A, X, Y<br>
+<br>
+<b>getSpriteMultiColor2</b> <i>reg</i><br>
+Get the second multicolor of sprites into register reg<br>
+Registers modified: A, X, Y<br>
+<br>
+<b>setSpriteCostume</b> <i>n,arg</i><br>
+Set the costume for sprite n<br>
+if arg is an register or a numerical value below 256, it is interpreted as the sprite costume block<br>
+if arg is a value > 255, it is interpreted as the absolute address of the sprite data (needs to align to a 64 byte block)<br>
+Registers modified: A, X, Y<br>
+<br>
+<b>getSpriteCostume</b> <i>n,reg</i><br>
+Get the costume of sprite n into register reg<br>
+Registers modified: A, X, Y<br>
+<br>
+<b>setSpriteX</b> <i>n,arg</i><br>
+Set the X position of sprite n<br>
+arg can be a number or AX<br>
+Registers modified: A, X<br>
+<br>
+<b>setSpriteY</b> <i>n,arg</i><br>
+Set the Y position of sprite n<br>
+arg can be a number or any register<br>
+Registers modified: A, X, Y<br>
+<br>
+<b>getSpriteX</b> <i>n,reg</i><br>
+Get the X position of sprite n into register reg<br>
+Registers modified: X<br>
+<br>
+<b>getSpriteY</b> <i>n,reg</i><br>
+Get the Y position of sprite n into register reg<br>
+Registers modified: A, X, Y<br>
+<br>
+<b>setSpriteXY</b> <i>n,arg1,arg2</i><br>
+Set the X and Y positions of sprite n<br>
+Registers modified: A, X, Y<br>
+<br>
+<b>updateSpriteAttributes</b> <i>n</i><br>
+Update attributes for sprite n<br>
+Registers modified: A, X, Y<br>
 </body>
 </html>
