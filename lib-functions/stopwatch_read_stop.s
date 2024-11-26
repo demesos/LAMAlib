@@ -9,10 +9,10 @@
 
 stoptimer:
 	lda #%00000000
-	sta CRA
-	sta CRB
+	sta CIA2_CRA
+	sta CIA2_CRB
 readtimer:
-	lda TIMERB
-	ldx TIMERB+1
+	lda CIA2_TIMERB
+	ldx CIA2_TIMERB+1
 	negax
 	rts

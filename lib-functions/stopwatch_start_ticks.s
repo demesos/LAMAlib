@@ -8,12 +8,12 @@
 
 starttimer:
 	lda #%00000000
-	sta CRA
-	sta CRB
-	lda ICR
+	sta CIA2_CRA
+	sta CIA2_CRB
+	lda CIA2_ICR
 	lda #$FF
-	sta TIMERB
-	sta TIMERB+1
+	sta CIA2_TIMERB
+	sta CIA2_TIMERB+1
 	lda #%00000001
-	sta CRB
+	sta CIA2_CRB
 	rts

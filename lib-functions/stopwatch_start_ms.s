@@ -10,17 +10,17 @@ one_ms=$3FE ;for C64 PAL clock frequency
 
 starttimer:
 	lda #%00000000
-	sta CRA
-	sta CRB
+	sta CIA2_CRA
+	sta CIA2_CRB
 	lda #<one_ms
-	sta TIMERA
+	sta CIA2_TIMERA
 	lda #>one_ms
-	sta TIMERA+1
+	sta CIA2_TIMERA+1
 	lda #$FF
-	sta TIMERB
-	sta TIMERB+1
+	sta CIA2_TIMERB
+	sta CIA2_TIMERB+1
 	lda #%01000001 ;timer B counts underflows of timer A
-	sta CRB
+	sta CIA2_CRB
 	lda #%00000001 ;start timer A 
-	sta CRA
+	sta CIA2_CRA
 	rts

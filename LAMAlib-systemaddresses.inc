@@ -74,15 +74,25 @@ IOBASE= $FFF3 ;Fetch CIA #1 base address
 INITVIC = $E5A0
 INITVEC = $FD15   
 
-CIABASE=$DD00
+CIA1_PRA  = $DC00
+CIA1_PRB  = $DC01
+CIA1_DDRA = $DC02
+CIA1_DDRB = $DC03
+CIA1_TIMERA= $DC04
+CIA1_TIMERB= $DC06
+CIA1_ICR= $DC0D  ;Interrupt control reg
+CIA1_CRA= $DC0E ;Control Timer A
+CIA1_CRB= $DC0F ;Control Timer B
 
-TIMERA= CIABASE+4
-TIMERB= CIABASE+6
-
-ICR= CIABASE+$D ;Interrupt control reg
-
-CRA= CIABASE+$E ;Control Timer A
-CRB= CIABASE+$F ;Control Timer B
+CIA2_PRA  = $DD00
+CIA2_PRB  = $DD01
+CIA2_DDRA = $DD02
+CIA2_DDRB = $DD03
+CIA2_TIMERA= $DD04
+CIA2_TIMERB= $DD06
+CIA2_ICR= $DD0D  ;Interrupt control reg
+CIA2_CRA= $DD0E ;Control Timer A
+CIA2_CRB= $DD0F ;Control Timer B
 
 ISR_DEFAULT=$EA31
 ISR_EXIT   =$EA81
@@ -171,15 +181,25 @@ SPLIT= $0A34 ;in split screen mode, contains value for middle raster irq.
 CURMOD=$0A2B ;8563 CURSQR Mode.
 PAUSE= $0A21 ;scroll flag (in effect = $13)
 
-CIABASE=$DD00
+CIA1_PRA  = $DC00
+CIA1_PRB  = $DC01
+CIA1_DDRA = $DC02
+CIA1_DDRB = $DC03
+CIA1_TIMERA= $DC04
+CIA1_TIMERB= $DC06
+CIA1_ICR= $DC0D  ;Interrupt control reg
+CIA1_CRA= $DC0E ;Control Timer A
+CIA1_CRB= $DC0F ;Control Timer B
 
-TIMERA= CIABASE+4
-TIMERB= CIABASE+6
-
-ICR= CIABASE+$D ;Interrupt control reg
-
-CRA= CIABASE+$E ;Control Timer A
-CRB= CIABASE+$F ;Control Timer B
+CIA2_PRA  = $DD00
+CIA2_PRB  = $DD01
+CIA2_DDRA = $DD02
+CIA2_DDRB = $DD03
+CIA2_TIMERA= $DD04
+CIA2_TIMERB= $DD06
+CIA2_ICR= $DD0D  ;Interrupt control reg
+CIA2_CRA= $DD0E ;Control Timer A
+CIA2_CRB= $DD0F ;Control Timer B
 
 ISR_DEFAULT=$FA65
 ISR_EXIT   =$FF33
