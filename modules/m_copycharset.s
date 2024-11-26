@@ -1,7 +1,7 @@
 ;***********************************************************************
 ;* Module: copycharset
 ;* Version 0.1
-
+;
 ; to be configured and included with
 ; .scope copycharset
 ; CHARSET_SRC=xxxx      ;16 bit address
