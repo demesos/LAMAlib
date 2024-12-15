@@ -995,11 +995,11 @@ If both are already released, the command continues immediately.<br>
 Function works independently of IRQ routine or ROM.<br>
 Registers modified: A<br>
 <br>
-<b>read_keys_WASDSpace</b><br>
+<b>read_keys_WASDspace</b><br>
 Checks the keyboard for keypresses of W, A ,S, D and Space<br>
 Output is a byte in A in the same format as a joystick value<br>
-<b>readWASDspace</b> is an alias to <b>read_keys_WASDSpace</b> for backwards compatibility<br>
-Since movement of joystick 1 disturbs the reading, no keys are returned if joystick 1 is moved to any direction<br>
+<b>readWASDspace</b> is an alias to <b>read_keys_WASDspace</b> for backwards compatibility<br>
+Since movement of joystick 1 disturbs the reading, no keys are returned if joystick 1 is moved in any direction<br>
 Function is independent of the Kernal keyboard routine<br>
 Registers modified: A,X<br>
 <br>

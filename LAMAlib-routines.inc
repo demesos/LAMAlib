@@ -1836,11 +1836,11 @@ to_x=*+1
         jsr _waitkeyorbuttonreleased_sr
 .endmacro
 
-;; read_keys_WASDSpace
+;; read_keys_WASDspace
 ;; Checks the keyboard for keypresses of W, A ,S, D and Space
 ;; Output is a byte in A in the same format as a joystick value
-;; <b>readWASDspace</b> is an alias to <b>read_keys_WASDSpace</b> for backwards compatibility
-;; Since movement of joystick 1 disturbs the reading, no keys are returned if joystick 1 is moved to any direction
+;; <b>readWASDspace</b> is an alias to <b>read_keys_WASDspace</b> for backwards compatibility
+;; Since movement of joystick 1 disturbs the reading, no keys are returned if joystick 1 is moved in any direction
 ;; Function is independent of the Kernal keyboard routine
 ;; Registers modified: A,X
 .import _read_keys_WASDspace_sr
