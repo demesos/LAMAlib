@@ -92,7 +92,12 @@ right_margin=*+1
 	  lda width
 	endif
 
-        ;calculate length of next word
+        ;calculate length of next word including a leading space
+        lda (text),y
+	cmp #32
+	bne nospace
+	iny	;increase y to walk over space
+nospace:
         dey	;instead of ldy #$ff because y = 0 from before
 next_char:
         iny

@@ -61,7 +61,6 @@ cmpx=*+1
 	print_wrapped "the quick brown fox jumped over the lazy dog."
 	print_wrapped "what did the quick brown do? jumping over the lazy dog!"
 
-
 	ldax #SCREEN
 	stax addr
 	poke sum,0
@@ -95,9 +94,8 @@ cmpx=*+1
 	restore X
 	clc 
 	jsr PLOT
-
 	lda sum
-	cmp #65
+	cmp #$26
 	bne exit_failure
 	
 	clc
