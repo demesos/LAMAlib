@@ -644,6 +644,23 @@ Error codes (listed in decimal) are:<br>
 73  Power up message, or write attempt with DOS Mismatch<br>
 74  Drive not ready<br>
 <br>
+<b>displayPETSCII</b> <i>arg[,under_io]</i><br>
+Displays a PETSCII that was compressed by petscii2x.py<br>
+arg can be an address or AX, if the address is stored already there<br>
+under_io is an optional argument that, if set to 1, indicates if the routine should also be able to read from under $d000-$dfff<br>
+When decoding from under $d000, IRQ must be turned off or be able to handle an all RAM configuration<br>
+Registers modified: A,X,Y<br>
+<br>
+<b>displayPETSCII_transparent_off</b> <i>[under_io]</i><br>
+Turns off the transparent character routine of displayPETSCII<br>
+under_io is an optional argument that, if set to 1, indicates that the routine being able to read from under $d000-$dfff is to be changed<br>
+Registers modified: A<br>
+<br>
+<b>displayPETSCII_set_transparent</b> <i>screencode,[under_io]</i><br>
+Enables the transparent character routine of displayPETSCII and definee the transparent character<br>
+under_io is an optional argument that, if set to 1, indicates that the routine being able to read from under $d000-$dfff is to be changed<br>
+Registers modified: A<br>
+<br>
 <b>div8</b> <i>arg</i><br>
 <b>div8</b> <i>#arg</i><br>
 Divides the unsigned 8 bit value in A by an immediate value or the 8 bit value stored at addr<br>

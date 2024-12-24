@@ -311,6 +311,83 @@ sm_to_add=*+1
   .endscope
 .endmacro
 
+
+;; displayPETSCII arg[,under_io]
+;; Displays a PETSCII that was compressed by petscii2x.py
+;; arg can be an address or AX, if the address is stored already there
+;; under_io is an optional argument that, if set to 1, indicates if the routine should also be able to read from under $d000-$dfff
+;; When decoding from under $d000, IRQ must be turned off or be able to handle an all RAM configuration
+;; Registers modified: A,X,Y
+.macro displayPETSCII addr,under_io
+  .if .not (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
+	lda #<addr
+	ldx #>addr
+  .endif
+  .ifnblank under_io
+     .if under_io
+        .import _displayPETSCII_under_IO
+	jsr _displayPETSCII_under_IO
+     .else
+        .import _displayPETSCII
+	jsr _displayPETSCII
+     .endif
+  .else
+        .import _displayPETSCII
+	jsr _displayPETSCII
+  .endif
+.endmacro
+
+;; displayPETSCII_transparent_off [under_io]
+;; Turns off the transparent character routine of displayPETSCII
+;; under_io is an optional argument that, if set to 1, indicates that the routine being able to read from under $d000-$dfff is to be changed
+;; Registers modified: A
+.macro displayPETSCII_transparent_off under_io
+  .ifdef under_io .and under_io>0
+	.import _displayPETSCII_under_IO_transparent_petscii_char 
+	.import _displayPETSCII_under_IO_transparent_petscii_char2
+
+        lda #$c9        ;opcode CMP to overwrite BEQ
+        sta _displayPETSCII_under_IO_transparent_petscii_char +2
+        sta _displayPETSCII_under_IO_transparent_petscii_char2+2
+  .else
+	.import _displayPETSCII_transparent_petscii_char 
+	.import _displayPETSCII_transparent_petscii_char2
+
+        lda #$c9        ;opcode CMP to overwrite BEQ
+        sta _displayPETSCII_transparent_petscii_char +2
+        sta _displayPETSCII_transparent_petscii_char2+2
+  .endif
+.endmacro
+
+;; displayPETSCII_set_transparent screencode,[under_io]
+;; Enables the transparent character routine of displayPETSCII and definee the transparent character
+;; under_io is an optional argument that, if set to 1, indicates that the routine being able to read from under $d000-$dfff is to be changed
+;; Registers modified: A
+.macro displayPETSCII_set_transparent screencode,under_io
+  .if (.not .blank(under_io)) .and under_io>0
+	.import _displayPETSCII_under_IO_transparent_petscii_char 
+	.import _displayPETSCII_under_IO_transparent_petscii_char2
+
+        lda #screencode
+        sta _displayPETSCII_under_IO_transparent_petscii_char +1
+        sta _displayPETSCII_under_IO_transparent_petscii_char2+1
+        lda #$f0        ;opcode BEQ
+        sta _displayPETSCII_under_IO_transparent_petscii_char +2
+        sta _displayPETSCII_under_IO_transparent_petscii_char2+2
+  .else
+	.import _displayPETSCII_transparent_petscii_char 
+	.import _displayPETSCII_transparent_petscii_char2
+
+        lda #screencode
+        sta _displayPETSCII_transparent_petscii_char +1
+        sta _displayPETSCII_transparent_petscii_char2+1
+        lda #$f0        ;opcode BEQ
+        sta _displayPETSCII_transparent_petscii_char +2
+        sta _displayPETSCII_transparent_petscii_char2+2
+  .endif
+.endmacro
+
+
 ;; div8 arg
 ;; div8 #arg
 ;; Divides the unsigned 8 bit value in A by an immediate value or the 8 bit value stored at addr
