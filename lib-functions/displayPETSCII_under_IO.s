@@ -9,7 +9,7 @@
 ; Version 1.21 November 2023
 ;-----------------------------------------------
 
-.include "LAMAlib.inc"
+.include "../LAMAlib.inc"
 
 .export _displayPETSCII_under_IO
 

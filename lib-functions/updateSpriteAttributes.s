@@ -1,4 +1,4 @@
-.include "LAMAlib.inc"
+.include "../LAMAlib.inc"
         .export _updateSpriteAttributes
         .import _twopotentials,_maskedtwopotentials
 
