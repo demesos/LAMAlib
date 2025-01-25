@@ -6,7 +6,7 @@
 ;
 ; module to be configured and included with
 ; .scope mousedriver
-; .include "m_mousedriver.s"
+; .include "modules/m_mousedriver.s"
 ; .endscope
 ;
 ; usage from the main program
