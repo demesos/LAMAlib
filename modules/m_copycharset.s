@@ -1,6 +1,7 @@
 ;***********************************************************************
 ;* Module: copycharset
 ;* Version 0.1
+;* by Wil
 ;
 ; to be configured and included with
 ; .scope copycharset
