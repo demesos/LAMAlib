@@ -35,7 +35,9 @@ def_const COMPACT_ZEROPAGE, 0     ;if 1 the module operates in a compact mode us
 def_const TARGET_COLORMAP,0	  ;if 0 the value of $d800 is used as default
 def_const TARGET_SCREEN,0	  ;if 0 the value in 648 is used as the high byte default value
 def_const DISPLAY_BY_NUM,0	  ;if 1 a function display_by_num is added, taking the image number to display as argument
+.ifdef petsciinum
 def_const PETSCIIDATA,petsciinum  ;label to start of petscii data for display_by_num
+.endif
 def_const MEM_1_VALUE,$36         ;value in address $1 during decode for display_by_num
 
 .zeropage

@@ -1065,14 +1065,12 @@ If fillvalue is A or not specified, the current content of the A register is use
 Registers modified: A, X, (potentially Y if the total memory size exceeds 256 bytes)<br>
 <br>
 <b>memcopy</b> <i>src_addr,target_addr,length</i><br>
-<br>
-memcopy_from [AX|addr]<br>
-memcopy_to   [AX|addr]<br>
-memcopy [AX|length]<br>
+<b>memcopy_from</b> <i>[AX|addr]</i><br>
+<b>memcopy_to</b>   <i>[AX|addr]</i><br>
+<b>memcopy</b> <i>[AX|length]</i><br>
 Copies the memory area src_addr to src_addr+length over target_addr<br>
 If the areas are overlapping, then target_addr must be < src_addr<br>
-The three parameter version takes three constant numbers<br>
-Alternatively, the function can be configured parameter by parameter, either with AX or a constant<br>
+The three parameter version takes three constant numbers, alternatively, the function can be configured parameter by parameter, either with AX or a constant<br>
 When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.<br>
 Registers modified: A,X,Y<br>
 <br>
@@ -1081,6 +1079,16 @@ Fills the memory range from start_addr to end_addr with the byte fillvalue.<br>
 If fillvalue is A or not specified, the current content of the A register is used.<br>
 This macro is interrupt-safe and can be used concurrently in both the main program and an interrupt routine.<br>
 Registers modified: A, X, (Y if the memory size to fill exceeds 256 bytes)<br>
+<br>
+<b>memswap</b> <i>src_addr,target_addr,length</i><br>
+<b>memswap_from</b> <i>[AX|addr]</i><br>
+<b>memswap_to</b> <i>[AX|addr]</i><br>
+<b>memswap</b> <i>[AX|length]</i><br>
+Swaps length bytes of memory starting at src_addr and target_addr, respectively.<br>
+Areas must not overlap.<br>
+The three parameter version takes three constant numbers, alternatively, the function can be configured parameter by parameter, either with AX or a constant<br>
+When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.<br>
+Registers modified: A,X,Y<br>
 <br>
 <b>save_prg</b> <i>filename,devicenr,startaddr,endaddr</i><br>
 Saves the memory from startaddr to endaddr (including the endaddr) using the CBM ROM save function.<br>

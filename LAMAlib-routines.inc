@@ -2041,14 +2041,12 @@ systarget=::BASICSTART+$0c+.strlen(text)
 
 
 ;; memcopy src_addr,target_addr,length
-;;
-;; memcopy_from [AX|addr]
-;; memcopy_to   [AX|addr]
-;; memcopy [AX|length]
+;; <b>memcopy_from</b> <i>[AX|addr]</i>
+;; <b>memcopy_to</b>   <i>[AX|addr]</i>
+;; <b>memcopy</b> <i>[AX|length]</i>
 ;; Copies the memory area src_addr to src_addr+length over target_addr
 ;; If the areas are overlapping, then target_addr must be < src_addr
-;; The three parameter version takes three constant numbers
-;; Alternatively, the function can be configured parameter by parameter, either with AX or a constant
+;; The three parameter version takes three constant numbers, alternatively, the function can be configured parameter by parameter, either with AX or a constant
 ;; When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.
 ;; Registers modified: A,X,Y
 .macro  memcopy src_addr,target_addr,length
@@ -2183,6 +2181,84 @@ yinit=<($100-<(length))
         bne :-
 .endif
 .endscope
+.endmacro
+
+;; memswap src_addr,target_addr,length
+;; <b>memswap_from</b> <i>[AX|addr]</i>
+;; <b>memswap_to</b> <i>[AX|addr]</i>
+;; <b>memswap</b> <i>[AX|length]</i>
+;; Swaps length bytes of memory starting at src_addr and target_addr, respectively.
+;; Areas must not overlap.
+;; The three parameter version takes three constant numbers, alternatively, the function can be configured parameter by parameter, either with AX or a constant
+;; When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.
+;; Registers modified: A,X,Y
+.macro  memswap src_addr,target_addr,length
+.scope
+.import _memswap_sr
+.importzp _llzp_word1,_llzp_word2
+.if .paramcount = 3
+yinit=<($100-<(length))
+        pokew _llzp_word2,src_addr - yinit
+        pokew _llzp_word1,target_addr - yinit
+        ldx #1+>(length-1)
+        ldy #yinit
+.elseif .paramcount = 1
+.if (.xmatch ({src_addr}, {AX}) .or .xmatch ({src_addr}, {ax}))          ;AX is used as length
+        tay
+        beq skip_adjust
+
+        pha
+        clc
+        adc _llzp_word2
+        sta _llzp_word2
+        if cc
+            dec _llzp_word2+1
+        endif
+        pla
+        clc
+        adc _llzp_word1
+        sta _llzp_word1
+        if cc
+            dec _llzp_word1+1
+        endif
+        neg
+        tay
+        inx
+skip_adjust:
+.else                                     ;length is given as constant parameter
+yinit=<($100-<src_addr)
+        ldx #1+>(src_addr-1)
+        ldy #yinit
+.if yinit>0
+        lda #<src_addr
+        clc
+        adc _llzp_word2
+        sta _llzp_word2
+        if cc
+            dec _llzp_word2+1
+        endif
+        lda #<src_addr
+        clc
+        adc _llzp_word1
+        sta _llzp_word1
+        if cc
+            dec _llzp_word1+1
+        endif
+.endif
+.endif
+.else
+        .error "Wrong number of parameters for memswap!"
+.endif
+        jsr _memswap_sr
+.endscope
+.endmacro
+
+.macro memswap_from src_addr
+memcopy_from src_addr
+.endmacro
+
+.macro memswap_to target_addr
+memcopy_to target_addr
 .endmacro
 
 ;; save_prg filename,devicenr,startaddr,endaddr
