@@ -147,7 +147,7 @@
   ::nesting_levelY .set ::nesting_levelY/10 + 1
 .endmacro
 
-; the do_every macro uses a separate nesting_level counter
+; the do_every and do_once macros use their own nesting_level counter
 .macro inc_nesting_level_every
   .if .defined(::nesting_level_every)
     ::nesting_level_every .set ::nesting_level_every*100
@@ -1369,6 +1369,31 @@
 
 .macro end_every
   .ident(.sprintf("end_do_every%d", ::nesting_level_every/10)):
+  dec_nesting_level_every
+.endmacro
+
+
+;; do_once [maxcalls]
+;;   ...
+;; <b>end_once</b>
+;; Defines a block that is executed a specified number of times.
+;; maxcalls: Specifies the number of times the code within the block will be executed (default=1).
+;; If the block is called more than maxcalls, it will have no effect beyond overwriting the A register.
+;; Registers modified: A
+.macro do_once maxcalls
+  inc_nesting_level_every
+  .ident(.sprintf("begin_do_once%d", ::nesting_level_every/10)):
+  .if .paramcount = 0
+    lda #1  ;execute exactly once
+  .else
+    lda #maxcalls
+  .endif
+  longbeq .ident(.sprintf("end_do_once%d", ::nesting_level_every/10))  ; Branch to end if A is 0
+  dec .ident(.sprintf("begin_do_once%d", ::nesting_level_every/10)) +1  ; Decrement the counter
+.endmacro
+
+.macro end_once
+  .ident(.sprintf("end_do_once%d", ::nesting_level_every/10)):
   dec_nesting_level_every
 .endmacro
 

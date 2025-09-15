@@ -1,8 +1,8 @@
 <html>
 <body>
 <h1>LAMAlib - Lightweight Assembler MAcro library for cc65</h1>
-Version: 0.3141592653<br>
-Date: 2024-11-24<br>
+Version: 0.31415926535<br>
+Date: 2025-09-15<br>
 Author: Wil Elmenreich (wilfried at gmx dot at)<br>
 License: The Unlicense (public domain)<br>
 <br>
@@ -459,6 +459,14 @@ Defines a block that is executed every n-th time<br>
 interval: Specifies the interval between each execution. Maximum value 255.<br>
 phase: Determines the phase offset of the first iteration. If 0 the event is triggered in the first iteration.<br>
 Default value for phase is the interval-1<br>
+Registers modified: A<br>
+<br>
+<b>do_once</b> <i>[maxcalls]</i><br>
+...<br>
+<b>end_once</b><br>
+Defines a block that is executed a specified number of times.<br>
+maxcalls: Specifies the number of times the code within the block will be executed (default=1).<br>
+If the block is called more than maxcalls, it will have no effect beyond overwriting the A register.<br>
 Registers modified: A<br>
 <br>
 <b>on_A_jsr</b> <i>addr1,</i> <i>addr2,</i> <i>...</i><br>

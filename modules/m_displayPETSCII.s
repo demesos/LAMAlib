@@ -1,6 +1,6 @@
 ;***********************************************************************
 ;* Module: PETSCII decode and display
-;* Version 3.00 March 2025
+;* Version 3.01 August 2025
 ;
 ; module to be configured and included with
 ;
@@ -78,10 +78,6 @@ display_by_num:
         cmp PETSCIIDATA
         bcs exit_rts2            ;pic number too high
 
-currentpic=*+1
-        cmp #$ff
-        beq exit_rts2            ;pic alread in display
-
 display_by_num_raw:
         sta currentpic
 
@@ -102,6 +98,8 @@ display_by_num_raw:
         sta 1
 exit_rts2:
         rts
+
+currentpic: .byte $ff
 .endif
 
 run:
