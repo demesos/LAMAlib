@@ -258,7 +258,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
             sta VIC_BASE+$10
         endif
     .else
-        lda #<arg
+        lda #<(arg)
         sta VIC_BASE+n+n
       .if arg>255
         lda VIC_BASE+$10
