@@ -1177,19 +1177,12 @@ iarg=(.right (.tcount ({arg1})-1, {arg1}))
 
 ;; printax
 ;; Prints the number in AX as a 16 bit unsigned decimal number
-;; BASIC and KERNAL ROM need to be enabled when using this function
+;; Does not use BASIC or KERNAL ROM functions
 ;; Registers modified: A,Y,X
 .macro  printax
 .scope
-.if ::USE_BASIC_ROM>0
-        sta setx +1     ;we need to switch A and X
-        txa
-setx:   ldx #00
-        jsr LINPRT
-.else
 .import _printax_sr
         jsr _printax_sr
-.endif
 .endscope
 .endmacro
 
@@ -1209,18 +1202,12 @@ setx:   ldx #00
 
 ;; printa
 ;; Prints the number in A as a 8 bit unsigned decimal number
-;; BASIC and KERNAL ROM need to be enabled when using this function
+;; Does not use BASIC or KERNAL ROM functions
 ;; Registers modified: A,X
 .macro  printa
 .scope
-.if ::USE_BASIC_ROM>0
-        tax
-        lda #00
-        jsr LINPRT
-.else
 .import _printa_sr
         jsr _printa_sr
-.endif
 .endscope
 .endmacro
 
@@ -1239,7 +1226,7 @@ setx:   ldx #00
 
 ;; printax_signed
 ;; Prints the number in AX as a 16 bit signed decimal number
-;; BASIC and KERNAL ROM need to be enabled when using this function
+;; Does not use BASIC or KERNAL ROM functions
 ;; Registers modified: A,Y,X
 .macro  printax_signed
 .scope
@@ -1252,15 +1239,8 @@ setx:   ldx #00
         pla
 positive:
 
-.if ::USE_BASIC_ROM>0
-        sta setx +1     ;we need to switch A and X
-        txa
-setx:   ldx #00
-        jsr LINPRT
-.else
 .import _printax_sr
         jsr _printax_sr
-.endif
 .endscope
 .endmacro
 
