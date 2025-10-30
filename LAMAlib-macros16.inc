@@ -581,7 +581,7 @@
               beq :-
               :
             .else
-	      lda #<increment
+	      lda #<(increment)
 	      sta :+ +5
               ldx #$ff
   	      clc
@@ -593,7 +593,7 @@
   	      .if .const(increment) .and increment<256
   	        bcc :+
   	      .endif
-	      lda #>increment
+	      lda #>(increment)
 	      sta :- +5
               txa         ;test x for 0
               beq :-
@@ -643,10 +643,10 @@
             .else
               lda addr
               clc
-              adc #<increment
+              adc #<(increment)
               sta addr
               lda addr+1
-              adc #>increment
+              adc #>(increment)
               sta addr+1
             .endif
           .endif
@@ -780,7 +780,7 @@
               beq :-
               :
             .else
-              lda #<decrement
+              lda #<(decrement)
               sta :+ +5
               ldx #$ff
               sec
@@ -792,7 +792,7 @@
               .if .const(decrement) .and decrement<256
                 bcs :+
               .endif
-              lda #>decrement
+              lda #>(decrement)
               sta :- +5
               txa         ;test x for 0
               beq :-
@@ -847,10 +847,10 @@
             .else
               lda addr
               sec
-              sbc #<decrement
+              sbc #<(decrement)
               sta addr
               lda addr+1
-              sbc #>decrement
+              sbc #>(decrement)
               sta addr+1
             .endif
           .endif

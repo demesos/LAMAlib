@@ -872,8 +872,8 @@ devno:=devicenr
 
         lda #$00        ;load (instead of verify)
 .if .paramcount = 3
-        ldx #<loadaddr
-        ldy #>loadaddr
+        ldx #<(loadaddr)
+        ldy #>(loadaddr)
 .endif
         jsr LOAD
 
@@ -1892,7 +1892,7 @@ to_x=*+1
         .word lama_nextlineptr
           ;
 .if .paramcount > 0
-        .byte <linenumber,>linenumber
+        .byte <(linenumber),>(linenumber)
 .else
         .byte <2020,>2020
 .endif
@@ -2063,18 +2063,18 @@ yinit=<($100-<(length))
         inx
 skip_adjust:
 .else                                     ;length is given as constant parameter
-yinit=<($100-<src_addr)
+yinit=<($100-<(src_addr))
         ldx #1+>(src_addr-1)
         ldy #yinit
 .if yinit>0
-        lda #<src_addr
+        lda #<(src_addr)
         clc
         adc _llzp_word2
         sta _llzp_word2
         if cc
             dec _llzp_word2+1
         endif
-        lda #<src_addr
+        lda #<(src_addr)
         clc
         adc _llzp_word1
         sta _llzp_word1
@@ -2097,9 +2097,9 @@ yinit=<($100-<src_addr)
         sta _llzp_word2
         stx _llzp_word2+1
 .else
-        lda #<src_addr
+        lda #<(src_addr)
         sta _llzp_word2
-        lda #>src_addr
+        lda #>(src_addr)
         sta _llzp_word2+1
 .endif
 .endscope
@@ -2112,9 +2112,9 @@ yinit=<($100-<src_addr)
         sta _llzp_word1
         stx _llzp_word1+1
 .else
-        lda #<target_addr
+        lda #<(target_addr)
         sta _llzp_word1
-        lda #>target_addr
+        lda #>(target_addr)
         sta _llzp_word1+1
 .endif
 .endscope
@@ -2206,18 +2206,18 @@ yinit=<($100-<(length))
         inx
 skip_adjust:
 .else                                     ;length is given as constant parameter
-yinit=<($100-<src_addr)
+yinit=<($100-<(src_addr))
         ldx #1+>(src_addr-1)
         ldy #yinit
 .if yinit>0
-        lda #<src_addr
+        lda #<(src_addr)
         clc
         adc _llzp_word2
         sta _llzp_word2
         if cc
             dec _llzp_word2+1
         endif
-        lda #<src_addr
+        lda #<(src_addr)
         clc
         adc _llzp_word1
         sta _llzp_word1
@@ -2421,9 +2421,9 @@ endfilename:
         sei
 
 .ifnblank isr
-        lda #<isr
+        lda #<(isr)
         sta $314
-        lda #>isr
+        lda #>(isr)
         sta $315
 .endif
 
@@ -2477,7 +2477,7 @@ endfilename:
         and #$7f
         sta $d011
 .else                                                             ;argument is a number
-        poke $d012,<rasterline
+        poke $d012,<(rasterline)
         lda $d011
 .if rasterline<256
         and #$7f
@@ -2633,9 +2633,9 @@ _stabilize_raster_cycle_isr:
         sta base_addr_value+4
         stx base_addr_value+5
 .else
-        lda #<arg1
+        lda #<(arg1)
         sta base_addr_value+4
-        lda #>arg1
+        lda #>(arg1)
         sta base_addr_value+5
 .endif
 .endscope
@@ -2740,9 +2740,9 @@ _stabilize_raster_cycle_isr:
         sta base_addr_value+6
         stx base_addr_value+7
 .else
-        lda #<arg1
+        lda #<(arg1)
         sta base_addr_value+6
-        lda #>arg1
+        lda #>(arg1)
         sta base_addr_value+7
 .endif
 .endscope
