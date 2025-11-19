@@ -62,23 +62,23 @@ if "%2"=="" (
   >nul findstr /c:"makesys" %1 && (
     @echo on
     if "%VERBOSE%"=="1" (
-      echo cl65 -t %TARGET% %ASMDEF% "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -o "%~n1.prg"
+      echo cl65 -t %TARGET% %ASMDEF% -g "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -o "%~n1.prg"
     )
-    cl65 -t %TARGET% %ASMDEF% "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -o "%~n1.prg"
+    cl65 -t %TARGET% %ASMDEF% -g "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -o "%~n1.prg"
   ) || (
     @echo on
     if "%VERBOSE%"=="1" (
-      echo cl65 -t %TARGET% %ASMDEF% "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -u __EXEHDR__ -o "%~n1.prg"
+      echo cl65 -t %TARGET% %ASMDEF% -g "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -u __EXEHDR__ -o "%~n1.prg"
     )
-    cl65 -t %TARGET% %ASMDEF% "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -u __EXEHDR__ -o "%~n1.prg"
+    cl65 -t %TARGET% %ASMDEF% -g "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -u __EXEHDR__ -o "%~n1.prg"
   )
 ) else (
   echo assembling %1 to start address %2 for target %TARGET%...
   @echo on
   if "%VERBOSE%"=="1" (
-    echo cl65 -t %TARGET% %ASMDEF% "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" --start-addr %2 -o "%~n1.prg"
+    echo cl65 -t %TARGET% %ASMDEF% -g "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" --start-addr %2 -o "%~n1.prg"
   )
-  cl65 -t %TARGET% %ASMDEF% "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" --start-addr %2 -o "%~n1.prg"
+  cl65 -t %TARGET% %ASMDEF% -g "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" --start-addr %2 -o "%~n1.prg"
 )
 @echo done.
 

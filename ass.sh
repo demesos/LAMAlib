@@ -44,13 +44,13 @@ done
 if [[ -z "$2" ]]; then
   echo "assembling $1 for target $TARGET..."
   if grep -q makesys "$1"; then
-    cl65 -t "$TARGET" $ASMDEF "$1" -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" -Ln "labels.txt" -o "${1%.*}.prg"
+    cl65 -t "$TARGET" $ASMDEF -g "$1" -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" -Ln "labels.txt" -o "${1%.*}.prg"
   else
-    cl65 -t "$TARGET" $ASMDEF "$1" -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" -Ln "labels.txt" -u __EXEHDR__ -o "${1%.*}.prg"
+    cl65 -t "$TARGET" $ASMDEF -g "$1" -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" -Ln "labels.txt" -u __EXEHDR__ -o "${1%.*}.prg"
   fi
 else
   echo "assembling $1 to start address $2 for target $TARGET..."
-  cl65 -t "$TARGET" $ASMDEF "$1" -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" -Ln "labels.txt" --start-addr "$2" -o "${1%.*}.prg"
+  cl65 -t "$TARGET" $ASMDEF -g "$1" -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" -Ln "labels.txt" --start-addr "$2" -o "${1%.*}.prg"
 fi
 
 echo "done."
