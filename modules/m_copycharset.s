@@ -1,6 +1,6 @@
 ;***********************************************************************
 ;* Module: copycharset
-;* Version 0.1
+;* Version 0.2
 ;* by Wil
 ;
 ; to be configured and included with
@@ -35,6 +35,7 @@ def_const EFFECT,0      ;Effects: 1 italic
                         ;         8 thin, including lower case
 def_const EFFECT_RVS,0  ;if 1 the modified chars will be placed instead of reverse chars
 def_const MATCH_RVS,1   ;match rvs chars
+def_const MEM_CONFIG,51 ;memory configuration ($1 value) during copying
 
 ;***********************************************************************
 ;* module implementation
@@ -44,7 +45,7 @@ init:
         sei
         lda 1
         pha
-        poke 1,51
+        poke 1,MEM_CONFIG
         memcopy CHARSET_SRC,CHARSET_BASE,CHARSET_LENGTH
 .if EFFECT>0
   .if EFFECT<=2

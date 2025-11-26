@@ -561,6 +561,7 @@ SIDbaseaddress=address
     .else
 SIDbaseaddress=$d400
     .endif
+	php
         sei
         lda #$ff
 waitraster:
@@ -573,6 +574,7 @@ waitraster:
         lda #$20                ;sawtooth wave and gatebit off to start oscillator again
         sta SIDbaseaddress+$12
         lda SIDbaseaddress+$1b
+	plp
         lsr
   .endscope
 .endmacro
