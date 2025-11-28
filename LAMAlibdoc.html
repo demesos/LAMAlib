@@ -611,6 +611,7 @@ Executes a short routine to disable the NMI<br>
 the trick is to cause an NMI but don't ackowledge it<br>
 Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)<br>
 Interrupt flag will be turned off while executing the routine and reset to the previous state afterwards<br>
+Reading the timer register at $DD0D re-enables the NMI.<br>
 Registers modified: A<br>
 <br>
 <b>diskstatus</b> <i>devicenr</i><br>

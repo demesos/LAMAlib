@@ -219,6 +219,7 @@ loop:
 ;; the trick is to cause an NMI but don't ackowledge it
 ;; Uses CIA2 Timer A, but the timer can be used afterwards (without IRQ function)
 ;; Interrupt flag will be turned off while executing the routine and reset to the previous state afterwards
+;; Reading the timer register at $DD0D re-enables the NMI.
 ;; Registers modified: A
 .macro  disable_nmi   ;version with all lowercase
         disable_NMI
