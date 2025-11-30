@@ -5,8 +5,8 @@
 :: Usage: install_lamalib
 :: cc65 tools need to be installed on your system and to be in your path
 ::
-:: Version: 0.3
-:: Date: 2021-04-04
+:: Version: 0.32
+:: Date: 2025-11-30
 :: Author: Wil Elmenreich (wilfried at gmx dot at)
 :: License: The Unlicense (public domain)
 
@@ -69,15 +69,16 @@ for /F %%I in ('where cc65.exe') do (
 @copy LAMAlib20.lib "%CC65PATH%\lib"
 @copy *friendly-asm.cfg "%CC65PATH%\cfg"
 @copy ass.bat "%CC65PATH%\bin"
-
+@copy asdent.py "%CC65PATH%\bin"
+@echo @python "%%~dp0asdent.py" %%* > "%CC65PATH%\bin\asdent.bat"
 
 echo %white%
 echo *********************************************************************************************
 echo * Congratulations, LAMAlib has been installed^^!                                              *
 echo *                                                                                           *
 echo * To use it, add the line %cyan%.include "LAMAlib.inc"%white% at the top of your assembler file          *
-echo * and assemble with command %cyan%cl65 yourprog.s -lib LAMAlib.lib -C c64-asm.cfg -o yourprog.prg%white% *
-echo * or rather simpler with %cyan%ass yourprog.prg%white%                                                   *
+echo * and assemble with command %cyan%cl65 yourprog.s LAMAlib.lib -C c64-asm.cfg -o yourprog.prg%white%      *
+echo * or rather simpler with %cyan%ass yourprog.s%white%                                                     *
 echo * There is no overhead to your assembled program for unused functions.                      *
 echo *********************************************************************************************%nocolor%
 
