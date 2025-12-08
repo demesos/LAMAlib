@@ -953,6 +953,63 @@ savea:		lda #00
                 pla
 .endmacro
 
+;; peek addr[,reg]
+;; returns the content of addr in the given register (default A)
+;; When the address is a constant this defaults to lda <tt>addr</tt>
+;; Regs changed: only the specified register (default: A)
+.macro peek addr,reg
+        .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
+.scope
+          sta targetsm+1
+          stx targetsm+2
+	  .if .paramcount = 1
+            targetsm: lda $ffff
+	 .elseif (.xmatch ({reg}, {A}))         ;result in A register 
+            targetsm: lda $ffff
+         .elseif (.xmatch ({reg}, {X}))         ;result in X register 
+            targetsm: ldx $ffff
+	 .elseif (.xmatch ({reg}, {Y}))         ;result in Y register 
+            targetsm: ldy $ffff
+         .else  
+            .error  "Must define A,X or Y for register or leaving it blank for Accu as default!"
+	 .endif
+.endscope
+       .else
+	  .if .paramcount = 1
+            lda addr
+	 .elseif (.xmatch ({reg}, {A}))         ;result in A register 
+            lda addr
+         .elseif (.xmatch ({reg}, {X}))         ;result in X register 
+            ldx addr
+	 .elseif (.xmatch ({reg}, {Y}))         ;result in Y register 
+            ldy addr
+         .else  
+            .error  "Must define A,X or Y for register or leaving it blank for Accu as default!"
+	 .endif
+       .endif
+.endmacro
+
+;; peekw addr
+;; returns the content of addr and addr+1 as 16bit value in AX
+;; Regs changed: A,X
+.macro  peekw addr
+        .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))         ;AX is used as address
+.scope
+          sta targetsm+1
+          stx targetsm+2
+          sta targetsm2+1
+          stx targetsm2+2
+	  ldx #1
+targetsm: lda $ffff,x
+	  tax
+targetsm2: lda $ffff
+.endscope
+	.else
+	  lda addr
+	  ldx addr+1
+	.endif
+.endmacro
+
 ;; poke arg1,arg2 
 ;; Copies arg2 into the address of arg1
 ;; arg1 can be a constant or AX
@@ -982,7 +1039,6 @@ savea:		lda #00
             sta arg1
           .endif
         .endif
-
 .endmacro
 
 

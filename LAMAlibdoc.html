@@ -52,7 +52,7 @@ The Assembly Indentation tool <b>asdent</b> checks and fixes the indentation of 
 <br>
 Usage: <tt>asdent [-c | -v] &lt;file.s&gt; [&lt;file2.s&gt; ...]</tt>
 <br>
-<h2>Switches</h2>
+<h2>Switches in your source code</h2>
 <br>
 <b>USE_BASIC_ROM</b> .set [0|1]<br>
 This switch tells LAMAlib if it should use calls into BASIC ROM or not. If USE_BASIC_ROM ist set to 0, LAMAlib uses its own implementations for printstr and print number.<br>
@@ -285,6 +285,15 @@ Pushes AX to the stack and preserves AX<br>
 <br>
 <b>pullax</b><br>
 Pulls AX from the stack<br>
+<br>
+<b>peek</b> <i>addr[,reg]</i><br>
+returns the content of addr in the given register (default A)<br>
+When the address is a constant this defaults to lda <tt>addr</tt><br>
+Regs changed: only the specified register (default: A)<br>
+<br>
+<b>peekw</b> <i>addr</i><br>
+returns the content of addr and addr+1 as 16bit value in AX<br>
+Regs changed: A,X<br>
 <br>
 <b>poke</b> <i>arg1,arg2</i><br>
 Copies arg2 into the address of arg1<br>

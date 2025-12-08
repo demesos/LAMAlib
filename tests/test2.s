@@ -1,12 +1,33 @@
 ;--------------------------------------------------
 ; test program for LAMAlib functions
 ;
-; tests for AX, store, restore with lowercase characters, do loop, if else endif
+; tests for AX, store, restore with lowercase characters, do loop, if else endif, peek, poke
 
 
 .include "LAMAlib.inc"
 
 .proc test_no_2
+	pokew sum,$1200
+	poke sum,$34
+	peek sum
+	cmp #$34
+	if ne
+exit_fail:
+	  sec
+	  rts
+	endif	
+	ldax #sum+1
+	peek AX
+	cmp #$12
+	bne exit_fail
+	ldax #sum
+	peekw AX
+	cmpax #$1234
+	bne exit_fail
+	peek sum
+	cmpax #$1234
+	bne exit_fail
+	pokew sum,0
 
 	lda #4
 	ldx #$ff
