@@ -4,7 +4,7 @@
 TARGET="c64"
 LIBNAME="LAMAlib.lib"
 ASMDEF=""
-VERBOSE="" # Added VERBOSE default
+VERBOSE="" 
 
 # Script to assemble a file in ca65 assembler source into an executable
 # Automatically adds a BASIC execution stub, unless there is already code for a stub
@@ -20,7 +20,7 @@ fi
 option_processed=1
 while [[ $option_processed -eq 1 ]]; do
   option_processed=0
-  if [[ "$1" == "-v" ]]; then # Added verbose option
+  if [[ "$1" == "-v" ]]; then 
     VERBOSE=1
     shift
     option_processed=1
@@ -45,26 +45,51 @@ while [[ $option_processed -eq 1 ]]; do
   fi
 done
 
+ASMFILE="$1" # Store the original assembly filename
+NEEDSCOMPILE=0
+
+if grep -P '^\s*let ' "$ASMFILE" > /dev/null; then
+  NEEDSCOMPILE=1
+  ASMFILE="${ASMFILE%.*}.asm" 
+fi
+
+if [[ $NEEDSCOMPILE -eq 1 ]]; then
+  echo "Compiling high-level expressions with expr2asm..."
+  if [[ "$VERBOSE" == "1" ]]; then
+    echo "expr2asm -c \"$1\""
+  fi
+  
+  # Execute the compiler
+  if ! expr2asm -c "$1"; then
+    echo "ERROR: expr2asm compilation failed"
+    exit 1
+  fi
+  echo "expr2asm compilation complete."
+  echo ""
+fi
+
+# --- END NEW LOGIC ---
+
 # Check if a start address is provided
 if [[ -z "$2" ]]; then
-  echo "assembling $1 for target $TARGET..."
-  if grep -q makesys "$1"; then
-    if [[ "$VERBOSE" == "1" ]]; then # Verbose output
-      echo "cl65 -t \"$TARGET\" $ASMDEF -g \"$1\" -lib \"$LIBNAME\" -C \"${TARGET}-basicfriendly-asm.cfg\" -Ln \"labels.txt\" -o \"${1%.*}.prg\""
+  echo "assembling $ASMFILE for target $TARGET..."
+  if grep -q makesys "$ASMFILE"; then
+    if [[ "$VERBOSE" == "1" ]]; then 
+      echo "cl65 -t \"$TARGET\" $ASMDEF -g \"$ASMFILE\" -lib \"$LIBNAME\" -C \"${TARGET}-basicfriendly-asm.cfg\" -Ln \"labels.txt\" -o \"${1%.*}.prg\""
     fi
-    cl65 -t "$TARGET" $ASMDEF -g "$1" -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" -Ln "labels.txt" -o "${1%.*}.prg"
+    cl65 -t "$TARGET" $ASMDEF -g "$ASMFILE" -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" -Ln "labels.txt" -o "${1%.*}.prg"
   else
-    if [[ "$VERBOSE" == "1" ]]; then # Verbose output
-      echo "cl65 -t \"$TARGET\" $ASMDEF -g \"$1\" -lib \"$LIBNAME\" -C \"${TARGET}-basicfriendly-asm.cfg\" -Ln \"labels.txt\" -u __EXEHDR__ -o \"${1%.*}.prg\""
+    if [[ "$VERBOSE" == "1" ]]; then 
+      echo "cl65 -t \"$TARGET\" $ASMDEF -g \"$ASMFILE\" -lib \"$LIBNAME\" -C \"${TARGET}-basicfriendly-asm.cfg\" -Ln \"labels.txt\" -u __EXEHDR__ -o \"${1%.*}.prg\""
     fi
-    cl65 -t "$TARGET" $ASMDEF -g "$1" -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" -Ln "labels.txt" -u __EXEHDR__ -o "${1%.*}.prg"
+    cl65 -t "$TARGET" $ASMDEF -g "$ASMFILE" -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" -Ln "labels.txt" -u __EXEHDR__ -o "${1%.*}.prg"
   fi
 else
-  echo "assembling $1 to start address $2 for target $TARGET..."
-  if [[ "$VERBOSE" == "1" ]]; then # Verbose output
-    echo "cl65 -t \"$TARGET\" $ASMDEF -g \"$1\" -lib \"$LIBNAME\" -C \"${TARGET}-basicfriendly-asm.cfg\" -Ln \"labels.txt\" --start-addr \"$2\" -o \"${1%.*}.prg\""
+  echo "assembling $ASMFILE to start address $2 for target $TARGET..."
+  if [[ "$VERBOSE" == "1" ]]; then 
+    echo "cl65 -t \"$TARGET\" $ASMDEF -g \"$ASMFILE\" -lib \"$LIBNAME\" -C \"${TARGET}-basicfriendly-asm.cfg\" -Ln \"labels.txt\" --start-addr \"$2\" -o \"${1%.*}.prg\""
   fi
-  cl65 -t "$TARGET" $ASMDEF -g "$1" -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" -Ln "labels.txt" --start-addr "$2" -o "${1%.*}.prg"
+  cl65 -t "$TARGET" $ASMDEF -g "$ASMFILE" -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" -Ln "labels.txt" --start-addr "$2" -o "${1%.*}.prg"
 fi
 
 echo "done."

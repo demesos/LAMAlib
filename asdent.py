@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# asdent 
-# Indentation checker and fixer for assembler programs
+#  
+# asdent - Indentation checker and fixer for assembler programs
 # Supports LAMAlib structured coding keywords
 #
 # Author: Wil
-# Version: 0.16
-# November 2025
+# Version: 0.17
+# December 2025
 
 import sys
 import os
@@ -108,8 +108,7 @@ def splitFirstWord(string):
     stripped_string = string.strip()
     if not stripped_string:
         return "", ""
-    # Check for the new condition: string does not start with '.' and contains '=' before ';'
-    if not stripped_string.startswith('.') and '=' in stripped_string:
+    if not stripped_string.startswith('.') and '=' in stripped_string and not stripped_string.startswith("let "):
         equals_index = stripped_string.index('=')
         semicolon_index = stripped_string.find(';')
         

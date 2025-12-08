@@ -5,8 +5,8 @@
 :: Usage: install_lamalib
 :: cc65 tools need to be installed on your system and to be in your path
 ::
-:: Version: 0.32
-:: Date: 2025-11-30
+:: Version: 0.33
+:: Date: 2025-12-08
 :: Author: Wil Elmenreich (wilfried at gmx dot at)
 :: License: The Unlicense (public domain)
 
@@ -71,6 +71,9 @@ for /F %%I in ('where cc65.exe') do (
 @copy ass.bat "%CC65PATH%\bin"
 @copy asdent.py "%CC65PATH%\bin"
 @echo @python "%%~dp0asdent.py" %%* > "%CC65PATH%\bin\asdent.bat"
+@copy expr2asm.py "%CC65PATH%\bin"
+@echo @python "%%~dp0expr2asm.py" %%* > "%CC65PATH%\bin\expr2asm.bat"
+
 
 echo %white%
 echo *********************************************************************************************

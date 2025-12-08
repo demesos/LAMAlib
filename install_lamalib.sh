@@ -7,8 +7,8 @@
 # cc65 needs to be installed on your system and cc65/bin must be in your path
 # If CC65_INSTALL_PATH is given, it overrides the path found by 'which cc65'.
 #
-# Version: 0.32
-# Date: 2025-11-30
+# Version: 0.33
+# Date: 2025-12-08
 # Author: Wil Elmenreich (wilfried at gmx dot at)
 # License: The Unlicense (public domain)
 
@@ -60,14 +60,15 @@ popd
 # find cc65 directory
 echo Installing library into $installdir
 
-cp LAMAlib*.inc "$installdir/asminc/"
-cp -r modules "$installdir/asminc/"
-cp LAMAlib*.lib "$installdir/lib/"
-cp LAMAlib128.lib "$installdir/lib/"
-cp LAMAlib20.lib "$installdir/lib/"
-cp *friendly-asm.cfg "$installdir/cfg/"
-cp ass.sh "$installbindir/ass"
-cp asdent.py "$installbindir/asdent"
+cp -f LAMAlib*.inc "$installdir/asminc/"
+cp -rf modules "$installdir/asminc/"
+cp -f LAMAlib*.lib "$installdir/lib/"
+cp -f LAMAlib128.lib "$installdir/lib/"
+cp -f LAMAlib20.lib "$installdir/lib/"
+cp -f *friendly-asm.cfg "$installdir/cfg/"
+cp -f ass.sh "$installbindir/ass"
+cp -f asdent.py "$installbindir/asdent"
+cp -f expr2asm.py "$installbindir/expr2asm"
 
 if [ $? -ne 0 ]; then
   echo -e $red

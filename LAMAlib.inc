@@ -1,6 +1,6 @@
 ; <h1>LAMAlib - Lightweight Assembler MAcro library for cc65</h1>
-; Version: 0.32
-; Date: 2025-10-30
+; Version: 0.33
+; Date: 2025-12-08
 ; Author: Wil Elmenreich (wilfried at gmx dot at)
 ; License: The Unlicense (public domain)
 ;
@@ -49,6 +49,12 @@
 ; The Assembly Indentation tool <b>asdent</b> checks and fixes the indentation of assembler files, automatically recognizing LAMAlib's structured programming keywords as well as cc65's dot commands.
 ; 
 ; Usage: <tt>asdent [-c | -v] &lt;file.s&gt; [&lt;file2.s&gt; ...]</tt>
+;
+; <h2>expr2asm: Expression to Assembly Translator</h2>
+;
+; The Expression to Assembly Translator <b>expr2asm</b> converts mathematical experession indicated by <b>let</b> into native 6502 assembly code using unsigned 16 bit arithmetic. This tool is typically invoked automatically by the <tt>ass</tt> script when it detects high-level expressions within an assembler source file.
+; 
+; Usage: <tt>expr2asm [-c] [-v | -q] [-o &lt;output.asm&gt;] &lt;input.s&gt;</tt>
 ;
 ; <h2>Switches in your source code</h2>
 ;

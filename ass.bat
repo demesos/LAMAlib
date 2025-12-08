@@ -57,28 +57,50 @@ if /i "%~1" neq "-vc20" goto not20
   goto check_options
 :not20
 
+set NEEDSCOMPILE=0
+set ASMFILE=%1
+findstr /r /c:"^ *let " "%1" >nul 2>&1 && (
+    :: Found uncommented let statements - compilation needed
+    set NEEDSCOMPILE=1
+    set ASMFILE=%~n1.asm
+)
+
+if %NEEDSCOMPILE% equ 1 (
+  echo Compiling high-level expressions with expr2asm...
+  if "%VERBOSE%"=="1" (
+    echo expr2asm.py -c "%1"
+  )
+  expr2asm.py -c "%1"
+  if ERRORLEVEL 1 (
+    echo ERROR: expr2asm compilation failed
+    exit /B 1
+  )
+  echo expr2asm compilation complete.
+  echo.
+)
+
 if "%2"=="" (
-  echo assembling %1 for target %TARGET%...
-  >nul findstr /c:"makesys" %1 && (
+  echo assembling %ASMFILE% for target %TARGET%...
+  >nul findstr /c:"makesys" "%ASMFILE%" && (
     @echo on
     if "%VERBOSE%"=="1" (
-      echo cl65 -t %TARGET% %ASMDEF% -g "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -o "%~n1.prg"
+      echo cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -o "%~n1.prg"
     )
-    cl65 -t %TARGET% %ASMDEF% -g "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -o "%~n1.prg"
+    cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -o "%~n1.prg"
   ) || (
     @echo on
     if "%VERBOSE%"=="1" (
-      echo cl65 -t %TARGET% %ASMDEF% -g "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -u __EXEHDR__ -o "%~n1.prg"
+      echo cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -u __EXEHDR__ -o "%~n1.prg"
     )
-    cl65 -t %TARGET% %ASMDEF% -g "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -u __EXEHDR__ -o "%~n1.prg"
+    cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" -u __EXEHDR__ -o "%~n1.prg"
   )
 ) else (
-  echo assembling %1 to start address %2 for target %TARGET%...
+  echo assembling %ASMFILE% to start address %2 for target %TARGET%...
   @echo on
   if "%VERBOSE%"=="1" (
-    echo cl65 -t %TARGET% %ASMDEF% -g "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" --start-addr %2 -o "%~n1.prg"
+    echo cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" --start-addr %2 -o "%~n1.prg"
   )
-  cl65 -t %TARGET% %ASMDEF% -g "%1" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" --start-addr %2 -o "%~n1.prg"
+  cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln "labels.txt" --start-addr %2 -o "%~n1.prg"
 )
 @echo done.
 
