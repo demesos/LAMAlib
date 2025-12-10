@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-#
-# expr2asm - Expression to Assembly Translator
-# Compiles high-level expressions to 6502 assembly using LAMAlib macros
-#
-# Author: Wil Elmenreich
-# Version: 0.3
-# Dezember 2025
+"""
+expr2asm - Expression to Assembly Translator
+Compiles high-level expressions to 6502 assembly using LAMAlib macros
+
+Author: Wil Elmenreich
+Version: 0.42
+"""
 
 import ply.lex as lex
 import ply.yacc as yacc
@@ -15,7 +15,7 @@ import re
 import shutil
 from pathlib import Path
 
-__version__ = "0.3"
+__version__ = "0.42"
 
 # ============================================================================
 # CODE GENERATOR
@@ -32,6 +32,11 @@ class CodeGenerator:
         self.temp_counter = temp_start
         self.temp_start = temp_start
         self.verbose = verbose
+        # Register usage flags (set during parsing, used in compile_line)
+        self._uses_ax = False
+        self._uses_a = False
+        self._uses_x = False
+        self._uses_y = False
     
     def reset_temps(self):
         """Reset temporary counter for new statement"""
@@ -75,9 +80,7 @@ class CodeGenerator:
             lines.append("")
             lines.append("; Temporary variables")
             for tmp in sorted(self.temp_vars):
-                lines.append(f".ifndef {tmp}")
                 lines.append(f"{tmp}:\t.res 2")
-                lines.append(".endif")
         
         lines.append("; --- End of variable declarations from expr2asm")
         
@@ -96,7 +99,8 @@ tokens = (
     'PLUSEQ', 'MINUSEQ', 'TIMESEQ', 'DIVEQ', 'MODEQ',
     'ANDEQ', 'OREQ', 'XOREQ',
     'LSHIFTEQ', 'RSHIFTEQ',
-    'PEEK', 'PEEKW'
+    'PEEK', 'PEEKW',
+    'REG_A', 'REG_X', 'REG_Y', 'REG_AX'
 )
 
 # Token rules (compound operators must come before simple ones)
@@ -140,7 +144,7 @@ def t_NUMBER(t):
 
 def t_VARIABLE(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
-    # Check if it's a reserved word
+    # Check if it's a reserved word (case-insensitive)
     lower = t.value.lower()
     if lower == 'let':
         t.type = 'LET'
@@ -148,6 +152,14 @@ def t_VARIABLE(t):
         t.type = 'PEEKW'
     elif lower == 'peek':
         t.type = 'PEEK'
+    elif lower == 'ax':
+        t.type = 'REG_AX'
+    elif lower == 'a':
+        t.type = 'REG_A'
+    elif lower == 'x':
+        t.type = 'REG_X'
+    elif lower == 'y':
+        t.type = 'REG_Y'
     return t
 
 def t_newline(t):
@@ -165,10 +177,14 @@ def t_error(t):
 class Expression:
     """Represents an expression with generated assembly code"""
     
-    def __init__(self, code, is_immediate=False, value=None):
+    def __init__(self, code, is_immediate=False, value=None, uses_ax=False, uses_a=False, uses_x=False, uses_y=False):
         self.code = code if isinstance(code, list) else [code]
         self.is_immediate = is_immediate  # True if this is a literal number
         self.value = value                # The numeric value if immediate
+        self.uses_ax = uses_ax            # Expression uses AX register as source
+        self.uses_a = uses_a              # Expression uses A register as source
+        self.uses_x = uses_x              # Expression uses X register as source
+        self.uses_y = uses_y              # Expression uses Y register as source
 
 # Parser precedence rules (lowest to highest)
 precedence = (
@@ -193,7 +209,70 @@ def p_statement_let(p):
     expr = p[4]
     
     codegen.add_variable(var_name)
+    
+    # Set register usage flags for compile_line to use
+    codegen._uses_ax = expr.uses_ax
+    codegen._uses_a = expr.uses_a
+    codegen._uses_x = expr.uses_x
+    codegen._uses_y = expr.uses_y
+    
     p[0] = expr.code + [f"stax {var_name}"]
+    codegen.reset_temps()
+
+def p_statement_let_register_ax(p):
+    """statement : LET REG_AX EQUAL expression"""
+    expr = p[4]
+    
+    # Set register usage flags
+    codegen._uses_ax = expr.uses_ax
+    codegen._uses_a = expr.uses_a
+    codegen._uses_x = expr.uses_x
+    codegen._uses_y = expr.uses_y
+    
+    # Result already in AX, no stax needed
+    p[0] = expr.code
+    codegen.reset_temps()
+
+def p_statement_let_register_a(p):
+    """statement : LET REG_A EQUAL expression"""
+    expr = p[4]
+    
+    # Set register usage flags
+    codegen._uses_ax = expr.uses_ax
+    codegen._uses_a = expr.uses_a
+    codegen._uses_x = expr.uses_x
+    codegen._uses_y = expr.uses_y
+    
+    # Low byte already in A, no additional code needed
+    p[0] = expr.code
+    codegen.reset_temps()
+
+def p_statement_let_register_x(p):
+    """statement : LET REG_X EQUAL expression"""
+    expr = p[4]
+    
+    # Set register usage flags
+    codegen._uses_ax = expr.uses_ax
+    codegen._uses_a = expr.uses_a
+    codegen._uses_x = expr.uses_x
+    codegen._uses_y = expr.uses_y
+    
+    # Move low byte from A to X
+    p[0] = expr.code + ["tax"]
+    codegen.reset_temps()
+
+def p_statement_let_register_y(p):
+    """statement : LET REG_Y EQUAL expression"""
+    expr = p[4]
+    
+    # Set register usage flags
+    codegen._uses_ax = expr.uses_ax
+    codegen._uses_a = expr.uses_a
+    codegen._uses_x = expr.uses_x
+    codegen._uses_y = expr.uses_y
+    
+    # Move low byte from A to Y
+    p[0] = expr.code + ["tay"]
     codegen.reset_temps()
 
 def p_statement_compound(p):
@@ -292,9 +371,25 @@ def p_expression_binop(p):
     left = p[1]
     right = p[3]
     
+    # Constant folding: if both operands are constants, evaluate at compile time
+    if left.is_immediate and right.is_immediate:
+        if p[2] == '+':
+            result = (left.value + right.value) & 0xFFFF
+        else:  # '-'
+            result = (left.value - right.value) & 0xFFFF
+        p[0] = Expression([f"ldax #{result}"], is_immediate=True, value=result)
+        return
+    
+    # Merge register usage flags
+    uses_ax = left.uses_ax or right.uses_ax
+    uses_a = left.uses_a or right.uses_a
+    uses_x = left.uses_x or right.uses_x
+    uses_y = left.uses_y or right.uses_y
+    
     if right.is_immediate:
         op = "addax" if p[2] == '+' else "subax"
-        p[0] = Expression(left.code + [f"{op} #{right.value}"])
+        p[0] = Expression(left.code + [f"{op} #{right.value}"], 
+                         uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
     else:
         is_simple_var = (len(right.code) == 1 and 
                         right.code[0].startswith('ldax ') and 
@@ -303,15 +398,18 @@ def p_expression_binop(p):
         if is_simple_var:
             var_name = right.code[0].split()[1]
             op = "addax" if p[2] == '+' else "subax"
-            p[0] = Expression(left.code + [f"{op} {var_name}"])
+            p[0] = Expression(left.code + [f"{op} {var_name}"], 
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
         elif p[2] == '-':
             tmp = codegen.get_temp()
             p[0] = Expression(right.code + [f"stax {tmp}"] + 
-                             left.code + [f"subax {tmp}"])
+                             left.code + [f"subax {tmp}"], 
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
         else:
             tmp = codegen.get_temp()
             p[0] = Expression(left.code + [f"stax {tmp}"] + 
-                             right.code + [f"addax {tmp}"])
+                             right.code + [f"addax {tmp}"], 
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
 
 def p_expression_shift(p):
     """expression : shift_expr"""
@@ -322,6 +420,12 @@ def p_shift_binop(p):
                   | shift_expr RSHIFT and_expr"""
     left = p[1]
     right = p[3]
+    
+    # Merge register usage flags
+    uses_ax = left.uses_ax or right.uses_ax
+    uses_a = left.uses_a or right.uses_a
+    uses_x = left.uses_x or right.uses_x
+    uses_y = left.uses_y or right.uses_y
     
     if not right.is_immediate:
         print(f"Error: Shift operations only support immediate values", 
@@ -336,12 +440,21 @@ def p_shift_binop(p):
         p[0] = left
         return
     
+    # Constant folding: if left operand is constant, evaluate at compile time
+    if left.is_immediate:
+        if p[2] == '<<':
+            result = (left.value << shift_amount) & 0xFFFF
+        else:  # '>>'
+            result = left.value >> shift_amount
+        p[0] = Expression([f"ldax #{result}"], is_immediate=True, value=result)
+        return
+    
     shift_op = "aslax" if p[2] == '<<' else "lsrax"
     code = left.code[:]
     for _ in range(shift_amount):
         code.append(shift_op)
     
-    p[0] = Expression(code)
+    p[0] = Expression(code, uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
 
 def p_shift_and(p):
     """shift_expr : and_expr"""
@@ -352,19 +465,34 @@ def p_and_binop(p):
     left = p[1]
     right = p[3]
     
+    # Constant folding: if both operands are constants, evaluate at compile time
+    if left.is_immediate and right.is_immediate:
+        result = left.value & right.value
+        p[0] = Expression([f"ldax #{result}"], is_immediate=True, value=result)
+        return
+    
+    # Merge register usage flags
+    uses_ax = left.uses_ax or right.uses_ax
+    uses_a = left.uses_a or right.uses_a
+    uses_x = left.uses_x or right.uses_x
+    uses_y = left.uses_y or right.uses_y
+    
     if right.is_immediate:
-        p[0] = Expression(left.code + [f"andax #{right.value}"])
+        p[0] = Expression(left.code + [f"andax #{right.value}"],
+                         uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
     else:
         is_simple_var = (len(right.code) == 1 and 
                         right.code[0].startswith('ldax ') and 
                         not right.code[0].startswith('ldax #'))
         if is_simple_var:
             var_name = right.code[0].split()[1]
-            p[0] = Expression(left.code + [f"andax {var_name}"])
+            p[0] = Expression(left.code + [f"andax {var_name}"],
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
         else:
             tmp = codegen.get_temp()
             p[0] = Expression(left.code + [f"stax {tmp}"] + 
-                             right.code + [f"andax {tmp}"])
+                             right.code + [f"andax {tmp}"],
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
 
 def p_and_xor(p):
     """and_expr : xor_expr"""
@@ -375,19 +503,34 @@ def p_xor_binop(p):
     left = p[1]
     right = p[3]
     
+    # Constant folding: if both operands are constants, evaluate at compile time
+    if left.is_immediate and right.is_immediate:
+        result = left.value ^ right.value
+        p[0] = Expression([f"ldax #{result}"], is_immediate=True, value=result)
+        return
+    
+    # Merge register usage flags
+    uses_ax = left.uses_ax or right.uses_ax
+    uses_a = left.uses_a or right.uses_a
+    uses_x = left.uses_x or right.uses_x
+    uses_y = left.uses_y or right.uses_y
+    
     if right.is_immediate:
-        p[0] = Expression(left.code + [f"eorax #{right.value}"])
+        p[0] = Expression(left.code + [f"eorax #{right.value}"],
+                         uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
     else:
         is_simple_var = (len(right.code) == 1 and 
                         right.code[0].startswith('ldax ') and 
                         not right.code[0].startswith('ldax #'))
         if is_simple_var:
             var_name = right.code[0].split()[1]
-            p[0] = Expression(left.code + [f"eorax {var_name}"])
+            p[0] = Expression(left.code + [f"eorax {var_name}"],
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
         else:
             tmp = codegen.get_temp()
             p[0] = Expression(left.code + [f"stax {tmp}"] + 
-                             right.code + [f"eorax {tmp}"])
+                             right.code + [f"eorax {tmp}"],
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
 
 def p_xor_or(p):
     """xor_expr : or_expr"""
@@ -398,19 +541,34 @@ def p_or_binop(p):
     left = p[1]
     right = p[3]
     
+    # Constant folding: if both operands are constants, evaluate at compile time
+    if left.is_immediate and right.is_immediate:
+        result = left.value | right.value
+        p[0] = Expression([f"ldax #{result}"], is_immediate=True, value=result)
+        return
+    
+    # Merge register usage flags
+    uses_ax = left.uses_ax or right.uses_ax
+    uses_a = left.uses_a or right.uses_a
+    uses_x = left.uses_x or right.uses_x
+    uses_y = left.uses_y or right.uses_y
+    
     if right.is_immediate:
-        p[0] = Expression(left.code + [f"orax #{right.value}"])
+        p[0] = Expression(left.code + [f"orax #{right.value}"],
+                         uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
     else:
         is_simple_var = (len(right.code) == 1 and 
                         right.code[0].startswith('ldax ') and 
                         not right.code[0].startswith('ldax #'))
         if is_simple_var:
             var_name = right.code[0].split()[1]
-            p[0] = Expression(left.code + [f"orax {var_name}"])
+            p[0] = Expression(left.code + [f"orax {var_name}"],
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
         else:
             tmp = codegen.get_temp()
             p[0] = Expression(left.code + [f"stax {tmp}"] + 
-                             right.code + [f"orax {tmp}"])
+                             right.code + [f"orax {tmp}"],
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
 
 def p_or_term(p):
     """or_expr : term"""
@@ -423,11 +581,37 @@ def p_term_binop(p):
     left = p[1]
     right = p[3]
     
+    # Constant folding: if both operands are constants, evaluate at compile time
+    if left.is_immediate and right.is_immediate:
+        if p[2] == '*':
+            result = (left.value * right.value) & 0xFFFF
+        elif p[2] == '/':
+            if right.value == 0:
+                print(f"Error: Division by zero", file=sys.stderr)
+                result = 0
+            else:
+                result = left.value // right.value
+        else:  # '%'
+            if right.value == 0:
+                print(f"Error: Modulo by zero", file=sys.stderr)
+                result = 0
+            else:
+                result = left.value % right.value
+        p[0] = Expression([f"ldax #{result}"], is_immediate=True, value=result)
+        return
+    
+    # Merge register usage flags
+    uses_ax = left.uses_ax or right.uses_ax
+    uses_a = left.uses_a or right.uses_a
+    uses_x = left.uses_x or right.uses_x
+    uses_y = left.uses_y or right.uses_y
+    
     op_map = {'*': 'mul16', '/': 'div16', '%': 'mod16'}
     op = op_map[p[2]]
     
     if right.is_immediate:
-        p[0] = Expression(left.code + [f"{op} #{right.value}"])
+        p[0] = Expression(left.code + [f"{op} #{right.value}"],
+                         uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
     else:
         is_simple_var = (len(right.code) == 1 and 
                         right.code[0].startswith('ldax ') and 
@@ -435,15 +619,18 @@ def p_term_binop(p):
         
         if is_simple_var:
             var_name = right.code[0].split()[1]
-            p[0] = Expression(left.code + [f"{op} {var_name}"])
+            p[0] = Expression(left.code + [f"{op} {var_name}"],
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
         elif p[2] in ['/', '%']:
             tmp = codegen.get_temp()
             p[0] = Expression(right.code + [f"stax {tmp}"] + 
-                             left.code + [f"{op} {tmp}"])
+                             left.code + [f"{op} {tmp}"],
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
         else:
             tmp = codegen.get_temp()
             p[0] = Expression(left.code + [f"stax {tmp}"] + 
-                             right.code + [f"{op} {tmp}"])
+                             right.code + [f"{op} {tmp}"],
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
 
 def p_term_factor(p):
     """term : factor"""
@@ -457,6 +644,26 @@ def p_factor_variable(p):
     """factor : VARIABLE"""
     codegen.reference_variable(p[1])
     p[0] = Expression([f"ldax {p[1]}"])
+
+def p_factor_register_ax(p):
+    """factor : REG_AX"""
+    # AX register - restore saved value
+    p[0] = Expression(["restore AX"], uses_ax=True)
+
+def p_factor_register_a(p):
+    """factor : REG_A"""
+    # A register - restore and extend to 16-bit
+    p[0] = Expression(["restore A", "ldx #0"], uses_a=True)
+
+def p_factor_register_x(p):
+    """factor : REG_X"""
+    # X register - restore to X, move to A, extend to 16-bit
+    p[0] = Expression(["restore X", "txa", "ldx #0"], uses_x=True)
+
+def p_factor_register_y(p):
+    """factor : REG_Y"""
+    # Y register - restore to Y, move to A, extend to 16-bit
+    p[0] = Expression(["restore Y", "tya", "ldx #0"], uses_y=True)
 
 def p_factor_peek(p):
     """factor : PEEK LPAREN expression RPAREN
@@ -488,16 +695,19 @@ def p_factor_peek(p):
         # Complex expression - address in AX
         code = addr_expr.code[:]
         if len(p) == 5:
-            # peek(ax) - result in A, extend to AX
+            # peek(ax) - result in A
             code.append("peek ax")
-            code.append("ldx #0")
         else:
             # peek(ax, reg)
             reg = p[5]
             code.append(f"peek ax,{reg}")
-            code.append("ldx #0")
     
-    p[0] = Expression(code)
+    # Propagate register usage flags from address expression
+    p[0] = Expression(code, 
+                     uses_ax=addr_expr.uses_ax,
+                     uses_a=addr_expr.uses_a,
+                     uses_x=addr_expr.uses_x,
+                     uses_y=addr_expr.uses_y)
 
 def p_factor_peekw(p):
     """factor : PEEKW LPAREN expression RPAREN"""
@@ -524,7 +734,12 @@ def p_factor_peekw(p):
         code = addr_expr.code[:]
         code.append("peekw ax")
     
-    p[0] = Expression(code)
+    # Propagate register usage flags from address expression
+    p[0] = Expression(code,
+                     uses_ax=addr_expr.uses_ax,
+                     uses_a=addr_expr.uses_a,
+                     uses_x=addr_expr.uses_x,
+                     uses_y=addr_expr.uses_y)
 
 def p_factor_paren(p):
     """factor : LPAREN expression RPAREN"""
@@ -540,16 +755,100 @@ def p_error(p):
 # COMPILATION FUNCTIONS
 # ============================================================================
 
+def optimize_code(lines):
+    """Post-optimizer to remove redundant store/restore pairs and temp variable pairs"""
+    result = []
+    i = 0
+    removed_count = 0
+    
+    while i < len(lines):
+        line = lines[i].strip()
+        
+        # Check for store followed by restore patterns
+        if i + 1 < len(lines):
+            next_line = lines[i + 1].strip()
+            
+            # Pattern 1: store AX / restore AX
+            if line == "store AX" and next_line == "restore AX":
+                # Skip both lines
+                i += 2
+                removed_count += 1
+                continue
+            
+            # Pattern 2: store A / restore A
+            if line == "store A" and next_line == "restore A":
+                i += 2
+                removed_count += 1
+                continue
+            
+            # Pattern 3: store X / restore X
+            if line == "store X" and next_line == "restore X":
+                i += 2
+                removed_count += 1
+                continue
+            
+            # Pattern 4: store Y / restore Y
+            if line == "store Y" and next_line == "restore Y":
+                i += 2
+                removed_count += 1
+                continue
+            
+            # Pattern 5: stax tempN / ldax tempN (check if temp not used elsewhere)
+            if line.startswith("stax tmp") and next_line.startswith("ldax tmp"):
+                stax_tmp = line.split()[1]
+                ldax_tmp = next_line.split()[1]
+                if stax_tmp == ldax_tmp:
+                    # Check if this temp is used anywhere else in remaining code
+                    temp_used_elsewhere = False
+                    for j in range(i + 2, len(lines)):
+                        if stax_tmp in lines[j]:
+                            temp_used_elsewhere = True
+                            break
+                    
+                    if not temp_used_elsewhere:
+                        # Skip both lines - the value is already in AX
+                        i += 2
+                        removed_count += 1
+                        continue
+        
+        # Keep this line
+        result.append(lines[i])
+        i += 1
+    
+    return result, removed_count
+
 def compile_line(line, lexer, parser, add_comments=True):
     """Compile a single let statement"""
     try:
-        parsed = parser.parse(line, lexer=lexer)
+        # Parse to get the expression
+        parsed_result = parser.parse(line, lexer=lexer)
         
-        if parsed:
+        if parsed_result:
+            # Save registers AT THE START if they're used in the expression
+            saves = []
+            
+            # Only save registers that will be referenced in the expression
+            # NOT registers that are just being assigned to
+            if hasattr(codegen, '_uses_ax') and codegen._uses_ax:
+                saves.append("store AX")
+            if hasattr(codegen, '_uses_a') and codegen._uses_a:
+                saves.append("store A")
+            if hasattr(codegen, '_uses_x') and codegen._uses_x:
+                saves.append("store X")
+            if hasattr(codegen, '_uses_y') and codegen._uses_y:
+                saves.append("store Y")
+            
+            # Clear flags for next compilation
+            codegen._uses_ax = False
+            codegen._uses_a = False
+            codegen._uses_x = False
+            codegen._uses_y = False
+            
             result = []
             if add_comments:
                 result.append(f"; +++ {line}")
-            result.extend(parsed)
+            result.extend(saves)
+            result.extend(parsed_result)
             if add_comments:
                 result.append(f"; --- {line}")
             result.append("")
@@ -820,8 +1119,15 @@ def compile_file(input_file, output_file=None, args=None, is_include=False):
             result.append(line)
             continue
         
+        # Strip trailing comments from the line
+        comment_pos = stripped.find(';')
+        if comment_pos >= 0:
+            stripped_no_comment = stripped[:comment_pos].strip()
+        else:
+            stripped_no_comment = stripped
+        
         # Check if this line is a high-level expression (starts with let)
-        is_expression = stripped.startswith('let ')
+        is_expression = stripped_no_comment.startswith('let ')
         
         if not is_expression:
             # Pass through raw assembly code unchanged
@@ -832,9 +1138,9 @@ def compile_file(input_file, output_file=None, args=None, is_include=False):
         
         # This is a high-level expression - compile it
         if verbose and not quiet:
-            print(f"; Processing line {line_num}: {stripped}", file=sys.stderr)
+            print(f"; Processing line {line_num}: {stripped_no_comment}", file=sys.stderr)
         
-        compiled = compile_line(stripped, lexer, parser, add_comments)
+        compiled = compile_line(stripped_no_comment, lexer, parser, add_comments)
         if compiled:
             for code_line in compiled:
                 result.append(code_line + "\n")
@@ -845,6 +1151,11 @@ def compile_file(input_file, output_file=None, args=None, is_include=False):
     
     # Add variable declarations
     result.extend([line + "\n" for line in codegen.generate_variable_declarations()])
+    
+    # Optimize: remove redundant store/restore pairs and temp variable pairs
+    result, removed = optimize_code(result)
+    if removed > 0 and verbose and not quiet:
+        print(f"Optimizer removed {removed} redundant operation(s)", file=sys.stderr)
     
     # Handle includes if requested
     if args and args.compile_includes:

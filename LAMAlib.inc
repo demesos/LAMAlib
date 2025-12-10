@@ -52,7 +52,9 @@
 ;
 ; <h2>expr2asm: Expression to Assembly Translator</h2>
 ;
-; The Expression to Assembly Translator <b>expr2asm</b> converts mathematical experession indicated by <b>let</b> into native 6502 assembly code using unsigned 16 bit arithmetic. This tool is typically invoked automatically by the <tt>ass</tt> script when it detects high-level expressions within an assembler source file.
+; The Expression to Assembly Translator <b>expr2asm</b> converts mathematical experession indicated by <b>let</b> into native 6502 assembly code using unsigned 16 bit arithmetic. 
+; A,X,Y, and AX can be used as register variables to provide data or be assigned with a result, for example <tt>let A=PEEK(1024+X+40*Y)</tt> will generate code that gives you the character at position X, Y at the screen back in A
+; This tool is typically invoked automatically by the <tt>ass</tt> script when it detects high-level expressions within an assembler source file.
 ; 
 ; Usage: <tt>expr2asm [-c] [-v | -q] [-o &lt;output.asm&gt;] &lt;input.s&gt;</tt>
 ;
