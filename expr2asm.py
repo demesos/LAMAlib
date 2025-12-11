@@ -4,8 +4,8 @@ expr2asm - Expression to Assembly Translator
 Compiles high-level expressions to 6502 assembly using LAMAlib macros
 
 Author: Wil Elmenreich
-Version: 0.42
 """
+__version__ = "0.42"
 
 import ply.lex as lex
 import ply.yacc as yacc
@@ -15,7 +15,7 @@ import re
 import shutil
 from pathlib import Path
 
-__version__ = "0.42"
+
 
 # ============================================================================
 # CODE GENERATOR
@@ -85,6 +85,62 @@ class CodeGenerator:
         lines.append("; --- End of variable declarations from expr2asm")
         
         return lines
+
+# ============================================================================
+# COMMUTATIVE OPTIMIZATION HELPERS
+# ============================================================================
+
+def count_instructions(code_lines):
+    """Count actual assembly instructions (exclude empty lines and comments)"""
+    return len([line for line in code_lines if line and not line.strip().startswith(';')])
+
+def generate_binary_op_code(left, right, op_name):
+    """
+    Generate assembly code for a binary operation: left op_name right
+    Returns a list of assembly instructions
+    """
+    uses_ax = left.uses_ax or right.uses_ax
+    uses_a = left.uses_a or right.uses_a
+    uses_x = left.uses_x or right.uses_x
+    uses_y = left.uses_y or right.uses_y
+    
+    if right.is_immediate:
+        # right is a constant - use immediate addressing
+        code = left.code + [f"{op_name} #{right.value}"]
+    else:
+        # Check if right is a simple variable
+        is_simple_var = (len(right.code) == 1 and 
+                        right.code[0].startswith('ldax ') and 
+                        not right.code[0].startswith('ldax #'))
+        
+        if is_simple_var:
+            # right is a simple variable
+            var_name = right.code[0].split()[1]
+            code = left.code + [f"{op_name} {var_name}"]
+        else:
+            # right is complex - need temp variable
+            tmp = codegen.get_temp()
+            code = left.code + [f"stax {tmp}"] + right.code + [f"{op_name} {tmp}"]
+    
+    return Expression(code, uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+
+def try_commutative(left, right, op_name):
+    """
+    Try both orderings of a commutative operation and return the shorter one.
+    Implements commutative optimization: tries both (left op right) and (right op left)
+    """
+    # Generate code for original order: left op right
+    expr1 = generate_binary_op_code(left, right, op_name)
+    
+    # Generate code for reversed order: right op left  
+    expr2 = generate_binary_op_code(right, left, op_name)
+    
+    # Count instructions in each
+    count1 = count_instructions(expr1.code)
+    count2 = count_instructions(expr2.code)
+    
+    # Return the shorter one (prefer original on tie)
+    return expr1 if count1 <= count2 else expr2
 
 # ============================================================================
 # LEXER
@@ -177,7 +233,7 @@ def t_error(t):
 class Expression:
     """Represents an expression with generated assembly code"""
     
-    def __init__(self, code, is_immediate=False, value=None, uses_ax=False, uses_a=False, uses_x=False, uses_y=False):
+    def __init__(self, code, is_immediate=False, value=None, uses_ax=False, uses_a=False, uses_x=False, uses_y=False, tree=None):
         self.code = code if isinstance(code, list) else [code]
         self.is_immediate = is_immediate  # True if this is a literal number
         self.value = value                # The numeric value if immediate
@@ -185,6 +241,253 @@ class Expression:
         self.uses_a = uses_a              # Expression uses A register as source
         self.uses_x = uses_x              # Expression uses X register as source
         self.uses_y = uses_y              # Expression uses Y register as source
+        self.tree = tree                  # Optional ExprTree for commutative optimization
+
+class ExprTree:
+    """
+    Represents an expression tree for commutative optimization.
+    Allows exploring all 2^n orderings before generating code.
+    """
+    def __init__(self, node_type, left=None, right=None, op=None, value=None, is_commutative=False):
+        self.node_type = node_type  # 'constant', 'variable', 'register', 'binop', 'unary'
+        self.left = left            # Left operand (ExprTree or None)
+        self.right = right          # Right operand (ExprTree or None)
+        self.op = op                # Operation name (e.g., 'addax', 'mul16')
+        self.value = value          # For constants or variable names
+        self.is_commutative = is_commutative  # Whether this operation is commutative
+        
+        # Register usage tracking
+        self.uses_ax = False
+        self.uses_a = False
+        self.uses_x = False
+        self.uses_y = False
+    
+    def count_commutative_ops(self):
+        """Count number of commutative operations in this tree"""
+        count = 1 if self.is_commutative else 0
+        if self.left:
+            count += self.left.count_commutative_ops()
+        if self.right:
+            count += self.right.count_commutative_ops()
+        return count
+    
+    def enumerate_variants(self):
+        """
+        Generate all 2^n variants where n = number of commutative operations.
+        Returns a list of ExprTree objects, each representing a different ordering.
+        """
+        import copy
+        
+        n_commutative = self.count_commutative_ops()
+        if n_commutative == 0:
+            return [self]
+        
+        variants = []
+        # Generate 2^n combinations (0 = original order, 1 = swapped)
+        for i in range(2 ** n_commutative):
+            variant = copy.deepcopy(self)
+            variant._apply_swap_pattern(i, [0])  # [0] is a mutable counter
+            variants.append(variant)
+        
+        return variants
+    
+    def _apply_swap_pattern(self, pattern, counter):
+        """
+        Apply a swap pattern to commutative operations.
+        pattern: integer representing which ops to swap (bit pattern)
+        counter: mutable list with current bit position
+        """
+        # Process children first (depth-first)
+        if self.left:
+            self.left._apply_swap_pattern(pattern, counter)
+        if self.right:
+            self.right._apply_swap_pattern(pattern, counter)
+        
+        # If this node is commutative, check if we should swap
+        if self.is_commutative and self.left and self.right:
+            bit_position = counter[0]
+            counter[0] += 1
+            
+            # Check if this bit is set in the pattern
+            if (pattern >> bit_position) & 1:
+                # Swap operands
+                self.left, self.right = self.right, self.left
+    
+    def to_expression(self):
+        """Convert this ExprTree to an Expression with generated code"""
+        if self.node_type == 'constant':
+            return Expression([f"ldax #{self.value}"], is_immediate=True, value=self.value)
+        
+        elif self.node_type == 'variable':
+            return Expression([f"ldax {self.value}"])
+        
+        elif self.node_type == 'register':
+            # Register reference - generate restore code
+            if self.value == 'ax':
+                return Expression(["restore AX"], uses_ax=True)
+            elif self.value == 'a':
+                return Expression(["restore A", "ldx #0"], uses_a=True)
+            elif self.value == 'x':
+                return Expression(["restore X", "txa", "ldx #0"], uses_x=True)
+            elif self.value == 'y':
+                return Expression(["restore Y", "tya", "ldx #0"], uses_y=True)
+        
+        elif self.node_type == 'binop':
+            # Binary operation - recursively convert children
+            left_expr = self.left.to_expression()
+            right_expr = self.right.to_expression()
+            
+            # Constant folding: if both operands are constants, evaluate at compile time
+            if left_expr.is_immediate and right_expr.is_immediate:
+                result = None
+                if self.op == 'addax':
+                    result = (left_expr.value + right_expr.value) & 0xFFFF
+                elif self.op == 'subax':
+                    result = (left_expr.value - right_expr.value) & 0xFFFF
+                elif self.op == 'mul16':
+                    result = (left_expr.value * right_expr.value) & 0xFFFF
+                elif self.op == 'div16':
+                    result = left_expr.value // right_expr.value if right_expr.value != 0 else 0
+                elif self.op == 'mod16':
+                    result = left_expr.value % right_expr.value if right_expr.value != 0 else 0
+                elif self.op == 'andax':
+                    result = left_expr.value & right_expr.value
+                elif self.op == 'orax':
+                    result = left_expr.value | right_expr.value
+                elif self.op == 'eorax':
+                    result = left_expr.value ^ right_expr.value
+                
+                if result is not None:
+                    return Expression([f"ldax #{result}"], is_immediate=True, value=result)
+            
+            # Merge register usage
+            uses_ax = left_expr.uses_ax or right_expr.uses_ax or self.uses_ax
+            uses_a = left_expr.uses_a or right_expr.uses_a or self.uses_a
+            uses_x = left_expr.uses_x or right_expr.uses_x or self.uses_x
+            uses_y = left_expr.uses_y or right_expr.uses_y or self.uses_y
+            
+            # Generate code based on operand types
+            if right_expr.is_immediate:
+                code = left_expr.code + [f"{self.op} #{right_expr.value}"]
+            else:
+                is_simple_var = (len(right_expr.code) == 1 and 
+                                right_expr.code[0].startswith('ldax ') and 
+                                not right_expr.code[0].startswith('ldax #'))
+                
+                if is_simple_var:
+                    var_name = right_expr.code[0].split()[1]
+                    code = left_expr.code + [f"{self.op} {var_name}"]
+                else:
+                    tmp = codegen.get_temp()
+                    code = left_expr.code + [f"stax {tmp}"] + right_expr.code + [f"{self.op} {tmp}"]
+            
+            return Expression(code, uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+        
+        return Expression(["nop"])  # Fallback
+
+def expr_to_tree(expr):
+    """Convert an Expression to an ExprTree node"""
+    if expr.is_immediate:
+        return ExprTree('constant', value=expr.value)
+    elif len(expr.code) == 1 and expr.code[0].startswith('ldax '):
+        # Simple variable load
+        var_name = expr.code[0].split()[1]
+        if var_name.startswith('#'):
+            # It's a constant
+            value = int(var_name[1:])
+            return ExprTree('constant', value=value)
+        else:
+            # It's a variable
+            return ExprTree('variable', value=var_name)
+    elif len(expr.code) >= 1 and expr.code[0] in ['restore AX', 'restore A', 'restore X', 'restore Y']:
+        # Register reference
+        reg_name = expr.code[0].split()[1].lower()
+        return ExprTree('register', value=reg_name)
+    else:
+        # Complex expression - can't easily convert back to tree
+        # Return None to indicate no tree available
+        return None
+
+def build_binop_with_tree(left, right, op_name, is_commutative=False):
+    """
+    Build an Expression with ExprTree for a binary operation.
+    Returns Expression with both code and tree.
+    """
+    # Get or create trees for operands
+    left_tree = left.tree if hasattr(left, 'tree') and left.tree else expr_to_tree(left)
+    right_tree = right.tree if hasattr(right, 'tree') and right.tree else expr_to_tree(right)
+    
+    # Build tree if both operands have trees
+    if left_tree and right_tree:
+        tree = ExprTree('binop', left=left_tree, right=right_tree, op=op_name, is_commutative=is_commutative)
+        # Copy register usage from children
+        tree.uses_ax = left.uses_ax or right.uses_ax
+        tree.uses_a = left.uses_a or right.uses_a
+        tree.uses_x = left.uses_x or right.uses_x
+        tree.uses_y = left.uses_y or right.uses_y
+    else:
+        tree = None
+    
+    return tree
+
+def optimize_commutative(expr):
+    """
+    Try all 2^n orderings of commutative operations and return the shortest.
+    For each variant: generates code, applies constant folding (already done in to_expression),
+    runs post-optimizer, then counts instructions.
+    Returns the original expression if no tree is available or no optimization found.
+    """
+    if not hasattr(expr, 'tree') or expr.tree is None:
+        return expr
+    
+    tree = expr.tree
+    n_commutative = tree.count_commutative_ops()
+    
+    if n_commutative == 0:
+        return expr  # No commutative ops to optimize
+    
+    # Save current temp counter
+    saved_temp_counter = codegen.temp_counter
+    
+    best_expr = expr
+    best_code = expr.code
+    best_count = count_instructions(expr.code)
+    best_temp_count = codegen.temp_counter - codegen.temp_start
+    
+    # Try all 2^n variants
+    variants = tree.enumerate_variants()
+    
+    for variant in variants:
+        # Reset temp counter for fair comparison
+        codegen.temp_counter = saved_temp_counter
+        
+        # Generate code for this variant (constant folding happens in to_expression)
+        try:
+            variant_expr = variant.to_expression()
+            
+            # Apply post-optimizer to this variant
+            optimized_code, _ = optimize_code(variant_expr.code)
+            variant_count = count_instructions(optimized_code)
+            variant_temp_count = codegen.temp_counter - codegen.temp_start
+            
+            # Keep if shorter, or same length but uses fewer temps
+            if (variant_count < best_count or 
+                (variant_count == best_count and variant_temp_count < best_temp_count)):
+                best_expr = variant_expr
+                best_code = optimized_code
+                best_count = variant_count
+                best_temp_count = variant_temp_count
+        except Exception as e:
+            # If variant generation fails, skip it
+            pass
+    
+    # Update best expression with optimized code
+    best_expr.code = best_code
+    
+    # Restore temp counter to match best variant
+    codegen.temp_counter = saved_temp_counter + best_temp_count
+    
+    return best_expr
 
 # Parser precedence rules (lowest to highest)
 precedence = (
@@ -208,6 +511,9 @@ def p_statement_let(p):
     var_name = p[2]
     expr = p[4]
     
+    # Apply commutative optimization - try all 2^n orderings
+    expr = optimize_commutative(expr)
+    
     codegen.add_variable(var_name)
     
     # Set register usage flags for compile_line to use
@@ -223,6 +529,9 @@ def p_statement_let_register_ax(p):
     """statement : LET REG_AX EQUAL expression"""
     expr = p[4]
     
+    # Apply commutative optimization - try all 2^n orderings
+    expr = optimize_commutative(expr)
+    
     # Set register usage flags
     codegen._uses_ax = expr.uses_ax
     codegen._uses_a = expr.uses_a
@@ -236,6 +545,9 @@ def p_statement_let_register_ax(p):
 def p_statement_let_register_a(p):
     """statement : LET REG_A EQUAL expression"""
     expr = p[4]
+    
+    # Apply commutative optimization - try all 2^n orderings
+    expr = optimize_commutative(expr)
     
     # Set register usage flags
     codegen._uses_ax = expr.uses_ax
@@ -251,6 +563,9 @@ def p_statement_let_register_x(p):
     """statement : LET REG_X EQUAL expression"""
     expr = p[4]
     
+    # Apply commutative optimization - try all 2^n orderings
+    expr = optimize_commutative(expr)
+    
     # Set register usage flags
     codegen._uses_ax = expr.uses_ax
     codegen._uses_a = expr.uses_a
@@ -264,6 +579,18 @@ def p_statement_let_register_x(p):
 def p_statement_let_register_y(p):
     """statement : LET REG_Y EQUAL expression"""
     expr = p[4]
+    
+    # Apply commutative optimization - try all 2^n orderings
+    expr = optimize_commutative(expr)
+    
+    # Set register usage flags
+    codegen._uses_ax = expr.uses_ax
+    codegen._uses_a = expr.uses_a
+    codegen._uses_x = expr.uses_x
+    codegen._uses_y = expr.uses_y
+    
+    # Apply commutative optimization - try all 2^n orderings
+    expr = optimize_commutative(expr)
     
     # Set register usage flags
     codegen._uses_ax = expr.uses_ax
@@ -289,6 +616,9 @@ def p_statement_compound(p):
     var_name = p[2]
     op = p[3]
     expr = p[4]
+    
+    # Apply commutative optimization - try all 2^n orderings
+    expr = optimize_commutative(expr)
     
     codegen.add_variable(var_name)
     
@@ -386,10 +716,13 @@ def p_expression_binop(p):
     uses_x = left.uses_x or right.uses_x
     uses_y = left.uses_y or right.uses_y
     
+    # Build ExprTree for commutative operations (addition only, not subtraction)
+    tree = build_binop_with_tree(left, right, 'addax', is_commutative=(p[2] == '+'))
+    
     if right.is_immediate:
         op = "addax" if p[2] == '+' else "subax"
         p[0] = Expression(left.code + [f"{op} #{right.value}"], 
-                         uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                         uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
     else:
         is_simple_var = (len(right.code) == 1 and 
                         right.code[0].startswith('ldax ') and 
@@ -399,17 +732,17 @@ def p_expression_binop(p):
             var_name = right.code[0].split()[1]
             op = "addax" if p[2] == '+' else "subax"
             p[0] = Expression(left.code + [f"{op} {var_name}"], 
-                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
         elif p[2] == '-':
             tmp = codegen.get_temp()
             p[0] = Expression(right.code + [f"stax {tmp}"] + 
                              left.code + [f"subax {tmp}"], 
-                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
         else:
             tmp = codegen.get_temp()
             p[0] = Expression(left.code + [f"stax {tmp}"] + 
                              right.code + [f"addax {tmp}"], 
-                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
 
 def p_expression_shift(p):
     """expression : shift_expr"""
@@ -477,9 +810,12 @@ def p_and_binop(p):
     uses_x = left.uses_x or right.uses_x
     uses_y = left.uses_y or right.uses_y
     
+    # Build ExprTree for commutative AND operation
+    tree = build_binop_with_tree(left, right, 'andax', is_commutative=True)
+    
     if right.is_immediate:
         p[0] = Expression(left.code + [f"andax #{right.value}"],
-                         uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                         uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
     else:
         is_simple_var = (len(right.code) == 1 and 
                         right.code[0].startswith('ldax ') and 
@@ -487,12 +823,12 @@ def p_and_binop(p):
         if is_simple_var:
             var_name = right.code[0].split()[1]
             p[0] = Expression(left.code + [f"andax {var_name}"],
-                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
         else:
             tmp = codegen.get_temp()
             p[0] = Expression(left.code + [f"stax {tmp}"] + 
                              right.code + [f"andax {tmp}"],
-                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
 
 def p_and_xor(p):
     """and_expr : xor_expr"""
@@ -515,9 +851,12 @@ def p_xor_binop(p):
     uses_x = left.uses_x or right.uses_x
     uses_y = left.uses_y or right.uses_y
     
+    # Build ExprTree for commutative XOR operation
+    tree = build_binop_with_tree(left, right, 'eorax', is_commutative=True)
+    
     if right.is_immediate:
         p[0] = Expression(left.code + [f"eorax #{right.value}"],
-                         uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                         uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
     else:
         is_simple_var = (len(right.code) == 1 and 
                         right.code[0].startswith('ldax ') and 
@@ -525,12 +864,12 @@ def p_xor_binop(p):
         if is_simple_var:
             var_name = right.code[0].split()[1]
             p[0] = Expression(left.code + [f"eorax {var_name}"],
-                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
         else:
             tmp = codegen.get_temp()
             p[0] = Expression(left.code + [f"stax {tmp}"] + 
                              right.code + [f"eorax {tmp}"],
-                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
 
 def p_xor_or(p):
     """xor_expr : or_expr"""
@@ -553,9 +892,12 @@ def p_or_binop(p):
     uses_x = left.uses_x or right.uses_x
     uses_y = left.uses_y or right.uses_y
     
+    # Build ExprTree for commutative OR operation
+    tree = build_binop_with_tree(left, right, 'orax', is_commutative=True)
+    
     if right.is_immediate:
         p[0] = Expression(left.code + [f"orax #{right.value}"],
-                         uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                         uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
     else:
         is_simple_var = (len(right.code) == 1 and 
                         right.code[0].startswith('ldax ') and 
@@ -563,12 +905,12 @@ def p_or_binop(p):
         if is_simple_var:
             var_name = right.code[0].split()[1]
             p[0] = Expression(left.code + [f"orax {var_name}"],
-                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
         else:
             tmp = codegen.get_temp()
             p[0] = Expression(left.code + [f"stax {tmp}"] + 
                              right.code + [f"orax {tmp}"],
-                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
 
 def p_or_term(p):
     """or_expr : term"""
@@ -609,9 +951,12 @@ def p_term_binop(p):
     op_map = {'*': 'mul16', '/': 'div16', '%': 'mod16'}
     op = op_map[p[2]]
     
+    # Build ExprTree for commutative operations (multiplication only, not division/modulo)
+    tree = build_binop_with_tree(left, right, op, is_commutative=(p[2] == '*'))
+    
     if right.is_immediate:
         p[0] = Expression(left.code + [f"{op} #{right.value}"],
-                         uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                         uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
     else:
         is_simple_var = (len(right.code) == 1 and 
                         right.code[0].startswith('ldax ') and 
@@ -620,17 +965,17 @@ def p_term_binop(p):
         if is_simple_var:
             var_name = right.code[0].split()[1]
             p[0] = Expression(left.code + [f"{op} {var_name}"],
-                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
         elif p[2] in ['/', '%']:
             tmp = codegen.get_temp()
             p[0] = Expression(right.code + [f"stax {tmp}"] + 
                              left.code + [f"{op} {tmp}"],
-                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
         else:
             tmp = codegen.get_temp()
             p[0] = Expression(left.code + [f"stax {tmp}"] + 
                              right.code + [f"{op} {tmp}"],
-                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y)
+                             uses_ax=uses_ax, uses_a=uses_a, uses_x=uses_x, uses_y=uses_y, tree=tree)
 
 def p_term_factor(p):
     """term : factor"""
@@ -761,39 +1106,149 @@ def optimize_code(lines):
     i = 0
     removed_count = 0
     
+    # First pass: Remove unnecessary store/restore pairs
     while i < len(lines):
         line = lines[i].strip()
         
-        # Check for store followed by restore patterns
+        # Optimize 8-bit constant loading for single registers
+        # Pattern: ldax #N / tax → ldx #N (for 8-bit constants)
         if i + 1 < len(lines):
             next_line = lines[i + 1].strip()
             
-            # Pattern 1: store AX / restore AX
-            if line == "store AX" and next_line == "restore AX":
-                # Skip both lines
-                i += 2
+            if line.startswith("ldax #") and next_line == "tax":
+                try:
+                    value = int(line.split('#')[1])
+                    if 0 <= value <= 255:
+                        # 8-bit constant - use ldx directly
+                        result.append(f"ldx #{value}")
+                        i += 2
+                        removed_count += 1
+                        continue
+                except:
+                    pass
+            
+            # Pattern: ldax #N / tay → ldy #N (for 8-bit constants)
+            if line.startswith("ldax #") and next_line == "tay":
+                try:
+                    value = int(line.split('#')[1])
+                    if 0 <= value <= 255:
+                        # 8-bit constant - use ldy directly
+                        result.append(f"ldy #{value}")
+                        i += 2
+                        removed_count += 1
+                        continue
+                except:
+                    pass
+        
+        # Optimize: ldax #N (when 8-bit) for A register
+        # When assigning to A register only, we can use lda #N
+        if line.startswith("ldax #"):
+            try:
+                value = int(line.split('#')[1])
+                # Check if this is the last instruction (assignment to A)
+                # Look ahead to see if there's no further processing
+                is_final = (i + 1 >= len(lines) or 
+                           lines[i + 1].strip().startswith(';') or
+                           lines[i + 1].strip() == '')
+                
+                if 0 <= value <= 255 and is_final:
+                    # Check previous few lines to see if this is for A register
+                    # This is tricky - we'd need context. Skip for now.
+                    pass
+            except:
+                pass
+        
+        # Check for store followed by restore with intervening instructions
+        if line in ["store AX", "store A", "store X", "store Y"]:
+            reg = line.split()[1]
+            
+            # Look for matching restore
+            restore_idx = -1
+            for j in range(i + 1, len(lines)):
+                check_line = lines[j].strip()
+                
+                # Found matching restore
+                if check_line == f"restore {reg}":
+                    restore_idx = j
+                    break
+                
+                # Stop if register is used (restored earlier or modified)
+                if check_line.startswith(f"restore {reg}"):
+                    break
+                if reg == "AX" and check_line.startswith("restore AX"):
+                    break
+                if reg == "A" and check_line.startswith("restore A"):
+                    break
+                if reg == "X" and check_line.startswith("restore X"):
+                    break
+                if reg == "Y" and check_line.startswith("restore Y"):
+                    break
+                
+                # Check if intervening instruction modifies or uses the register
+                # If only other stores happen, we can eliminate store/restore
+                if not check_line.startswith("store ") and check_line:
+                    # Something else happens - can't eliminate
+                    break
+            
+            # Check if we can eliminate this store/restore pair
+            if restore_idx != -1:
+                # Check if only stores happen between
+                only_stores = True
+                for j in range(i + 1, restore_idx):
+                    check_line = lines[j].strip()
+                    if check_line and not check_line.startswith("store "):
+                        only_stores = False
+                        break
+                
+                if only_stores:
+                    # Skip the store, keep everything in between, skip the restore
+                    i += 1  # Skip store
+                    while i < restore_idx:
+                        result.append(lines[i])
+                        i += 1
+                    i += 1  # Skip restore
+                    removed_count += 1
+                    continue
+        
+        # Check for store Y / restore Y with no mul16/div16/mod16 in between
+        if line == "store Y":
+            restore_idx = -1
+            has_mul_div_mod = False
+            
+            for j in range(i + 1, len(lines)):
+                check_line = lines[j].strip()
+                
+                if check_line == "restore Y":
+                    restore_idx = j
+                    break
+                
+                # Check for operations that clobber Y
+                if any(op in check_line for op in ["mul16", "div16", "mod16"]):
+                    has_mul_div_mod = True
+                    break
+            
+            # If no mul/div/mod between store Y and restore Y, eliminate both
+            if restore_idx != -1 and not has_mul_div_mod:
+                i += 1  # Skip store Y
+                while i < restore_idx:
+                    result.append(lines[i])
+                    i += 1
+                i += 1  # Skip restore Y
                 removed_count += 1
                 continue
+        
+        # Check for immediate store/restore patterns (no intervening code)
+        if i + 1 < len(lines):
+            next_line = lines[i + 1].strip()
             
-            # Pattern 2: store A / restore A
-            if line == "store A" and next_line == "restore A":
-                i += 2
-                removed_count += 1
-                continue
+            # Pattern: store REG / restore REG (adjacent)
+            for reg in ["AX", "A", "X", "Y"]:
+                if line == f"store {reg}" and next_line == f"restore {reg}":
+                    i += 2
+                    removed_count += 1
+                    continue
             
-            # Pattern 3: store X / restore X
-            if line == "store X" and next_line == "restore X":
-                i += 2
-                removed_count += 1
-                continue
-            
-            # Pattern 4: store Y / restore Y
-            if line == "store Y" and next_line == "restore Y":
-                i += 2
-                removed_count += 1
-                continue
-            
-            # Pattern 5: stax tempN / ldax tempN (check if temp not used elsewhere)
+            # Pattern: stax tempN / ldax tempN (check if temp not used elsewhere)
             if line.startswith("stax tmp") and next_line.startswith("ldax tmp"):
                 stax_tmp = line.split()[1]
                 ldax_tmp = next_line.split()[1]
