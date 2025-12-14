@@ -220,26 +220,60 @@
 .define stored_X .ident(.sprintf("selfmod_X%d", ::nesting_levelX/10))+1
 .define stored_Y .ident(.sprintf("selfmod_Y%d", ::nesting_levelY/10))+1
 
-;; restore reg
+;; restore reg[,to,targetreg]
 ;; Generates the code for restoreing a stored register
 ;; Registers can be A,X,Y, or AX (that is A and X)
+;; If a target register is stated, the value that was stored to register <i>reg</i> is restored in the target register.
 ;; Each restore must match with exactly one preceding <i>store</i> macro using the same register
-;; Registers modified: the restoreed register
+;; Registers modified: the restored register
 
-.macro restore reg
+.macro restore reg,to,target
   .if .xmatch ({reg}, {A}) 
 .ident(.sprintf("selfmod_A%d", ::nesting_levelA/10)):
-    lda #00
+    .ifblank target
+          lda #0
+    .elseif .xmatch ({target}, {A}) .or .xmatch ({target}, {a})
+          lda #0
+    .elseif .xmatch ({target}, {X}) .or .xmatch ({target}, {x})
+          ldx #0
+    .elseif .xmatch ({target}, {Y}) .or .xmatch ({target}, {y})
+          ldy #0
+    .else
+          .error "No proper register stated, must be A, X or Y"
+    .endif
     dec_nesting_levelA
   .elseif .xmatch ({reg}, {X}) 
 .ident(.sprintf("selfmod_X%d", ::nesting_levelX/10)):
-    ldx #00
+    .ifblank target
+          ldx #0
+    .elseif .xmatch ({target}, {A}) .or .xmatch ({target}, {a})
+          lda #0
+    .elseif .xmatch ({target}, {X}) .or .xmatch ({target}, {x})
+          ldx #0
+    .elseif .xmatch ({target}, {Y}) .or .xmatch ({target}, {y})
+          ldy #0
+    .else
+          .error "No proper register stated, must be A, X or Y"
+    .endif
     dec_nesting_levelX
   .elseif .xmatch ({reg}, {Y}) 
 .ident(.sprintf("selfmod_Y%d", ::nesting_levelY/10)):
-    ldy #00
+    .ifblank target
+          ldy #0
+    .elseif .xmatch ({target}, {A}) .or .xmatch ({target}, {a})
+          lda #0
+    .elseif .xmatch ({target}, {X}) .or .xmatch ({target}, {x})
+          ldx #0
+    .elseif .xmatch ({target}, {Y}) .or .xmatch ({target}, {y})
+          ldy #0
+    .else
+          .error "No proper register stated, must be A, X or Y"
+    .endif
     dec_nesting_levelY
   .elseif .xmatch({reg}, {AX}) .or .xmatch ({reg}, {ax})
+    .ifnblank target
+          .error "Target register specification not possible for AX."
+    .endif
     restore A
     restore X
   .endif

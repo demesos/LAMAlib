@@ -382,11 +382,12 @@ Each store must match with exactly one <i>restore</i> macro using the same regis
 inbetween store and restore, the stored value can be also accessed via address stored_A, stored_X, or stored_Y. Note that a stored AX is just a stored A and a stored X. The two addresses stored_A and stored_X are not consecutive.<br>
 Registers modified: none<br>
 <br>
-<b>restore</b> <i>reg</i><br>
+<b>restore</b> <i>reg[,to,targetreg]</i><br>
 Generates the code for restoreing a stored register<br>
 Registers can be A,X,Y, or AX (that is A and X)<br>
+If a target register is stated, the value that was stored to register <i>reg</i> is restored in the target register.<br>
 Each restore must match with exactly one preceding <i>store</i> macro using the same register<br>
-Registers modified: the restoreed register<br>
+Registers modified: the restored register<br>
 <br>
 <b>if</b> <i>cond</i><br>
 <b>longif</b> cond<br>
