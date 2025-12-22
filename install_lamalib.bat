@@ -71,8 +71,8 @@ for /F %%I in ('where cc65.exe') do (
 @copy ass.bat "%CC65PATH%\bin"
 @copy asdent.py "%CC65PATH%\bin"
 @echo @python "%%~dp0asdent.py" %%* > "%CC65PATH%\bin\asdent.bat"
-@copy expr2asm.py "%CC65PATH%\bin"
-@echo @python "%%~dp0expr2asm.py" %%* > "%CC65PATH%\bin\expr2asm.bat"
+@copy exprass.py "%CC65PATH%\bin"
+@echo @python "%%~dp0exprass.py" %%* > "%CC65PATH%\bin\exprass.bat"
 
 
 echo %white%

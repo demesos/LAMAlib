@@ -1,7 +1,7 @@
 ; macros for store/restore, if-else-endif, for-next, do-loop, and switch
 ; i.o.w structured programming in assembler
 ; part of LAMAlib
-; by Wil 2021
+; by Wil 2025
 
 ; auxiliary defintions for long branches, basically a copy of macro package longbranch
 ; but with other names, since we don't know if the user will use the macro package
@@ -455,9 +455,12 @@
   .elseif (.match (.left (1, {var}), {(})) .and (.match (.right (1, {var}), {)}))
     .ident(.sprintf("for_var%d", ::nesting_level/10))=-5
     .ident(.sprintf("for_var_addr%d", ::nesting_level/10))=var
-  .else
+  .elseif (.match (.left (1, {var}), {[})) .and (.match (.right (1, {var}), {]}))
     .ident(.sprintf("for_var%d", ::nesting_level/10))=-6
     .ident(.sprintf("for_var_addr%d", ::nesting_level/10))=.mid(1,.tcount(var)-2, var)
+  .else
+    .ident(.sprintf("for_var%d", ::nesting_level/10))=-5
+    .ident(.sprintf("for_var_addr%d", ::nesting_level/10))=var
   .endif
 
   .if .xmatch ({dir}, {to}) || .xmatch ({dir}, {TO})
@@ -470,7 +473,7 @@
 
   .if .paramcount = 5
      .ident(.sprintf("for_inc%d", ::nesting_level/10))=step
-     .if (.match (.left (1, {step}), {(})) .and (.match (.right (1, {step}), {)}))	;argument in brackets -> means indirect addressing
+     .if (.match (.left (1, {step}), {(})) .and (.match (.right (1, {step}), {)}))
        .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
      .else
        .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=0
@@ -480,7 +483,7 @@
       .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=0
   .endif
 
-  .if (.match (.left (1, {end}), {(})) .and (.match (.right (1, {end}), {)}))	;argument in brackets -> means indirect addressing
+  .if (.match (.left (1, {end}), {(})) .and (.match (.right (1, {end}), {)}))
     .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
     .ident(.sprintf("for_end%d", ::nesting_level/10))=end
   .else
@@ -492,7 +495,7 @@
     .endif
   .endif
 
-  .if (.match (.left (1, {start}), {(})) .and (.match (.right (1, {start}), {)}))	;argument in brackets -> means indirect addressing
+  .if (.match (.left (1, {start}), {(})) .and (.match (.right (1, {start}), {)}))
     .ident(.sprintf("for_start%d_indirect", ::nesting_level/10))=1
     .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=0
     .if .ident(.sprintf("for_var%d", ::nesting_level/10))=-2
@@ -733,7 +736,7 @@
         cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))     
         longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
       .endif
-    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-4   ;--- next (addr) ---
+    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-5   ;--- next (addr) ---
       .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
         lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
         clc

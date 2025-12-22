@@ -66,16 +66,16 @@ findstr /r /c:"^ *let " "%1" >nul 2>&1 && (
 )
 
 if %NEEDSCOMPILE% equ 1 (
-  echo Compiling high-level expressions with expr2asm...
+  echo Compiling high-level expressions with exprass...
   if "%VERBOSE%"=="1" (
-    echo expr2asm.py -c "%1"
+    echo exprass.py -c "%1"
   )
-  expr2asm.py -c "%1"
+  exprass.py -c "%1"
   if ERRORLEVEL 1 (
-    echo ERROR: expr2asm compilation failed
+    echo ERROR: exprass compilation failed
     exit /B 1
   )
-  echo expr2asm compilation complete.
+  echo exprass compilation complete.
   echo.
 )
 

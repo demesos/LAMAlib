@@ -68,7 +68,7 @@ cp -f LAMAlib20.lib "$installdir/lib/"
 cp -f *friendly-asm.cfg "$installdir/cfg/"
 cp -f ass.sh "$installbindir/ass"
 cp -f asdent.py "$installbindir/asdent"
-cp -f expr2asm.py "$installbindir/expr2asm"
+cp -f exprass.py "$installbindir/exprass"
 
 if [ $? -ne 0 ]; then
   echo -e $red

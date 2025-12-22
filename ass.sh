@@ -54,17 +54,17 @@ if grep -P '^\s*let ' "$ASMFILE" > /dev/null; then
 fi
 
 if [[ $NEEDSCOMPILE -eq 1 ]]; then
-  echo "Compiling high-level expressions with expr2asm..."
+  echo "Compiling high-level expressions with exprass..."
   if [[ "$VERBOSE" == "1" ]]; then
-    echo "expr2asm -c \"$1\""
+    echo "exprass -c \"$1\""
   fi
   
   # Execute the compiler
-  if ! expr2asm -c "$1"; then
-    echo "ERROR: expr2asm compilation failed"
+  if ! exprass -c "$1"; then
+    echo "ERROR: exprass compilation failed"
     exit 1
   fi
-  echo "expr2asm compilation complete."
+  echo "exprass compilation complete."
   echo ""
 fi
 

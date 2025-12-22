@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-expr2asm - Expression to Assembly Translator
+exprass - Expression to Assembly Translator
 Compiles high-level expressions to 6502 assembly using LAMAlib macros
 
 Author: Wil Elmenreich
 December 2025
 """
-__version__ = "0.50"
+__version__ = "0.52"
 
 import ply.lex as lex
 import ply.yacc as yacc
@@ -19,6 +19,67 @@ import itertools
 from pathlib import Path
 
 
+
+# ============================================================================
+# ASSEMBLY VARIABLE DETECTION
+# ============================================================================
+
+def detect_assembly_assignments(line):
+    """
+    Detect variables that are assigned in raw assembly code.
+    Returns a set of variable names that are assigned.
+    
+    Detects patterns like:
+    - for variable,start,to,end
+    - for variable,start,downto,end
+    - sta variable / sta variable+1
+    - stx variable / stx variable+1
+    - sty variable / sty variable+1
+    - stax variable
+    """
+    assigned = set()
+    stripped = line.strip()
+    
+    # Skip comments
+    if stripped.startswith(';'):
+        return assigned
+    
+    # Remove inline comments
+    comment_pos = stripped.find(';')
+    if comment_pos >= 0:
+        stripped = stripped[:comment_pos].strip()
+    
+    if not stripped:
+        return assigned
+    
+    # Detect FOR loops: for variable,start,to/downto,end
+    for_match = re.match(r'for\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*,', stripped, re.IGNORECASE)
+    if for_match:
+        var = for_match.group(1)
+        assigned.add(var)
+        return assigned
+    
+    # Detect store instructions: sta/stx/sty variable (with optional +1)
+    store_match = re.match(r'st[axy]\s+([a-zA-Z_$][a-zA-Z0-9_]*)(?:\+1)?', stripped, re.IGNORECASE)
+    if store_match:
+        var = store_match.group(1)
+        # Filter out hex addresses (starting with $ or being pure hex digits)
+        if var.startswith('$'):
+            return assigned
+        # Filter out absolute numeric addresses
+        if re.match(r'^[0-9]', var):
+            return assigned
+        assigned.add(var)
+        return assigned
+    
+    # Detect LAMAlib store: stax variable
+    stax_match = re.match(r'stax\s+([a-zA-Z_][a-zA-Z0-9_]*)', stripped, re.IGNORECASE)
+    if stax_match:
+        var = stax_match.group(1)
+        assigned.add(var)
+        return assigned
+    
+    return assigned
 
 # ============================================================================
 # CODE GENERATOR
@@ -77,7 +138,7 @@ class CodeGenerator:
         """
         lines = []
         lines.append("")
-        lines.append("; +++ Variable declarations from expr2asm, all 16-bit")
+        lines.append("; +++ Variable declarations from exprass, all 16-bit")
         for var in sorted(self.variables):
             lines.append(f".ifndef {var}")
             lines.append(f"{var}:\t.res 2")
@@ -94,7 +155,7 @@ class CodeGenerator:
                 else:
                     lines.append(f"{tmp}:\t.res 2")
         
-        lines.append("; --- End of variable declarations from expr2asm")
+        lines.append("; --- End of variable declarations from exprass")
         
         return lines
 
@@ -132,7 +193,7 @@ def score_instruction(instr):
         return 1
     
     # 3-point ops: addax, subax
-    if opcode in ['addax', 'subax']:
+    if opcode in ['addax', 'subax', 'absax']:
         return 3
     
     # 50-point ops: mul16
@@ -179,7 +240,7 @@ class ExprNode:
     Used to generate all commutative permutations of an expression.
     """
     def __init__(self, node_type, value=None, op=None, children=None, is_commutative=False):
-        self.node_type = node_type  # 'const', 'var', 'reg', 'binop', 'unary', 'peek', 'peekw'
+        self.node_type = node_type  # 'const', 'var', 'reg', 'binop', 'unary', 'peek', 'peekw', 'abs'
         self.value = value          # For const: numeric value, for var/reg: name
         self.op = op                # For binop: operation name ('addax', 'mul16', etc.)
         self.children = children or []  # Child nodes
@@ -364,6 +425,12 @@ class ExprNode:
             
             return (code, uses_ax, uses_a, uses_x, uses_y)
         
+        elif self.node_type == 'abs':
+            child_code, uses_ax, uses_a, uses_x, uses_y = self.children[0].generate_code(codegen_instance, reg_temps)
+            # absax operates on AX register, result in AX
+            code = child_code + ["absax"]
+            return (code, uses_ax, uses_a, uses_x, uses_y)
+        
         elif self.node_type == 'unary':
             child_code, uses_ax, uses_a, uses_x, uses_y = self.children[0].generate_code(codegen_instance, reg_temps)
             code = child_code + [self.op]
@@ -399,7 +466,7 @@ class ExprNode:
             return f"Reg({self.value})"
         elif self.node_type == 'binop':
             return f"BinOp({self.op}, {self.children[0]}, {self.children[1]})"
-        elif self.node_type in ['peek', 'peekw']:
+        elif self.node_type in ['peek', 'peekw', 'abs']:
             return f"{self.node_type.upper()}({self.children[0]})"
         return f"Node({self.node_type})"
 
@@ -488,7 +555,7 @@ tokens = (
     'PLUSEQ', 'MINUSEQ', 'TIMESEQ', 'DIVEQ', 'MODEQ',
     'ANDEQ', 'OREQ', 'XOREQ',
     'LSHIFTEQ', 'RSHIFTEQ',
-    'PEEK', 'PEEKW',
+    'PEEK', 'PEEKW', 'ABS',
     'REG_A', 'REG_X', 'REG_Y', 'REG_AX'
 )
 
@@ -549,6 +616,8 @@ def t_VARIABLE(t):
         t.type = 'PEEKW'
     elif lower == 'peek':
         t.type = 'PEEK'
+    elif lower == 'abs':
+        t.type = 'ABS'
     elif lower == 'ax':
         t.type = 'REG_AX'
     elif lower == 'a':
@@ -1303,6 +1372,32 @@ def p_factor_peekw(p):
                      uses_y=addr_expr.uses_y,
                      tree=tree)
 
+def p_factor_abs(p):
+    """factor : ABS LPAREN expression RPAREN"""
+    expr = p[3]
+    
+    # Build expression tree for abs
+    if expr.tree:
+        tree = ExprNode('abs', children=[expr.tree])
+        tree.uses_ax = expr.uses_ax
+        tree.uses_a = expr.uses_a
+        tree.uses_x = expr.uses_x
+        tree.uses_y = expr.uses_y
+    else:
+        tree = None
+    
+    # ABS always operates on AX and returns result in AX
+    code = expr.code[:]
+    code.append("absax")
+    
+    # Propagate register usage flags from input expression
+    p[0] = Expression(code,
+                     uses_ax=expr.uses_ax,
+                     uses_a=expr.uses_a,
+                     uses_x=expr.uses_x,
+                     uses_y=expr.uses_y,
+                     tree=tree)
+
 def p_factor_paren(p):
     """factor : LPAREN expression RPAREN"""
     p[0] = p[2]
@@ -1667,14 +1762,14 @@ def find_compiled_blocks(lines):
         line = lines[i].rstrip()
         
         # Check for variable declarations block first (more specific)
-        if line.startswith('; +++ Variable declarations from expr2asm'):
+        if line.startswith('; +++ Variable declarations from exprass'):
             start_line = i
             i += 1
             
             # Collect until end marker
             while i < len(lines):
                 line = lines[i].rstrip()
-                if line.startswith('; --- End of variable declarations from expr2asm'):
+                if line.startswith('; --- End of variable declarations from exprass'):
                     end_line = i
                     blocks.append({
                         'start': start_line,
@@ -1897,7 +1992,7 @@ def compile_file(input_file, output_file=None, args=None, is_include=False):
     # Normal compilation mode
     # Generate assembly header
     result = []
-    result.append("; Generated by expr2asm - Expression to Assembly Translator\n")
+    result.append("; Generated by exprass - Expression to Assembly Translator\n")
     result.append(f"; Source: {Path(input_file).name}\n")
     result.append("\n")
     
@@ -1933,6 +2028,12 @@ def compile_file(input_file, output_file=None, args=None, is_include=False):
         if not is_expression:
             # Pass through raw assembly code unchanged
             result.append(line)
+            
+            # Detect variables assigned in assembly code
+            assigned_vars = detect_assembly_assignments(stripped_no_comment)
+            for var in assigned_vars:
+                codegen.add_variable(var)
+            
             if verbose and not quiet:
                 print(f"; Line {line_num}: Pass-through", file=sys.stderr)
             continue
@@ -1954,7 +2055,7 @@ def compile_file(input_file, output_file=None, args=None, is_include=False):
     # First add just the regular variables
     var_decl_lines = []
     var_decl_lines.append("")
-    var_decl_lines.append("; +++ Variable declarations from expr2asm, all 16-bit")
+    var_decl_lines.append("; +++ Variable declarations from exprass, all 16-bit")
     for var in sorted(codegen.variables):
         var_decl_lines.append(f".ifndef {var}")
         var_decl_lines.append(f"{var}:\t.res 2")
@@ -1963,7 +2064,7 @@ def compile_file(input_file, output_file=None, args=None, is_include=False):
     var_decl_lines.append("")
     var_decl_lines.append("; Temporary variables")
     var_decl_lines.append("; TEMP_PLACEHOLDER")
-    var_decl_lines.append("; --- End of variable declarations from expr2asm")
+    var_decl_lines.append("; --- End of variable declarations from exprass")
     result.extend([line + "\n" for line in var_decl_lines])
     
     # Optimize: remove redundant store/restore pairs and temp variable pairs
@@ -2037,7 +2138,7 @@ def compile_file(input_file, output_file=None, args=None, is_include=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog='expr2asm',
+        prog='exprass',
         description='Expression to Assembly Translator - Compile high-level expressions to 6502 assembly',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
@@ -2054,7 +2155,7 @@ Examples:
 
 Author: Wil Elmenreich
 Version: %(version)s
-        """ % {'prog': 'expr2asm', 'version': __version__}
+        """ % {'prog': 'exprass', 'version': __version__}
     )
     
     parser.add_argument('input', help='Input source file (.s)')
