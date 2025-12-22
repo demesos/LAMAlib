@@ -1,7 +1,7 @@
 ; macros for store/restore, if-else-endif, for-next, do-loop, and switch
 ; i.o.w structured programming in assembler
 ; part of LAMAlib
-; by Wil 2025
+; by Wil 2021
 
 ; auxiliary defintions for long branches, basically a copy of macro package longbranch
 ; but with other names, since we don't know if the user will use the macro package
@@ -459,6 +459,7 @@
     .ident(.sprintf("for_var%d", ::nesting_level/10))=-6
     .ident(.sprintf("for_var_addr%d", ::nesting_level/10))=.mid(1,.tcount(var)-2, var)
   .else
+    ; Bare variable name - treat as 16-bit address (parentheses are optional per docs)
     .ident(.sprintf("for_var%d", ::nesting_level/10))=-5
     .ident(.sprintf("for_var_addr%d", ::nesting_level/10))=var
   .endif
@@ -473,7 +474,7 @@
 
   .if .paramcount = 5
      .ident(.sprintf("for_inc%d", ::nesting_level/10))=step
-     .if (.match (.left (1, {step}), {(})) .and (.match (.right (1, {step}), {)}))
+     .if (.match (.left (1, {step}), {(})) .and (.match (.right (1, {step}), {)}))	;argument in brackets -> means indirect addressing
        .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
      .else
        .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=0
@@ -483,7 +484,7 @@
       .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=0
   .endif
 
-  .if (.match (.left (1, {end}), {(})) .and (.match (.right (1, {end}), {)}))
+  .if (.match (.left (1, {end}), {(})) .and (.match (.right (1, {end}), {)}))	;argument in brackets -> means indirect addressing
     .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
     .ident(.sprintf("for_end%d", ::nesting_level/10))=end
   .else
@@ -495,7 +496,7 @@
     .endif
   .endif
 
-  .if (.match (.left (1, {start}), {(})) .and (.match (.right (1, {start}), {)}))
+  .if (.match (.left (1, {start}), {(})) .and (.match (.right (1, {start}), {)}))	;argument in brackets -> means indirect addressing
     .ident(.sprintf("for_start%d_indirect", ::nesting_level/10))=1
     .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=0
     .if .ident(.sprintf("for_var%d", ::nesting_level/10))=-2
@@ -1087,7 +1088,7 @@
           .endif
         .endif
       .endif
-    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-4   ;--- next (addr) ---
+    .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-5   ;--- next (addr) ---
       .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
         lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
         sec
@@ -1190,7 +1191,16 @@
             cmp .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
           .else
             lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
-            cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))
+            .if .ident(.sprintf("for_end%d", ::nesting_level/10)) = -1
+              .if .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=1
+                ; Start was positive, so we can use bpl to check for negative (past 0)
+                ; No need for cmp, just check if we've gone negative
+              .else
+                cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))+$100
+              .endif
+            .elseif .ident(.sprintf("for_end%d", ::nesting_level/10)) > 0
+              cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))
+            .endif
 	  .endif
           longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
