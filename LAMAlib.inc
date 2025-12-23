@@ -1,6 +1,6 @@
 ; <h1>LAMAlib - Lightweight Assembler MAcro library for cc65</h1>
-; Version: 0.33
-; Date: 2025-12-08
+; Version: 0.34
+; Date: 2025-12-23
 ; Author: Wil Elmenreich (wilfried at gmx dot at)
 ; License: The Unlicense (public domain)
 ;
@@ -40,7 +40,7 @@
 ; <h1>Command documentation</h1>
 ; <h2>ass: Assemble Source with LAMAlib</h2>
 ;
-; Usage: <tt>ass [-20|-128] asmfile [startaddr]</tt>
+; Usage: <tt>ass [-20|-128] s-file[,s-file] [startaddr]</tt>
 ;
 ; Calls the cl65 assembler and linker and creates an executable <tt>.prg</tt> for the C64, unless <tt>-20</tt> or <tt>-128</tt> is specified, then the program will be assembled for the VIC20 or C128, respectively.
 ;
