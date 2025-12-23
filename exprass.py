@@ -6,7 +6,7 @@ Compiles high-level expressions to 6502 assembly using LAMAlib macros
 Author: Wil Elmenreich
 December 2025
 """
-__version__ = "0.52"
+__version__ = "0.62"
 
 import ply.lex as lex
 import ply.yacc as yacc
@@ -16,6 +16,7 @@ import re
 import shutil
 import copy
 import itertools
+import glob
 from pathlib import Path
 
 
@@ -36,6 +37,8 @@ def detect_assembly_assignments(line):
     - stx variable / stx variable+1
     - sty variable / sty variable+1
     - stax variable
+    
+    Filters out register names (A, X, Y, AX) which should never be variables.
     """
     assigned = set()
     stripped = line.strip()
@@ -52,11 +55,16 @@ def detect_assembly_assignments(line):
     if not stripped:
         return assigned
     
+    # Reserved register names that should never be variables
+    RESERVED_REGISTERS = {'a', 'x', 'y', 'ax'}
+    
     # Detect FOR loops: for variable,start,to/downto,end
     for_match = re.match(r'for\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*,', stripped, re.IGNORECASE)
     if for_match:
         var = for_match.group(1)
-        assigned.add(var)
+        # Filter out register names
+        if var.lower() not in RESERVED_REGISTERS:
+            assigned.add(var)
         return assigned
     
     # Detect store instructions: sta/stx/sty variable (with optional +1)
@@ -69,14 +77,18 @@ def detect_assembly_assignments(line):
         # Filter out absolute numeric addresses
         if re.match(r'^[0-9]', var):
             return assigned
-        assigned.add(var)
+        # Filter out register names
+        if var.lower() not in RESERVED_REGISTERS:
+            assigned.add(var)
         return assigned
     
     # Detect LAMAlib store: stax variable
     stax_match = re.match(r'stax\s+([a-zA-Z_][a-zA-Z0-9_]*)', stripped, re.IGNORECASE)
     if stax_match:
         var = stax_match.group(1)
-        assigned.add(var)
+        # Filter out register names
+        if var.lower() not in RESERVED_REGISTERS:
+            assigned.add(var)
         return assigned
     
     return assigned
@@ -170,7 +182,7 @@ def score_instruction(instr):
     
     Scoring:
     - ldax, stax: 1 point
-    - addax, subax: 3 points
+    - addax, subax, absax: 3 points
     - mul16: 50 points
     - div16, mod16: 95 points
     - Single 6502 commands (tya, txa, ldx #N, ldy #N, lda #N, tax, tay): 1 point
@@ -2143,12 +2155,15 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s game.s                    # Compile to game.asm
-  %(prog)s game.s -o output.asm      # Specify output file
+  %(prog)s game.s                    # Compile single file to game.asm
+  %(prog)s file1.s file2.s file3.s   # Compile multiple files
+  %(prog)s *.s                       # Compile all .s files in directory
+  %(prog)s game.s -o output.asm      # Specify output file (single input only)
   %(prog)s game.s -i                 # In-place, backup as game.s~
   %(prog)s game.s -u                 # Undo: remove compiled code
   %(prog)s game.s -r                 # Redo: recompile existing blocks
-  %(prog)s game.s -c                 # Compile included files too
+  %(prog)s game.s -c                 # Compile included .s files too
+  %(prog)s file1.s file2.s -c        # Compile multiple files + their includes
   %(prog)s game.s -n                 # Dry-run: preview output
   %(prog)s game.s -t 100             # Start temp variables at tmp100
   %(prog)s game.s --no-temp-reuse    # Unique temp names across expressions
@@ -2158,8 +2173,8 @@ Version: %(version)s
         """ % {'prog': 'exprass', 'version': __version__}
     )
     
-    parser.add_argument('input', help='Input source file (.s)')
-    parser.add_argument('-o', '--output', help='Output file (default: input.asm)')
+    parser.add_argument('input', nargs='+', help='Input source file(s) (.s)')
+    parser.add_argument('-o', '--output', help='Output file (only valid with single input)')
     parser.add_argument('-i', '--in-place', action='store_true',
                         help='Replace source file, backup as .s~')
     parser.add_argument('-u', '--undo', action='store_true',
@@ -2187,10 +2202,27 @@ Version: %(version)s
     
     args = parser.parse_args()
     
-    # Validate input
-    if not Path(args.input).exists():
-        print(f"Error: Input file '{args.input}' not found", file=sys.stderr)
-        sys.exit(1)
+    # Expand wildcards (needed for Windows where shell doesn't expand)
+    expanded_inputs = []
+    for pattern in args.input:
+        # Check if pattern contains wildcards
+        if '*' in pattern or '?' in pattern or '[' in pattern:
+            matches = glob.glob(pattern)
+            if matches:
+                expanded_inputs.extend(matches)
+            else:
+                # No matches found - keep original (will error below)
+                expanded_inputs.append(pattern)
+        else:
+            expanded_inputs.append(pattern)
+    
+    args.input = expanded_inputs
+    
+    # Validate inputs
+    for input_file in args.input:
+        if not Path(input_file).exists():
+            print(f"Error: Input file '{input_file}' not found", file=sys.stderr)
+            sys.exit(1)
     
     # Check for conflicting options
     if args.undo and args.redo:
@@ -2201,27 +2233,57 @@ Version: %(version)s
         print("Error: Cannot use -q/--quiet and -v/--verbose together", file=sys.stderr)
         sys.exit(1)
     
-    # Determine output file
-    if args.in_place:
-        output_file = args.input
-    elif args.output:
-        output_file = args.output
-    elif args.undo or args.redo:
-        # For undo/redo, default to modifying the input file itself
-        output_file = args.input
-    else:
-        output_file = str(Path(args.input).with_suffix('.asm'))
-    
-    # Compile
-    try:
-        success = compile_file(args.input, output_file, args)
-        sys.exit(0 if success else 1)
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+    # Check if -o is used with multiple inputs
+    if args.output and len(args.input) > 1:
+        print("Error: Cannot use -o/--output with multiple input files", file=sys.stderr)
         sys.exit(1)
+    
+    # Process each input file
+    total_files = len(args.input)
+    failed_files = []
+    
+    for idx, input_file in enumerate(args.input):
+        # Show progress for multiple files (unless quiet)
+        if total_files > 1 and not args.quiet:
+            print(f"\n[{idx+1}/{total_files}] Processing {input_file}...", file=sys.stderr)
+        
+        # Determine output file
+        if args.in_place:
+            output_file = input_file
+        elif args.output:
+            output_file = args.output
+        elif args.undo or args.redo:
+            # For undo/redo, default to modifying the input file itself
+            output_file = input_file
+        else:
+            output_file = str(Path(input_file).with_suffix('.asm'))
+        
+        # Compile
+        try:
+            success = compile_file(input_file, output_file, args)
+            if not success:
+                failed_files.append(input_file)
+        except Exception as e:
+            print(f"Error processing {input_file}: {e}", file=sys.stderr)
+            if args.verbose:
+                import traceback
+                traceback.print_exc()
+            failed_files.append(input_file)
+    
+    # Summary for multiple files
+    if total_files > 1 and not args.quiet:
+        print(f"\n{'='*60}", file=sys.stderr)
+        print(f"Summary: Processed {total_files} file(s)", file=sys.stderr)
+        if failed_files:
+            print(f"Failed: {len(failed_files)} file(s)", file=sys.stderr)
+            for f in failed_files:
+                print(f"  - {f}", file=sys.stderr)
+        else:
+            print(f"All files compiled successfully!", file=sys.stderr)
+        print(f"{'='*60}", file=sys.stderr)
+    
+    # Exit with appropriate code
+    sys.exit(1 if failed_files else 0)
 
 if __name__ == '__main__':
     main()

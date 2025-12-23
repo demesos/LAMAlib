@@ -60,15 +60,15 @@ popd
 # find cc65 directory
 echo Installing library into $installdir
 
-cp -f LAMAlib*.inc "$installdir/asminc/"
-cp -rf modules "$installdir/asminc/"
-cp -f LAMAlib*.lib "$installdir/lib/"
-cp -f LAMAlib128.lib "$installdir/lib/"
-cp -f LAMAlib20.lib "$installdir/lib/"
-cp -f *friendly-asm.cfg "$installdir/cfg/"
-cp -f ass.sh "$installbindir/ass"
-cp -f asdent.py "$installbindir/asdent"
-cp -f exprass.py "$installbindir/exprass"
+install -m 644 LAMAlib*.inc "$installdir/asminc/"
+install -m 755 -D modules "$installdir/asminc/"
+install -m 644 LAMAlib*.lib "$installdir/lib/"
+install -m 644 LAMAlib128.lib "$installdir/lib/"
+install -m 644 LAMAlib20.lib "$installdir/lib/"
+install -m 644 *friendly-asm.cfg "$installdir/cfg/"
+install -m 755 ass.sh "$installbindir/ass"
+install -m 755 asdent.py "$installbindir/asdent"
+install -m 755 exprass.py "$installbindir/exprass"
 
 if [ $? -ne 0 ]; then
   echo -e $red

@@ -5,12 +5,15 @@
 
 
 .include "LAMAlib.inc"
+	jsr testforaddr1000
+	ldax 253
+	cmpax #$d090
+	if ne
+	  sec
+	  rts
+	endif
 
-	nop
-	nop
-	nop
-
-	jsr testforaddr
+	jsr testforaddr100
 	ldax 253
 	cmpax #5050
 	if ne
@@ -181,25 +184,38 @@ lda $5880
 	rts
 
 addit:
-	clc
-	store A
-	adc 253
-	sta 253
-	lda 254
-	adc #00
-	sta 254
-	restore A
+	store AX
+	addax 253   
+	stax 253    
+	restore AX
 	rts
 
 ;
 ; testing (addr) loops
 ;
 
-testforaddr:
+testforaddr100:
 	ldax #0
 	stax 2
 	stax 253
 	for (x1),1,to,100
+.ifdef VERBOSE
+	  print (x1),",",(253)," ; "
+.endif
+	  ldax x1
+	  jsr addit
+	next
+.ifdef VERBOSE
+	print "sum ",(253)
+.endif
+
+	rts
+
+testforaddr1000:
+	ldax #0
+	stax 2
+	stax 253
+	for (x1),1,to,1000,2
 .ifdef VERBOSE
 	  print (x1),",",(253)," ; "
 .endif
