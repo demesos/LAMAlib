@@ -54,7 +54,7 @@
           jsr $FFD2
         next
 
-        waitkey
+        getkey
 
         restore X
         next
