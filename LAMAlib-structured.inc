@@ -1445,6 +1445,36 @@
 .endmacro
 
 
+;; do_skip_every interval[,phase]
+;;   ...
+;; <b>end_skip_every</b>
+;; Defines a block that is skipped every n-th time (runs n-1 out of n times)
+;; interval: Specifies the interval at which to skip execution. Maximum value 255.
+;; phase: Determines the phase offset of the first skip. If 0 the skip occurs in the first iteration.
+;; Default value for phase is the interval-1
+;; Registers modified: A
+.macro do_skip_every interval,phase
+  inc_nesting_level_every
+  .ident(.sprintf("begin_do_skip_every%d", ::nesting_level_every/10)):
+  .if .paramcount = 1
+    lda #interval
+  .else
+    lda #phase+1
+  .endif
+  dec .ident(.sprintf("begin_do_skip_every%d", ::nesting_level_every/10)) +1
+  bne .ident(.sprintf("no_skip%d", ::nesting_level_every/10))
+  lda #interval
+  sta .ident(.sprintf("begin_do_skip_every%d", ::nesting_level_every/10)) +1
+  jmp .ident(.sprintf("end_skip_every%d", ::nesting_level_every/10))
+  .ident(.sprintf("no_skip%d", ::nesting_level_every/10)):
+.endmacro
+
+.macro end_skip_every
+  .ident(.sprintf("end_skip_every%d", ::nesting_level_every/10)):
+  dec_nesting_level_every
+.endmacro
+
+
 ;; on_A_jsr addr1, addr2, ...
 ;; Executes a subroutine based on the value of register A.
 ;; If A equals 1, the subroutine at the address provided as the first argument is called.

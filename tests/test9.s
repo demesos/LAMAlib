@@ -8,6 +8,76 @@
 .include "LAMAlib.inc"
 
 .proc test_no_9
+        ; Basic do_skip_every - skip every 3rd iteration
+        ldx #0
+        for Y, 0, to, 11  ; 12 iterations
+          do_skip_every 3
+            inx
+          end_skip_every
+        next
+        cpx #8  ; Should execute 8 times (skip iterations 2, 5, 8, 11)
+        if ne
+          sec
+          rts
+        endif
+
+        ; Nested do_skip_every with counters
+        ldx #0
+        for Y, 0, to, 17  ; 18 iterations
+          do_skip_every 2  ; runs 1 out of 2
+            inx
+            do_skip_every 3  ; inner: runs 2 out of 3
+              inx
+            end_skip_every
+          end_skip_every
+        next
+        cpx #15  ; outer runs 9 times, inner skips 3 of those 9, so 9 + 6 = 15
+        if ne
+          sec
+          rts
+        endif
+
+        ; Phase offset test
+        ldx #0
+        for Y, 0, to, 11  ; 12 iterations
+          do_skip_every 3, 0  ; skip on first iteration (phase=0)
+            inx
+          end_skip_every
+        next
+        cpx #8  ; Should still execute 8 times but different pattern
+        if ne
+          sec
+          rts
+        endif
+
+        ; Alternating inx/dex with skip
+        ldx #0
+        for Y, 0, to, 8  ; 9 iterations
+          do_skip_every 3
+            inx
+            inx
+            dex  ; net +1 when not skipped
+          end_skip_every
+        next
+        cpx #6  ; 6 times executed (skip iterations 2, 5, 8)
+        if ne
+          sec
+          rts
+        endif
+
+        ; do_once with maxcalls
+        ldx #0
+        for Y,0,to,9
+          do_once 3
+            inx
+          end_once
+        next
+        cpx #3
+        if ne
+          sec
+          rts
+        endif
+
         for Y,0,to,79
             lda #'.'
             tya
