@@ -203,8 +203,8 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
 
 ;; setSpriteCostume n,arg
 ;; Set the costume for sprite n
-;; if arg is an register or a numerical value below 256, it is interpreted as the sprite costume block 
-;; if arg is a value > 255, it is interpreted as the absolute address of the sprite data (needs to align to a 64 byte block)
+;; If arg is an register or a numerical value below 256, it is interpreted as the sprite costume block 
+;; If arg is a value > 255, it is interpreted as the absolute address of the sprite data (needs to align to a 64 byte block)
 ;; Registers modified: A, X, Y
   .macro setSpriteCostume n,arg
     .if (.xmatch ({arg}, {A}))

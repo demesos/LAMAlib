@@ -59,7 +59,7 @@
 .endmacro
 
 ;; addax addr
-;; adcax #arg
+;; addax #arg
 ;; Adds a 16 bit value without carry at an addr or as immediate value to 16 bit value in registers AX
 ;; Supports zero page addressing mode
 ;; Result is returned in AX
@@ -109,7 +109,7 @@
 ;; rsc arg
 ;; rsc #arg
 ;; Reverse subtraction with carry, calculate the value of arg - A - C
-;; if the carry is clear before the command, this behaves like rsb
+;; If the carry is clear before the command, this behaves like rsb
 ;; If there is an underflow (arg is larger than A), the carry bit will be set, otherwise carry is clear
 .macro rsc arg
 	sbc arg
@@ -130,7 +130,7 @@
 ;; rscax arg
 ;; rscax #arg
 ;; 16 bit reverse subtraction, calculate the value of arg - AX - C
-;; if the carry is clear before the command, this behaves like rsbax
+;; If the carry is clear before the command, this behaves like rsbax
 ;; If there is an underflow (arg is larger than AX), the carry bit will be set, otherwise carry is clear
 .macro rscax arg
         .if (.match (.left (1, {arg}), #))
@@ -202,7 +202,7 @@
 
 ;; AX_between lower,higher
 ;; Checks if the value in A is between the lower and higher value (including the values themselves)
-;; Arguments are constant immediate values between 0 and 6535, AX is changed in the progress
+;; Arguments are constant immediate values between 0 and 65535, AX is changed in the progress
 ;; If lower <= AX <= higher, the carry bit is cleared, otherwise carry is set
 ;; Registers modified: A,X
 .macro AX_between lower,higher
@@ -482,8 +482,8 @@
 ;; inc8 addr[,increment]
 ;; Increments the byte stored at addr by increment
 ;; addr or increment can also be specified by AX
-;; if addr is specified by AX, the increment can also be specified by Y
-;; if increment is not specified, an increment of 1 is used, with a given addr this is identical to an INC command
+;; If addr is specified by AX, the increment can also be specified by Y
+;; If increment is not specified, an increment of 1 is used, with a given addr this is identical to an INC command
 ;; Registers modified: none in increment = 1, A otherwise
 .macro  inc8 addr,increment
         .if .paramcount = 1
@@ -539,7 +539,7 @@
 ;; Increments the value stored at addr (lo-byte) and addr+1 (hi-byte) as a 16 bit value
 ;; addr can also be specified by AX
 ;; increment can also be specified by Y and, if AX is not used as addr, by AX,A, or X
-;; if increment is not specified, an increment of 1 is used
+;; If increment is not specified, an increment of 1 is used
 ;; Registers modified: none in increment = 1, AX otherwise
 .macro  inc16 addr,increment
         .if .paramcount = 1
@@ -668,8 +668,8 @@
 ;; dec8 addr[,decrement]
 ;; Decrements the byte stored at addr by decrement
 ;; addr or decrement can also be specified by AX
-;; if addr is specified by AX, the decrement can also be specified by Y
-;; if decrement is not specified, an decrement of 1 is used, with a given addr this is identical to an INC command
+;; If addr is specified by AX, the decrement can also be specified by Y
+;; If decrement is not specified, a decrement of 1 is used; with a given fixed addr this is identical to a DEC command
 ;; Registers modified: none in decrement = 1, A otherwise
 .macro  dec8 addr,decrement
         .if .paramcount = 1
@@ -734,7 +734,7 @@
 ;; Decrements the value stored at addr (lo-byte) and addr+1 (hi-byte) as a 16 bit value
 ;; addr can also be specified by AX
 ;; decrement can also be specified by Y and, if AX is not used as addr, by AX,A, or X
-;; if decrement is not specified, an decrement of 1 is used
+;; If decrement is not specified, an decrement of 1 is used
 ;; Registers modified: none with decrement = 1, AX otherwise
 .macro  dec16 addr,decrement
         .if .paramcount = 1
@@ -956,7 +956,7 @@ savea:		lda #00
 ;; peek addr[,reg]
 ;; returns the content of addr in the given register (default A)
 ;; When the address is a constant this defaults to lda <tt>addr</tt>
-;; Regs changed: only the specified register (default: A)
+;; Registers modified: only the specified register (default: A)
 .macro peek addr,reg
         .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
 .scope
@@ -991,7 +991,7 @@ savea:		lda #00
 
 ;; peekw addr
 ;; returns the content of addr and addr+1 as 16bit value in AX
-;; Regs changed: A,X
+;; Registers modified: A,X
 .macro  peekw addr
         .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))         ;AX is used as address
 .scope
@@ -1047,7 +1047,7 @@ targetsm2: lda $ffff
 ;; arg1 will be filled with low byte of arg2
 ;; arg2 will be filled with high byte of arg2
 ;; arg1, arg2 can be both constants or one can be AX and the other a constant
-;; Regs changed: A, Y (in case AX is used as address)
+;; Registers modified: A, Y (in case AX is used as address)
 
 .macro  pokew arg1,arg2
         .if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))         ;AX is used as address
@@ -1076,7 +1076,7 @@ targetsm2: lda $ffff
 ;; jsr_ind addr
 ;; Executes a subroutine by a vector stored in addr and returns to the command after jsr_ind upon completion with an rts
 ;; arg1 will be a 16 bit address containing the vector to jump to
-;; Regs changed: none 
+;; Registers modified: none 
 
 .macro  jsr_ind addr
 .scope

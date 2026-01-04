@@ -3,9 +3,9 @@
 ;; _ld_reg reg,arg
 ;; <b>_st_reg</b> <i>reg,arg</i>
 ;; <b>_cp_reg</b> <i>reg,arg</i>
-;; macros to select register for a load, store, and compare operation.
+;; Macros to select register for a load, store, and compare operation.
 ;; For example, _ld_reg A,#12 translates into lda #12 while _st_reg $1234,Y translates into sty $1234
-;; if reg is blank, A is used as a default
+;; If reg is blank, A is used as a default
 ;; Those functions are mostly used in other macros.
 
 .macro _ld_reg reg,arg
@@ -52,7 +52,7 @@
 
 ;; check_C128
 ;; Detects if we are on a C128 in C64 mode
-;; returns with carry set for C128
+;; Returns with carry set for C128
 .macro  check_c128   ;version with all lowercase
         check_C128
 .endmacro
@@ -825,8 +825,8 @@ yinit = <($100-<::.ident (.sprintf ("%s_length", .string(identifier))) )
 ;; load_prg filename[,devicenr[,loadaddr]]
 ;; Wrapper around ROM load function, prg means that the file is assumed to have a two-byte load address at its start
 ;; filename can be a string or a pointer in AX
-;; if device number is 0 or not stated, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default
-;; if loadaddr is omitted, the load address is defined by the first two bytes of the file
+;; If device number is 0 or not stated, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default
+;; If loadaddr is omitted, the load address is defined by the first two bytes of the file
 ;; Return value in carry, if carry is set, an error has happened and error code is returned in A:
 ;;  A = $05 (DEVICE NOT PRESENT)
 ;;  A = $04 (FILE NOT FOUND)
@@ -1007,7 +1007,7 @@ endfilename:
 ;; Prints the arguments as strings or numbers, without a carriage return
 ;; An argument in parenthesis will print the 16bit value stored at this address
 ;; uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro
-;; if USE_BASIC_ROM .set 0 was done before, the BASIC ROM functions are replaced by onw implementations. This creates larger but also fatser code.
+;; If USE_BASIC_ROM .set 0 was done before, the BASIC ROM functions are replaced by onw implementations. This creates larger but also fatser code.
 ;; Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)
 ;; Registers modified: none
 .macro print arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
@@ -1030,7 +1030,7 @@ endfilename:
 ;; Prints the arguments as strings or numbers, followed by a carriage return
 ;; An argument in parenthesis will print the 16bit value stored at this address
 ;; uses ROM functions, BASIC and KERNAL ROM need to be enabled when using this macro
-;; if USE_BASIC_ROM .set 0 was done before, the BASIC ROM functions are replaced by onw implementations. This creates larger but also fatser code.
+;; If USE_BASIC_ROM .set 0 was done before, the BASIC ROM functions are replaced by onw implementations. This creates larger but also fatser code.
 ;; Use .FEATURE STRING_ESCAPES to enable escapes codes like "\x05" (white) or "\0x0a" (carriage return)
 ;; Registers modified: none
 .macro println arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9
@@ -1726,7 +1726,7 @@ to_x=*+1
 ;; turn_on_cursor
 ;; Shows the blinking cursor during program execution
 ;; Requires the KERNAL IRQ routines to be active
-;; if this function is used on the C128, a bank with visible ROM must be active.
+;; If this function is used on the C128, a bank with visible ROM must be active.
 ;; Turn off cursor briefly before output of a char, otherwise you get inverse character artifacts when blink phase is on
 .macro turn_on_cursor
 .if .def(__C128__)
@@ -2247,7 +2247,7 @@ memcopy_to target_addr
 ;; save_prg filename,devicenr,startaddr,endaddr
 ;; Saves the memory from startaddr to endaddr (including the endaddr) using the CBM ROM save function.
 ;; The file will have a two-byte load address at its start
-;; if device number is 0, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default
+;; If device number is 0, the last used device numner stored in address $BA is used. In case $BA contains 0, 8 is used as default
 ;; Return value in carry, if carry is set, an error has happened and error code is returned in A, for example
 ;;  A = $05 (DEVICE NOT PRESENT)
 ;;  A = $00 (BREAK, RUN/STOP has been pressed during saving)
