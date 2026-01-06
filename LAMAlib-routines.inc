@@ -226,8 +226,13 @@ loop:
 .endmacro
 
 .macro  disable_NMI
-.import _disable_NMI_sr
+.if .def(__C128__)
+	.import _disable_NMI_128_sr
+        jsr _disable_NMI_128_sr
+.else
+	.import _disable_NMI_sr
         jsr _disable_NMI_sr
+.endif
 .endmacro
 
 

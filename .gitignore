@@ -1,5 +1,7 @@
 labels.txt
+*_labels.txt
 *.prg
 *.d64
 *.o
 LAMAlib*.lib
+examples/*.asm
