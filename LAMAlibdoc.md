@@ -1451,10 +1451,9 @@ When using this function in interrupt save _llzp_word1 and _llzp_word2 before ca
 **Syntax:** `rand8 [maxvalue-1]`
 
 If an argument is given, the value is caclulated between 0 and given number-1  
-Good and fast random generator for 8bit values based on the X ABC pseudo-random number generator from EternityForest, slight modification by Wil.  
 When using this function in interrupt save _llzp_word1 before calling and restore those values afterwards.  
 
-**Returns:** Generate a random number between 0 and 255 which is returned in A.
+**Returns:** The function uses a 16-bit 798 Xorshift algorithm and returns the lower byte from its state.
 
 **Registers modified: A,Y (Y is only used when an argument is used)**
 
@@ -1724,9 +1723,12 @@ Minimal example showing a typical usage:
         cli  
 :       jmp :-  
 isr:    pha  
-       If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.  
-
-### `str_enc`
+        txa  
+        pha  
+        tya  
+        pha  
+        stabilize_raster_cycle_with_isr_set  
+        ; we are perfectly synchronized, do stuff  ### `str_enc`
 
 **Syntax:** `str_enc string`
 

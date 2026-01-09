@@ -1356,7 +1356,7 @@ positive:
 ;; Generate a random number between 0 and 255 which is returned in A.
 ;; The argument is optional and can be a number or the Y register
 ;; If an argument is given, the value is caclulated between 0 and given number-1
-;; Good and fast random generator for 8bit values based on the X ABC pseudo-random number generator from EternityForest, slight modification by Wil.
+;; The function uses a 16-bit 798 Xorshift algorithm and returns the lower byte from its state.
 ;; When using this function in interrupt save _llzp_word1 before calling and restore those values afterwards.
 ;; Registers modified: A,Y (Y is only used when an argument is used)
 .import _rand16_sr, _seed_low, _seed_high, _a_mod_y_sr
