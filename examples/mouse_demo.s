@@ -4,6 +4,12 @@
 ;* A simple demonstration of the mousedriver module.
 ;* The module handles everything - sprite setup, mouse reading,
 ;* and sprite positioning.
+;*
+;* Connect a Commodore 1351 Mouse to Port 1
+;* You can also control the pointer with Joystick Port 2
+;*
+;* For VICE, start the emulator with x64sc -controlport1device 3 
+;* and then enable "Grab mouse events"
 ;***********************************************************************
 
 .include "LAMAlib.inc"
@@ -38,7 +44,8 @@ over_it:
     m_init mousedriver
     
     ; Main loop - just call m_run every frame
-loop:
+do
+    sync_to_rasterline256
     m_run mousedriver
-    jmp loop
+loop
 
