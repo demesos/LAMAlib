@@ -11,6 +11,7 @@
   - [Special Macros for C128 in C128 Mode](#special-macros-for-c128-in-c128-mode)
   - [Other Macros](#other-macros)
 - [Modules](#modules)
+  - [bigcharout](#bigcharout)
   - [copycharset](#copycharset)
   - [mousedriver](#mousedriver)
   - [PETSCII decode and display](#petscii-decode-and-display)
@@ -1728,7 +1729,7 @@ isr:    pha
         tya  
         pha  
         stabilize_raster_cycle_with_isr_set  
-        ; we are perfectly synchronized, do stuff  ### `str_enc`
+        ; we are per### `str_enc`
 
 **Syntax:** `str_enc string`
 
@@ -2133,6 +2134,35 @@ Update attributes for sprite n
 # Modules
 
 LAMAlib modules are reusable, configurable components that can be included in your programs. Each module is configured using `def_const` parameters and included within a scope.
+
+## bigcharout
+
+**Version:** 0.2  
+**Author:** a screen character (default: space ;* for 0, reverse space for 1).  
+
+**Configuration Parameters:**
+
+| Parameter | Default | Required | Description |
+|-----------|---------|----------|-------------|
+| `CHARSET_BASE` | `$3800` |  |  |
+| `SCREEN_WIDTH` | `40` |  |  |
+| `SET_PIXEL` | `160` |  | character to be used when a pixel is set, as screencode |
+| `EMPTY_PIXEL` | `32` |  | character to be used when a pixel is empty, as screencode |
+| `COLOR_SUPPORT` | `1` |  |  |
+| `END_OF_SCREEN_CHECK` | `1` |  |  |
+
+**Usage:**
+
+```assembly
+.scope bigcharout
+  .include "modules/m_bigcharout.s"
+.endscope
+
+m_init bigcharout
+m_run bigcharout
+```
+
+---
 
 ## copycharset
 
