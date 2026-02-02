@@ -2208,7 +2208,22 @@ m_run mousedriver
 
 ## PETSCII decode and display
 
-**Version:** 3.01 August 2025  
+**Version:** 4.00 February 2026  
+
+**Configuration Parameters:**
+
+| Parameter | Default | Required | Description |
+|-----------|---------|----------|-------------|
+| `DECODE_FROM_D000` | `0` |  | if 1 the compressed PETSCII can lie anywhere in RAM,including I/O area $D000-$DFFF |
+| `ENABLE_TRANSPARENT` | `1` |  | if 1 a selectable character (default 0) will be treated as being transparent |
+| `TRANSPARENT_CHARACTER` | `0` |  | index of the character treated as transparent |
+| `TRANSPARENT_MODIFIERS` | `0` |  | adds procedures for disable_transparent and set_transparent screencode |
+| `COMPACT_ZEROPAGE` | `0` |  | if 1 the module operates in a compact mode using only 2 zeropage addresses, resulting in 3% performance decrease |
+| `TARGET_COLORMAP` | `0` |  | if 0 the value of $d800 is used as default |
+| `TARGET_SCREEN` | `0` |  | if 0 the value in 648 is used as the high byte default value |
+| `DISPLAY_BY_NUM` | `0` |  | if 1 a function display_by_num is added, taking the image number to display as argument |
+| `PETSCIIDATA` | `petsciinum` |  | label to start of petscii data for display_by_num |
+| `MEM_1_VALUE` | `$36` |  | value in address $1 during decode for display_by_num |
 
 **Usage:**
 

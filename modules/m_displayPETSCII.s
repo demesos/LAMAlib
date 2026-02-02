@@ -1,6 +1,7 @@
 ;***********************************************************************
 ;* Module: PETSCII decode and display
-;* Version 3.01 August 2025
+;* Version 4.00 February 2026
+;* Supports: C64, C128, VIC-20
 ;
 ; module to be configured and included with
 ;
@@ -19,12 +20,16 @@
 ; put address of compressed PETSCII img in A/X
 ; and call displayPETSCII, e.g.:
 ;  ldax #petsciiimg5
-;  m_run displayPETSCII     ;requires 3 frames to decode and draw a full-screen full-colored PETSCII 
+;  m_run displayPETSCII     ;requires 3 frames time to decode and draw a full-screen full-colored PETSCII 
 ; or, if the macro was defined:
 ;  displayPETSCII petsciiimg5
 ;-----------------------------------------------
 
 .include "LAMAlib.inc"
+
+;***********************************************************************
+;* parameters - can be overwritten from main
+;* without a default value the constant must be set by the main program
 
 def_const DECODE_FROM_D000,0	  ;if 1 the compressed PETSCII can lie anywhere in RAM,including I/O area $D000-$DFFF
                                   ;note that with that option your IRQ must be turned off or be able to handle an all RAM configuration
@@ -39,6 +44,22 @@ def_const DISPLAY_BY_NUM,0	  ;if 1 a function display_by_num is added, taking th
 def_const PETSCIIDATA,petsciinum  ;label to start of petscii data for display_by_num
 .endif
 def_const MEM_1_VALUE,$36         ;value in address $1 during decode for display_by_num
+
+;-----------------------------------------------------------------------
+; Platform-specific constants
+; __VIC20__ for VIC-20 target, default for C64/C128
+;-----------------------------------------------------------------------
+.ifdef __VIC20__
+    PLATFORM_BORDER_REG     = $900F
+    PLATFORM_BG_REG         = $900F    ; Same register as border
+    PLATFORM_COMBINED_COLOR = 1        ; Border and BG in same register
+    PLATFORM_NEED_IO_SWITCH = 0        ; VIC-20 has simpler memory map
+.else
+    PLATFORM_BORDER_REG     = $D020
+    PLATFORM_BG_REG         = $D021
+    PLATFORM_COMBINED_COLOR = 0        ; Separate registers
+    PLATFORM_NEED_IO_SWITCH = 1        ; For DECODE_FROM_D000 mode
+.endif
 
 .zeropage
 zp_srcptr: 	.res 2
@@ -108,9 +129,11 @@ decode_routine:
         sta zp_srcptr
         stx zp_srcptr+1
 .if DECODE_FROM_D000=1
-        lda $1
-        pha
-        poke 1,$34      ;all RAM configuration
+  .ifndef __VIC20__
+          lda $1
+          pha
+          poke 1,$34      ;all RAM configuration
+  .endif
 .endif
 .if TARGET_SCREEN=0
         lda PTRSCRHI
@@ -121,12 +144,32 @@ decode_routine:
         sta scr2+2
 
 .if TARGET_COLORMAP=0
-        lda #$d8
-.else
-	lda #>TARGET_COLORMAP
-.endif	
+  .ifdef __VIC20__
+        ; VIC-20: Detect color RAM location from $9002 bit 7
+        ; Bit 7 = 1 -> $9600 (unexpanded/3K)
+        ; Bit 7 = 0 -> $9400 (8K+ expanded)
+        lda $9002
+        and #$80
+        beq @colorram_9400
+@colorram_9600:
+        lda #$96
+        jmp @colorram_set
+@colorram_9400:
+        lda #$94
+@colorram_set:
         sta colr+2
         sta colr2+2
+  .else
+        ; C64: Fixed color RAM at $D800
+        lda #$d8
+        sta colr+2
+        sta colr2+2
+  .endif
+.else
+	lda #>TARGET_COLORMAP
+        sta colr+2
+        sta colr2+2
+.endif	
         lda #0
         sta scr+1
         sta scr2+1
@@ -137,20 +180,45 @@ decode_routine:
         ldy #00
         lda (zp_srcptr),y
 .if DECODE_FROM_D000=1
-        inc $1  ;enable I/O
+  .ifndef __VIC20__
+          inc $1  ;enable I/O
+  .endif
 .endif
-        sta $D020
+
+.ifdef __VIC20__
+        ; VIC-20: Combined border/background in $900F
+        sta PLATFORM_BORDER_REG
+        ; Note: Background is already combined in this byte
+.else
+        ; C64: Separate border register
+        sta PLATFORM_BORDER_REG
+.endif
+
 .if DECODE_FROM_D000=1
-        dec $1  ;all RAM configuration
+  .ifndef __VIC20__
+          dec $1  ;all RAM configuration
+  .endif
 .endif
         iny
         lda (zp_srcptr),y
 .if DECODE_FROM_D000=1
-        inc $1  ;enable I/O
+  .ifndef __VIC20__
+          inc $1  ;enable I/O
+  .endif
 .endif
-        sta $D021
+
+.ifdef __VIC20__
+        ; VIC-20: Second byte is just marker, no background color
+        ; (Background was already set in first byte)
+.else
+        ; C64: Second byte contains background color
+        sta PLATFORM_BG_REG
+.endif
+
 .if DECODE_FROM_D000=1
-        dec $1  ;all RAM configuration
+  .ifndef __VIC20__
+          dec $1  ;all RAM configuration
+  .endif
 .endif
 .if COMPACT_ZEROPAGE
 const_E0=*+1
@@ -199,11 +267,15 @@ _transparent_petscii_char:
 scr:    sta $400,x
 col:    lda #00
 .if DECODE_FROM_D000=1
-        inc $1  ;enable I/O
+  .ifndef __VIC20__
+          inc $1  ;enable I/O
+  .endif
 .endif
 colr:   sta $d800,x
 .if DECODE_FROM_D000=1
-        dec $1  ;all RAM configuration
+  .ifndef __VIC20__
+          dec $1  ;all RAM configuration
+  .endif
 .endif
 skip_transparent:
         inx
@@ -235,7 +307,9 @@ skphi2: lda (zp_srcptr),y
 
 rep:    ldy #00
 .if DECODE_FROM_D000=1
-        inc $1  ;enable I/O
+  .ifndef __VIC20__
+          inc $1  ;enable I/O
+  .endif
 .endif
 loop2:  lda #00
 
@@ -257,7 +331,9 @@ endofloop:
         dey
         bne loop2
 .if DECODE_FROM_D000=1
-        dec $1  ;all RAM configuration
+  .ifndef __VIC20__
+          dec $1  ;all RAM configuration
+  .endif
 .endif
 rcvy:   ldy #00
         jmp loop1
