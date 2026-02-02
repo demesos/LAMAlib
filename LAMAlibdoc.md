@@ -1729,7 +1729,32 @@ isr:    pha
         tya  
         pha  
         stabilize_raster_cycle_with_isr_set  
-        ; we are per### `str_enc`
+        ; we are perfectly synchronized, do stuff  
+        set_irq_rasterline 48  
+        asl $d019  
+        pokew $fffe,isr  
+        pla  
+        tay  
+        pla  
+        tax  
+        pla  
+        rti  
+
+### `start_timerA`
+
+**Syntax:** `start_timerA [CIA base address]`
+
+Starts timer A of the Complex Interface Adapter (CIA)  
+If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.  
+
+### `stop_timerA`
+
+**Syntax:** `stop_timerA [CIA base address]`
+
+Stops timer A of the Complex Interface Adapter (CIA)  
+If no base address is specified, the base address $DC00 (CIA #1) is used. For CIA #2, a based address of $DD00 must be passed as second argument.  
+
+### `str_enc`
 
 **Syntax:** `str_enc string`
 
@@ -1757,7 +1782,7 @@ Does busy waiting and comes with some jitter.
 Might be delayed if an IRQ occurs, but will still trigger.  
 see also wait_for_rasterline  
 
-**Registers modified: A**
+**Registers modified: none, affects N,V,Z flags**
 
 ### `textcolor`
 
@@ -1976,53 +2001,7 @@ Disable vertical expansion for sprite n
 
 Enable multicolor mode for sprite n  
 
-**Registers modified: A**
-
-### `enableXexpandSprite`
-
-**Syntax:** `enableXexpandSprite n`
-
-Enable horizontal expansion for sprite n  
-
-**Registers modified: A**
-
-### `enableYexpandSprite`
-
-**Syntax:** `enableYexpandSprite n`
-
-Enable vertical expansion for sprite n  
-
-**Registers modified: A**
-
-### `getSpriteColor`
-
-**Syntax:** `getSpriteColor n,reg`
-
-**Registers modified: A, X, Y**
-
-### `getSpriteCostume`
-
-**Syntax:** `getSpriteCostume n,reg`
-
-**Registers modified: A, X, Y**
-
-### `getSpriteMultiColor1`
-
-**Syntax:** `getSpriteMultiColor1 reg`
-
-**Registers modified: A, X, Y**
-
-### `getSpriteMultiColor2`
-
-**Syntax:** `getSpriteMultiColor2 reg`
-
-**Registers modified: A, X, Y**
-
-### `getSpriteX`
-
-**Syntax:** `getSpriteX n,reg`
-
-**Registers modified: X**
+**Registers modifi**Registers modified: X**
 
 ### `getSpriteY`
 

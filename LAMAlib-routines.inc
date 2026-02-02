@@ -2761,16 +2761,16 @@ _stabilize_raster_cycle_isr:
 ;; Does busy waiting and comes with some jitter.
 ;; Might be delayed if an IRQ occurs, but will still trigger.
 ;; see also wait_for_rasterline
-;; Registers modified: A
+;; Registers modified: none, affects N,V,Z flags
 .macro sync_to_rasterline256
 .scope
         ;wait for a rasterline under 255
 waitsync1:
-        lda $d011
+        bit $d011
         bmi waitsync1
         ;wait for a rasterline over 255
 waitsync2:
-        lda $d011
+        bit $d011
         bpl waitsync2
 .endscope
 .endmacro
