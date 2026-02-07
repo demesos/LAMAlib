@@ -1309,7 +1309,7 @@ positive:
 
 .if (.xmatch ({arg1}, {timer}) .or .xmatch ({arg2}, {timer}) .or .xmatch ({arg3}, {timer}))
 .if .def(__VIC20__)
-        ldax TIMERAcounter
+        ldax VIA1_T1CL
 .else
         ldax $DC04
 .endif
@@ -1831,14 +1831,25 @@ to_x=*+1
 ;; Since movement of joystick 1 disturbs the reading, no keys are returned if joystick 1 is moved in any direction
 ;; Function is independent of the Kernal keyboard routine
 ;; Registers modified: A,X
-.import _read_keys_WASDspace_sr
 
 .macro read_keys_WASDspace
+.ifdef __VIC20__
+.import _read_keys_WASDspace_vic20_sr
+	jsr _read_keys_WASDspace_vic20_sr
+.else
+.import _read_keys_WASDspace_sr
         jsr _read_keys_WASDspace_sr
+.endif
 .endmacro
 
 .macro readWASDspace
+.ifdef __VIC20__
+.import _read_keys_WASDspace_vic20_sr
+	jsr _read_keys_WASDspace_vic20_sr
+.else
+.import _read_keys_WASDspace_sr
         jsr _read_keys_WASDspace_sr
+.endif
 .endmacro
 
 ;; read_keys_ACSEP

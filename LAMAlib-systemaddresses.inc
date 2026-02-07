@@ -272,11 +272,45 @@ SCRORG= $FFED ;Fetch number of screen rows and columns
 PLOT  = $FFF0 ;Save or restore cursor position
 IOBASE= $FFF3 ;Fetch CIA #1 base address
 
-VIABASE=$9110
+; VIA chip base addresses (6522 chips)
+VIA1BASE=$9110  ; VIA #1: User port, Serial bus, Cassette
+VIA2BASE=$9120  ; VIA #2: Keyboard matrix, Joystick
 
-TIMERAcounter = VIABASE+4
-TIMERAlatch= VIABASE+6
-TIMERBlatch= VIABASE+8
+; VIA1 registers (User port, Serial bus, Cassette)
+VIA1_ORB   = VIA1BASE+$0  ; Output/Input Register B
+VIA1_ORA   = VIA1BASE+$1  ; Output/Input Register A
+VIA1_DDRB  = VIA1BASE+$2  ; Data Direction Register B
+VIA1_DDRA  = VIA1BASE+$3  ; Data Direction Register A
+VIA1_T1CL  = VIA1BASE+$4  ; Timer 1 Counter Low
+VIA1_T1CH  = VIA1BASE+$5  ; Timer 1 Counter High
+VIA1_T1LL  = VIA1BASE+$6  ; Timer 1 Latch Low
+VIA1_T1LH  = VIA1BASE+$7  ; Timer 1 Latch High
+VIA1_T2CL  = VIA1BASE+$8  ; Timer 2 Counter Low
+VIA1_T2CH  = VIA1BASE+$9  ; Timer 2 Counter High
+VIA1_SR    = VIA1BASE+$A  ; Shift Register
+VIA1_ACR   = VIA1BASE+$B  ; Auxiliary Control Register
+VIA1_PCR   = VIA1BASE+$C  ; Peripheral Control Register
+VIA1_IFR   = VIA1BASE+$D  ; Interrupt Flag Register
+VIA1_IER   = VIA1BASE+$E  ; Interrupt Enable Register
+VIA1_ORA2  = VIA1BASE+$F  ; ORA without handshake
+
+; VIA2 registers (Keyboard matrix, Joystick)
+VIA2_ORB   = VIA2BASE+$0  ; Output/Input Register B
+VIA2_ORA   = VIA2BASE+$1  ; Output/Input Register A
+VIA2_DDRB  = VIA2BASE+$2  ; Data Direction Register B
+VIA2_DDRA  = VIA2BASE+$3  ; Data Direction Register A
+VIA2_T1CL  = VIA2BASE+$4  ; Timer 1 Counter Low
+VIA2_T1CH  = VIA2BASE+$5  ; Timer 1 Counter High
+VIA2_T1LL  = VIA2BASE+$6  ; Timer 1 Latch Low
+VIA2_T1LH  = VIA2BASE+$7  ; Timer 1 Latch High
+VIA2_T2CL  = VIA2BASE+$8  ; Timer 2 Counter Low
+VIA2_T2CH  = VIA2BASE+$9  ; Timer 2 Counter High
+VIA2_SR    = VIA2BASE+$A  ; Shift Register
+VIA2_ACR   = VIA2BASE+$B  ; Auxiliary Control Register
+VIA2_PCR   = VIA2BASE+$C  ; Peripheral Control Register
+VIA2_IFR   = VIA2BASE+$D  ; Interrupt Flag Register
+VIA2_IER   = VIA2BASE+$E  ; Interrupt Enable Register
+VIA2_ORA2  = VIA2BASE+$F  ; ORA without handshake
 
 ISR_DEFAULT=$EABF
 ISR_EXIT   =$EB18

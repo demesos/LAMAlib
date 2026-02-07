@@ -40,7 +40,8 @@
 
 .elseif .def(__VIC20__)
 
-.export _VIABASE=$9110
+.export _VIA1BASE=$9110
+.export _VIA2BASE=$9120
 
 .export _OUTPUT_BYTE_TO_DATASETTE_OR_RSR232=$F28B
 .export _OUTPUT_BYTE_TO_SERIAL_BUS=$EEE4
