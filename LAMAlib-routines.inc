@@ -1790,18 +1790,28 @@ to_x=*+1
 ;; Waits until a key is pressed, no meaningful return value. If a key is already pressed, the command continues immediately.
 ;; Function works independly of IRQ routine or ROM
 ;; Registers modified: A
-.import _waitkey_sr
 .macro wait_key
+.ifdef __VIC20__
+.import _waitkey_vic20_sr
+	jsr _waitkey_vic20_sr
+.else
+.import _waitkey_sr
         jsr _waitkey_sr
+.endif
 .endmacro
 
 ;; wait_key_released
 ;; Waits until all keys are released. If no key is already pressed, the command continues immediately.
 ;; Function works independly of IRQ routine
 ;; Registers modified: A
-.import _waitkeyreleased_sr
 .macro wait_key_released
+.ifdef __VIC20__
+.import _waitkeyreleased_vic20_sr
+	jsr _waitkeyreleased_vic20_sr
+.else
+.import _waitkeyreleased_sr
         jsr _waitkeyreleased_sr
+.endif
 .endmacro
 
 ;; wait_key_or_button
@@ -1809,9 +1819,14 @@ to_x=*+1
 ;; If either is already pressed, the command continues immediately.
 ;; Function works independently of IRQ routine or ROM.
 ;; Registers modified: A
-.import _waitkeyorbutton_sr
 .macro wait_key_or_button
+.ifdef __VIC20__
+.import _waitkeyorbutton_vic20_sr
+	jsr _waitkeyorbutton_vic20_sr
+.else
+.import _waitkeyorbutton_sr
         jsr _waitkeyorbutton_sr
+.endif
 .endmacro
 
 ;; wait_key_or_button_released
@@ -1819,9 +1834,14 @@ to_x=*+1
 ;; If both are already released, the command continues immediately.
 ;; Function works independently of IRQ routine or ROM.
 ;; Registers modified: A
-.import _waitkeyorbuttonreleased_sr
 .macro wait_key_or_button_released
+.ifdef __VIC20__
+.import _waitkeyorbuttonreleased_vic20_sr
+	jsr _waitkeyorbuttonreleased_vic20_sr
+.else
+.import _waitkeyorbuttonreleased_sr
         jsr _waitkeyorbuttonreleased_sr
+.endif
 .endmacro
 
 ;; read_keys_WASDspace
