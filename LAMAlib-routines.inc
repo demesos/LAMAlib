@@ -1862,15 +1862,6 @@ to_x=*+1
 .endif
 .endmacro
 
-.macro readWASDspace
-.ifdef __VIC20__
-.import _read_keys_WASDspace_vic20_sr
-	jsr _read_keys_WASDspace_vic20_sr
-.else
-.import _read_keys_WASDspace_sr
-        jsr _read_keys_WASDspace_sr
-.endif
-.endmacro
 
 ;; read_keys_ACSEP
 ;; Reads keys @, :, ;, =, P
@@ -1883,10 +1874,15 @@ to_x=*+1
 ;; Return value is in A, where the respective bit is zero if the key is pressed
 ;; Function is independent of the Kernal keyboard routine
 ;; Registers modified: A
-.import _read_keys_ACSEP_sr
 
 .macro read_keys_ACSEP
+.ifdef __VIC20__
+.import _read_keys_ACSEP_vic20_sr
+	jsr _read_keys_ACSEP_vic20_sr
+.else
+.import _read_keys_ACSEP_sr
         jsr _read_keys_ACSEP_sr
+.endif
 .endmacro
 
 ;; read_keys_CACFFPMX
@@ -1899,10 +1895,15 @@ to_x=*+1
 ;; Return value is in A, where the respective bit is zero if the key is pressed
 ;; Function is independent of the Kernal keyboard routine
 ;; Registers modified: A
-.import _read_keys_CACFFPMX_sr
 
 .macro read_keys_CACFFPMX
+.ifdef __VIC20__
+.import _read_keys_CACFFPMX_vic20_sr
+	jsr _read_keys_CACFFPMX_vic20_sr
+.else
+.import _read_keys_CACFFPMX_sr
         jsr _read_keys_CACFFPMX_sr
+.endif
 .endmacro
 
 ;; makesys [linenumber[,text[, address]]]
