@@ -1264,7 +1264,7 @@
 ;; <code>
 ;; lda #$10
 ;; do
-;; &nbsp;  and $dc00
+;; &nbsp;  and $DC00
 ;; loop until eq
 ;; </code>
 

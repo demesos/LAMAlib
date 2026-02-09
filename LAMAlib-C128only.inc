@@ -1,4 +1,4 @@
-.if .def(__C128__)
+.ifdef __C128__
 
 ;; <h2>Special Macros for C128 in C128 Mode</h2>
 
@@ -39,13 +39,13 @@
 ;; Bank must be 0 or 1
 ;; I/O must be enabled for this macro to work
 .macro set_VIC_RAMbank bank
-	lda $d506
+	lda $D506
 	.if bank=0
 	  and #%10111111	;clear bit 6
 	.else
 	  ora #%01111111	;enable bit 6
 	.endif
-	sta $d506
+	sta $D506
 .endmacro
 
 .endif

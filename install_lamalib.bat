@@ -36,6 +36,11 @@ if errorlevel 1 (
 )
 
 cd lib-functions
+:: Clean up any leftover temp files from previous runs
+echo Cleaning up temporary files from previous builds...
+del /q LAMAlib*.lib.temp-* 2>nul
+del /q ..\LAMAlib*.lib.temp-* 2>nul
+
 set count=1
 set "o_files="
 for %%f in (*.s) do (
@@ -52,10 +57,17 @@ ar65 a LAMAlib.lib !o_files! systemaddresses_c64.o
 ar65 a LAMAlib128.lib !o_files! systemaddresses_c128.o
 ar65 a LAMAlib20.lib !o_files! systemaddresses_vc20.o
 
+:: Clean up temp files created by ar65
+echo Cleaning up ar65 temporary files...
+del /q LAMAlib*.lib.temp-* 2>nul
+
 move /y LAMAlib*.lib ..
 
-echo Library has been created with %count% modules in it.
+:: Final cleanup in parent directory
 cd ..
+del /q LAMAlib*.lib.temp-* 2>nul
+
+echo Library has been created with %count% modules in it.
 
 :: find cc65 directory
 for /F %%I in ('where cc65.exe') do (

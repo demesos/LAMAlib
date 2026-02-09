@@ -58,7 +58,7 @@
 .endmacro
 
 .macro check_C128
-        lda $d030
+        lda $D030
         cmp #$ff
 .endmacro
 
@@ -226,7 +226,7 @@ loop:
 .endmacro
 
 .macro  disable_NMI
-.if .def(__C128__)
+.ifdef __C128__
 	.import _disable_NMI_128_sr
         jsr _disable_NMI_128_sr
 .else
@@ -552,7 +552,7 @@ quotient=*+1
 ;; identify_SID [baseaddress]
 ;; Detects the SID soundchip model
 ;; SID detection routine from codebase64 by SounDemon and a tip from Dag Lem
-;; If no base address is given, the standard base address $d400 is used
+;; If no base address is given, the standard base address $D400 is used
 ;; Overwrites register A
 ;; Result is returned in carry
 ;; Carry flag is set for 6581, and clear for 8580
@@ -565,7 +565,7 @@ quotient=*+1
     .if .paramcount > 0
 SIDbaseaddress=address
     .else
-SIDbaseaddress=$d400
+SIDbaseaddress=$D400
     .endif
 	php
         sei
@@ -1100,7 +1100,7 @@ iarg=(.right (.tcount ({arg1})-1, {arg1}))
 ;; If not all parameter should be changed, the others can be omitted with commas, e.g. print_wrapped_setpars ,,13 sets only the endchar
 
 
-.if .def(__C128__)
+.ifdef __C128__
 .macro print_wrapped_setpars x1,width,endchar
 .import _print_wrapped_x1_128
 .import _print_wrapped_width_128
@@ -1171,7 +1171,7 @@ iarg=(.right (.tcount ({arg1})-1, {arg1}))
         ldx #>:--
 .endif
 .endif
-.if .def(__C128__)
+.ifdef __C128__
 .import _print_wrapped_windowed_128
         jsr _print_wrapped_windowed_128
 .elseif .def(__VIC20__)
@@ -1288,7 +1288,7 @@ positive:
 .macro randomize arg1,arg2,arg3
 .scope
 .if .PARAMCOUNT=0
-  .if .def(__VIC20__)
+  .ifdef __VIC20__
         randomize timer
   .else
         randomize timer,raster,sid
@@ -1298,7 +1298,7 @@ positive:
 .endif
         firstload .set 0
 .if (.xmatch ({arg1}, {sid}) .or .xmatch ({arg2}, {sid}) .or .xmatch ({arg3}, {sid}))
-.if .def(__VIC20__)
+.ifdef __VIC20__
         .warning "SID as entropy source not support on VIC 20"
 .else
         lda #$81
@@ -1308,7 +1308,7 @@ positive:
 .endif
 
 .if (.xmatch ({arg1}, {timer}) .or .xmatch ({arg2}, {timer}) .or .xmatch ({arg3}, {timer}))
-.if .def(__VIC20__)
+.ifdef __VIC20__
         ldax VIA1_T1CL
 .else
         ldax $DC04
@@ -1317,7 +1317,7 @@ positive:
 .endif
 
 .if (.xmatch ({arg1}, {raster}) .or .xmatch ({arg2}, {raster}) .or .xmatch ({arg3}, {raster}))
-.if .def(__VIC20__)
+.ifdef __VIC20__
         .warning "Rasterline as entropy source not support on VIC 20"
 .else
   .if firstload=0
@@ -1719,7 +1719,7 @@ to_x=*+1
 ;; If this function is used on the C128, a bank with visible ROM must be active.
 ;; Use this before output of a char, otherwise you get inverse character artifacts when blink phase is on
 .macro turn_off_cursor
-.if .def(__C128__)
+.ifdef __C128__
         jsr $CD9F       ;bank 15 needs to be enabled
 .else
 .import _turn_off_cursor_sr
@@ -1734,7 +1734,7 @@ to_x=*+1
 ;; If this function is used on the C128, a bank with visible ROM must be active.
 ;; Turn off cursor briefly before output of a char, otherwise you get inverse character artifacts when blink phase is on
 .macro turn_on_cursor
-.if .def(__C128__)
+.ifdef __C128__
         jsr $CD6F       ;Bank 15 needs to be enabled
 .else
         lda #0
@@ -1742,45 +1742,113 @@ to_x=*+1
 .endif
 .endmacro
 
-;; wait_firebutton [joy]
+;; wait_firebutton [port1[,port2]]
 ;; Waits until fire button is pressed. If the fire button is already pressed, the command continues immediately.
-;; Argument can be 1, 2 or 3 for both joysticks. If no argument is given, Joystick 2 is used.
+;; With no arguments: VIC-20 reads joy 1, C64/128 reads both joys (1 AND 2)
+;; With one argument: reads specified joystick port (1 or 2, VIC-20 only supports 1)
+;; With two arguments: reads both ports and ANDs them together (C64/128 only)
 ;; Registers modified: A
-.macro wait_firebutton joy
+.macro wait_firebutton arg1, arg2
 :
-.ifblank joy
-        lda $dc00
-.elseif joy=1
-        lda $dc01
-.elseif joy=2
-        lda $dc00
-.elseif joy=3
-        lda $dc00
-        and $dc01
+.ifblank arg1
+    ; No arguments - platform-specific default
+    .ifdef __VIC20__
+.import _read_joy_vic20_sr
+        jsr _read_joy_vic20_sr
+    .else
+        ; C64/128: read both joys ANDed together
+        lda $DC00
+        and $DC01
+    .endif
+.elseif .blank(arg2)
+    ; Single argument - read specific port
+    .ifdef __VIC20__
+        .if arg1 = 1
+.import _read_joy_vic20_sr
+            jsr _read_joy_vic20_sr
+        .else
+            .error "wait_firebutton: VIC-20 only supports joystick port 1"
+        .endif
+    .else
+        .if arg1 = 1
+            lda $DC01  ; Joy 1
+        .elseif arg1 = 2
+            lda $DC00  ; Joy 2
+        .else
+            .error "wait_firebutton: port must be 1 or 2"
+        .endif
+    .endif
 .else
-        .error  "Argument for waitfire must be 1,2,3 or left empty."
+    ; Two arguments - AND both ports together (C64/128 only)
+    .ifdef __VIC20__
+        .error "wait_firebutton: VIC-20 only supports single joystick port 1"
+    .else
+        .if (arg1 = 1) .and (arg2 = 2)
+            lda $DC01
+            and $DC00
+        .elseif (arg1 = 2) .and (arg2 = 1)
+            lda $DC00
+            and $DC01
+        .else
+            .error "wait_firebutton: combined read must be ports 1,2 or 2,1"
+        .endif
+    .endif
 .endif
         and #$10
         bne :-
 .endmacro
 
-;; wait_firebutton_released [joy]
+;; wait_firebutton_released [port1[,port2]]
 ;; Waits until fire button is released. If the fire button is already released the command continues immediately.
-;; Argument can be 1, 2 or 3 for both joysticks. If no argument is given, Joystick 2 is used.
+;; With no arguments: VIC-20 reads joy 1, C64/128 reads both joys (1 AND 2)
+;; With one argument: reads specified joystick port (1 or 2, VIC-20 only supports 1)
+;; With two arguments: reads both ports and ANDs them together (C64/128 only)
 ;; Registers modified: A
-.macro wait_firebutton_released joy
+.macro wait_firebutton_released arg1, arg2
 :
-.ifblank joy
-        lda $dc00
-.elseif joy=1
-        lda $dc01
-.elseif joy=2
-        lda $dc00
-.elseif joy=3
-        lda $dc00
-        and $dc01
+.ifblank arg1
+    ; No arguments - platform-specific default
+    .ifdef __VIC20__
+.import _read_joy_vic20_sr
+        jsr _read_joy_vic20_sr
+    .else
+        ; C64/128: read both joys ANDed together
+        lda $DC00
+        and $DC01
+    .endif
+.elseif .blank(arg2)
+    ; Single argument - read specific port
+    .ifdef __VIC20__
+        .if arg1 = 1
+.import _read_joy_vic20_sr
+            jsr _read_joy_vic20_sr
+        .else
+            .error "wait_firebutton_released: VIC-20 only supports joystick port 1"
+        .endif
+    .else
+        .if arg1 = 1
+            lda $DC01  ; Joy 1
+        .elseif arg1 = 2
+            lda $DC00  ; Joy 2
+        .else
+            .error "wait_firebutton_released: port must be 1 or 2"
+        .endif
+    .endif
 .else
-        .error  "Argument for waitfire must be 1,2,3 or left empty."
+    ; Two arguments - AND both ports together (C64/128 only)
+    .ifdef __VIC20__
+        .error "wait_firebutton_released: VIC-20 only supports single joystick port 1"
+    .else
+        .if (arg1 = 1) .and (arg2 = 2)
+            lda $DC01
+            and $DC00
+        .elseif (arg1 = 2) .and (arg2 = 1)
+            lda $DC00
+            and $DC01
+        .else
+            .error "wait_firebutton_released: combined read must be ports 1,2 or 2,1"
+        .endif
+    .endif
 .endif
         and #$10
         beq :-
@@ -1843,6 +1911,65 @@ to_x=*+1
         jsr _waitkeyorbuttonreleased_sr
 .endif
 .endmacro
+
+
+;; read_joy [port1[,port2]]
+;; Reads joystick input and returns the result in A register
+;; With no arguments: VIC-20 reads joy 1, C64/128 reads both joys (1 AND 2)
+;; With one argument: reads specified joystick port (1 or 2, VIC-20 only supports 1)
+;; With two arguments: reads both ports and ANDs them together (C64/128 only)
+;; Result in A: bit 0=up, 1=down, 2=left, 3=right, 4=fire (0=pressed, 1=released)
+;; Registers modified: A
+
+.macro read_joy arg1, arg2
+.scope
+.ifblank arg1
+    ; No arguments - platform-specific default
+    .ifdef __VIC20__
+.import _read_joy_vic20_sr
+        jsr _read_joy_vic20_sr
+    .else
+        ; C64/128: read both joys ANDed together
+        lda $DC00
+        and $DC01
+    .endif
+.elseif .blank(arg2)
+    ; Single argument - read specific port
+    .ifdef __VIC20__
+        .if arg1 = 1
+.import _read_joy_vic20_sr
+            jsr _read_joy_vic20_sr
+        .else
+            .error "read_joy: VIC-20 only supports joystick port 1"
+        .endif
+    .else
+        .if arg1 = 1
+            lda $DC01  ; Joy 1
+        .elseif arg1 = 2
+            lda $DC00  ; Joy 2
+        .else
+            .error "read_joy: port must be 1 or 2"
+        .endif
+    .endif
+.else
+    ; Two arguments - AND both ports together (C64/128 only)
+    .ifdef __VIC20__
+        .error "read_joy: VIC-20 only supports single joystick port 1"
+    .else
+        .if (arg1 = 1) .and (arg2 = 2)
+            lda $DC01
+            and $DC00
+        .elseif (arg1 = 2) .and (arg2 = 1)
+            lda $DC00
+            and $DC01
+        .else
+            .error "read_joy: combined read must be ports 1,2 or 2,1"
+        .endif
+    .endif
+.endif
+.endscope
+.endmacro
+
 
 ;; read_keys_WASDspace
 ;; Checks the keyboard for keypresses of W, A ,S, D and Space
@@ -2468,22 +2595,22 @@ endfilename:
 .endif
 
         lda #$7f
-        sta $dc0d       ; disable timer interrupts
-        sta $dd0d
+        sta $DC0D       ; disable timer interrupts
+        sta $DD0D
 
-        and $d011       ; accu is still $7f
+        and $D011       ; accu is still $7f
 .if rline_value>255
         ora #$80
 .endif
-        sta $d011       ; Clear most significant bit in VIC's raster register
+        sta $D011       ; Clear most significant bit in VIC's raster register
 
-        lda $dc0d       ; acknowledge CIA interrupts
+        lda $DC0D       ; acknowledge CIA interrupts
 
         lda #<rline_value
-        sta $d012       ; Set the raster line number where interrupt should occur
+        sta $D012       ; Set the raster line number where interrupt should occur
 
         lda #01
-        sta $d01A       ; set raster interrupt
+        sta $D01A       ; set raster interrupt
 
         plp
 .endmacro
@@ -2493,38 +2620,38 @@ endfilename:
 ;; Used registers: A
 .macro set_irq_rasterline rasterline
 .if (.xmatch ({rasterline}, {AX}) .or .xmatch ({arg1}, {ax}))          ;AX is used as argument
-        sta $d012
-        lda $d011
+        sta $D012
+        lda $D011
         and #$7f
         cpx #1
         if eq
             ora #$80
         endif
-        sta $d011
+        sta $D011
 .elseif (.xmatch ({rasterline}, {A}) .or .xmatch ({arg1}, {a}))          ;A is used as argument
-        sta $d012
-        lda $d011
+        sta $D012
+        lda $D011
         and #$7f
-        sta $d011
+        sta $D011
 .elseif (.xmatch ({rasterline}, {X}) .or .xmatch ({arg1}, {x}))          ;X is used as argument
-        stx $d012
-        lda $d011
+        stx $D012
+        lda $D011
         and #$7f
-        sta $d011
+        sta $D011
 .elseif (.xmatch ({rasterline}, {Y}) .or .xmatch ({arg1}, {y}))          ;Y is used as argument
-        sty $d012
-        lda $d011
+        sty $D012
+        lda $D011
         and #$7f
-        sta $d011
+        sta $D011
 .else                                                             ;argument is a number
-        poke $d012,<(rasterline)
-        lda $d011
+        poke $D012,<(rasterline)
+        lda $D011
 .if rasterline<256
         and #$7f
 .else
         ora #$80
 .endif
-        sta $d011
+        sta $D011
 .endif
 .endmacro
 
@@ -2562,7 +2689,7 @@ endfilename:
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stabilize_raster_cycle_with_isr_set
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; we are perfectly synchronized, do stuff
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set_irq_rasterline 48
-;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;asl $d019
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;asl $D019
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pokew $fffe,isr
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pla
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tay
@@ -2592,7 +2719,7 @@ endfilename:
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; we are perfectly synchronized, do stuff
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;poke 1,$37
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set_irq_rasterline 48
-;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;asl $d019
+;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;asl $D019
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jmp $ea31</tt>
 .macro stabilize_raster_cycle extranops
         ; **************************************************
@@ -2600,18 +2727,18 @@ endfilename:
         ; based on: https://codebase64.org/doku.php?id=base:stable_raster_routine
         ; by TWW / Creators
         ; **************************************************
-        ; A Raster Compare IRQ is triggered on cycle 0 on the current $d012 line
+        ; A Raster Compare IRQ is triggered on cycle 0 on the current $D012 line
         ; The CPU needs to finish its current OP code before starting the Interrupt Handler,
         ; meaning a 0 -> 7 cycles delay depending on OP code.
         ; Then a 7 cycle delay is spent invoking the Interrupt Handler (Push SR/PC to stack++)
         ; Then 13 cycles for storing registers (pha, txa, pha, tya, pha)
         ; CYCLECOUNT: [20 -> 27] cycles after Raster IRQ occurred.
         ; Acknowledge current Raster IRQ
-        asl $d019
+        asl $D019
         ; Store current Stack Pointer (will be messed up when the next IRQ occurs)
         tsx
         ; Set the Raster IRQ to trigger on the next Raster line
-        inc $d012
+        inc $D012
         ; Allow IRQ to happen (Remember, the Interrupt flag is set by the Interrupt Handler).
         cli
         ; Execute nops until the raster line changes and the Raster IRQ triggers
@@ -2643,14 +2770,14 @@ _stabilize_raster_cycle_isr:
         ; Restore previous Stack Pointer (undo the last stack manipulation by the IRQ)
         txs
         delay_cycles 44 ;44 for PAL, 45 for NTSC-64, 46 for NTSC-65
-        ; Check if $d012 is incremented and rectify with an additional cycle if necessary
-        lda $d012
-        cmp $d012  ; <- critical instruction (ZERO-Flag will indicate if Jitter = 0 or 1)
+        ; Check if $D012 is incremented and rectify with an additional cycle if necessary
+        lda $D012
+        cmp $D012  ; <- critical instruction (ZERO-Flag will indicate if Jitter = 0 or 1)
         ; CYCLECOUNT: [61 -> 62] <- Will not work if this timing is wrong
-        ; cmp $d012 is originally a 5 cycle instruction but due to pipelining tech. the
+        ; cmp $D012 is originally a 5 cycle instruction but due to pipelining tech. the
         ; 5th cycle responsible for calculating the result is executed simultaneously
         ; with the next OP fetch cycle (first cycle of beq *+2).
-        ; Add one cycle if $d012 wasn't incremented (Jitter / ZERO-Flag = 0)
+        ; Add one cycle if $D012 wasn't incremented (Jitter / ZERO-Flag = 0)
         .assert >* = >(*+2), error, "Time critical branch goes over page limit, please use *stabilize_raster_cycle extranops* in your code"
         beq *+2 ;remove remaining jitter of 1 cycle
         ; we are now stable
@@ -2798,11 +2925,11 @@ _stabilize_raster_cycle_isr:
 .scope
         ;wait for a rasterline under 255
 waitsync1:
-        bit $d011
+        bit $D011
         bmi waitsync1
         ;wait for a rasterline over 255
 waitsync2:
-        bit $d011
+        bit $D011
         bpl waitsync2
 .endscope
 .endmacro
@@ -2844,7 +2971,7 @@ waitsync2:
 
 
 ;; screen_off
-;; turns off the screen via $d011
+;; turns off the screen via $D011
 ;; The function always sets a 0 as high bit to avoid an unreachable raster irq line.
 
 .macro screen_off
@@ -2853,7 +2980,7 @@ waitsync2:
 .endmacro
 
 ;; wait_screen_off
-;; Waits until raster>249 and turns screen off. Since it is necessary to write to $d011 to turn the screen off, we cannot avoid setting the high bit.
+;; Waits until raster>249 and turns screen off. Since it is necessary to write to $D011 to turn the screen off, we cannot avoid setting the high bit.
 ;; The function always sets a 0 as high bit to avoid an unreachable raster irq line.
 
 .macro wait_screen_off
@@ -2862,7 +2989,7 @@ waitsync2:
 .endmacro
 
 ;; screen_on
-;;turns the screen back on. Since it is necessary to write to $d011, the high bit of the next raster IRQ will be reset to 0 as a side effect
+;;turns the screen back on. Since it is necessary to write to $D011, the high bit of the next raster IRQ will be reset to 0 as a side effect
 
 .macro screen_on
 .import _screen_on

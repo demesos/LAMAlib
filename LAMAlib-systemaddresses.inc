@@ -1,6 +1,6 @@
 ; Addresses of used ROM routines
 
-.if .def(__C64__)
+.ifdef __C64__
 
 PRESSED_KEY_MATRIX_CODE=$C5
 MATRIX_CODE_NO_KEY=$40

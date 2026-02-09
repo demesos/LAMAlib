@@ -653,7 +653,7 @@ Code example that waits for joystick 2 button to be pressed:
 **Alternate:** `lda #$10`
 
 do  
-   and $dc00  
+   and $DC00  
 loop until eq  
 
 **Registers modified: A, if the loop variable is X or Y also the respective X or Y register**
@@ -1109,7 +1109,7 @@ Function depends on Kernal ROM and the IRQ routine regularily scanning the keybo
 
 Detects the SID soundchip model  
 SID detection routine from codebase64 by SounDemon and a tip from Dag Lem  
-If no base address is given, the standard base address $d400 is used  
+If no base address is given, the standard base address $D400 is used  
 Carry flag is set for 6581, and clear for 8580  
 
 **Returns:** Result is returned in carry
@@ -1478,6 +1478,18 @@ If multiple arguments are given tha values are combined with EOR.
 On a VIC-20, only "timer" is supported.  
 If no argument is given, all suported values are combined and used.  
 
+### `read_joy`
+
+**Syntax:** `read_joy [port1[,port2]]`
+
+With no arguments: VIC-20 reads joy 1, C64/128 reads both joys (1 AND 2)  
+With one argument: reads specified joystick port (1 or 2, VIC-20 only supports 1)  
+With two arguments: reads both ports and ANDs them together (C64/128 only)  
+
+**Returns:** Result in A: bit 0=up, 1=down, 2=left, 3=right, 4=fire (0=pressed, 1=released)
+
+**Registers modified: A**
+
 ### `read_keys_ACSEP`
 
 **Syntax:** `read_keys_ACSEP`
@@ -1585,14 +1597,14 @@ Deletes a file on disk. If device number is not stated or 0, the last used devic
 
 **Syntax:** `screen_off`
 
-turns off the screen via $d011  
+turns off the screen via $D011  
 The function always sets a 0 as high bit to avoid an unreachable raster irq line.  
 
 ### `screen_on`
 
 **Syntax:** `screen_on`
 
-turns the screen back on. Since it is necessary to write to $d011, the high bit of the next raster IRQ will be reset to 0 as a side effect  
+turns the screen back on. Since it is necessary to write to $D011, the high bit of the next raster IRQ will be reset to 0 as a side effect  
 
 ### `set_cursor_pos`
 
@@ -1707,7 +1719,7 @@ isr:    poke 1,$35
         ; we are perfectly synchronized, do stuff  
         poke 1,$37  
         set_irq_rasterline 48  
-        asl $d019  
+        asl $D019  
         jmp $ea31  
 
 ### `stabilize_raster_cycle_with_isr_set`
@@ -1731,7 +1743,7 @@ isr:    pha
         stabilize_raster_cycle_with_isr_set  
         ; we are perfectly synchronized, do stuff  
         set_irq_rasterline 48  
-        asl $d019  
+        asl $D019  
         pokew $fffe,isr  
         pla  
         tay  
@@ -1826,19 +1838,23 @@ Turn off cursor briefly before output of a char, otherwise you get inverse chara
 
 ### `wait_firebutton`
 
-**Syntax:** `wait_firebutton [joy]`
+**Syntax:** `wait_firebutton [port1[,port2]]`
 
 Waits until fire button is pressed. If the fire button is already pressed, the command continues immediately.  
-Argument can be 1, 2 or 3 for both joysticks. If no argument is given, Joystick 2 is used.  
+With no arguments: VIC-20 reads joy 1, C64/128 reads both joys (1 AND 2)  
+With one argument: reads specified joystick port (1 or 2, VIC-20 only supports 1)  
+With two arguments: reads both ports and ANDs them together (C64/128 only)  
 
 **Registers modified: A**
 
 ### `wait_firebutton_released`
 
-**Syntax:** `wait_firebutton_released [joy]`
+**Syntax:** `wait_firebutton_released [port1[,port2]]`
 
 Waits until fire button is released. If the fire button is already released the command continues immediately.  
-Argument can be 1, 2 or 3 for both joysticks. If no argument is given, Joystick 2 is used.  
+With no arguments: VIC-20 reads joy 1, C64/128 reads both joys (1 AND 2)  
+With one argument: reads specified joystick port (1 or 2, VIC-20 only supports 1)  
+With two arguments: reads both ports and ANDs them together (C64/128 only)  
 
 **Registers modified: A**
 
@@ -1896,7 +1912,7 @@ Function works independly of IRQ routine
 
 **Syntax:** `wait_screen_off`
 
-Waits until raster>249 and turns screen off. Since it is necessary to write to $d011 to turn the screen off, we cannot avoid setting the high bit.  
+Waits until raster>249 and turns screen off. Since it is necessary to write to $D011 to turn the screen off, we cannot avoid setting the high bit.  
 The function always sets a 0 as high bit to avoid an unreachable raster irq line.  
 
 ## String Routines
@@ -1963,45 +1979,51 @@ I/O must be enabled for this macro to work
 **Syntax:** `shadowIRQ off|on`
 
 screen. It further handles the BASIC commands SOUND, PLAY, and SPRITE. To  
-avoid this, the macro  shadowIRQ off puts a 0 into memory address $0A04,   
-telling the Kernal that BASIC has not been initialized yet.  
-Cutting the IRQ routine provides a speed gain of about 2.5%  
+avoid this, the macro  shadowIRQ off puts a 0 into memory address $0A04, ### `enableXexpandSprite`
+
+**Syntax:** `enableXexpandSprite n`
+
+Enable horizontal expansion for sprite n  
 
 **Registers modified: A**
 
-## Other Macros
+### `enableYexpandSprite`
 
-### `disableMultiColorSprite`
+**Syntax:** `enableYexpandSprite n`
 
-**Syntax:** `disableMultiColorSprite n`
-
-Disable multicolor mode for sprite n  
+Enable vertical expansion for sprite n  
 
 **Registers modified: A**
 
-### `disableXexpandSprite`
+### `getSpriteColor`
 
-**Syntax:** `disableXexpandSprite n`
+**Syntax:** `getSpriteColor n,reg`
 
-Disable horizontal expansion for sprite n  
+**Registers modified: A, X, Y**
 
-**Registers modified: A**
+### `getSpriteCostume`
 
-### `disableYexpandSprite`
+**Syntax:** `getSpriteCostume n,reg`
 
-**Syntax:** `disableYexpandSprite n`
+**Registers modified: A, X, Y**
 
-Disable vertical expansion for sprite n  
+### `getSpriteMultiColor1`
 
-**Registers modified: A**
+**Syntax:** `getSpriteMultiColor1 reg`
 
-### `enableMultiColorSprite`
+**Registers modified: A, X, Y**
 
-**Syntax:** `enableMultiColorSprite n`
+### `getSpriteMultiColor2`
 
-Enable multicolor mode for sprite n  
+**Syntax:** `getSpriteMultiColor2 reg`
 
-**Registers modifi**Registers modified: X**
+**Registers modified: A, X, Y**
+
+### `getSpriteX`
+
+**Syntax:** `getSpriteX n,reg`
+
+**Registers modified: X**
 
 ### `getSpriteY`
 
