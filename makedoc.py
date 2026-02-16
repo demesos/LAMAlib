@@ -14,8 +14,7 @@ Options:
     --modules-dir DIR   Directory containing modules (default: modules/)
     -h, --help          Show this help message
 
-Version: 2.0
-Author: Generated for LAMAlib by Claude (Anthropic)
+Version: 2.1
 License: The Unlicense (public domain)
 """
 
@@ -377,11 +376,13 @@ class IncludeParser:
         current_macro = None
         last_line_empty = True
         current_section_title = None
+        in_syntax_block = False  # Track if we're in a multi-line syntax block
         
         for line in lines:
             # Empty line
             if len(line.strip()) == 0:
                 last_line_empty = True
+                in_syntax_block = False  # End of syntax block
                 continue
             
             # Extract comment content
@@ -395,6 +396,7 @@ class IncludeParser:
                     doc.sections.append((title, []))
                     current_section_title = title
                     last_line_empty = False
+                    in_syntax_block = False
                     continue
                 
                 # New macro definition (after blank line)
@@ -409,17 +411,43 @@ class IncludeParser:
                     current_macro.section = current_section_title or ""  # Assign to current section
                     current_macro.syntax = content
                     current_macro.raw_lines.append(content)
+                    in_syntax_block = True  # We're now in a syntax block
                 else:
                     # Continuation of current macro or section
                     if current_macro:
                         current_macro.raw_lines.append(content)
-                        self._parse_macro_line(content, current_macro)
+                        
+                        # Check if this line is a continuation of the syntax block
+                        # (indicated by bold tags at the start or simple indentation patterns)
+                        is_syntax_line = False
+                        if in_syntax_block:
+                            # Check if line starts with HTML bold tag (alternate syntax)
+                            if content.strip().startswith('<b>'):
+                                is_syntax_line = True
+                            # Check if it's just "..." (placeholder, not real syntax)
+                            elif re.match(r'^\s*\.\.\.+\s*$', content):
+                                # This is a placeholder, treat as syntax but will be filtered later
+                                is_syntax_line = True
+                            # Check if line starts with [ (like [else]) - this is syntax
+                            elif content.strip().startswith('[<b>'):
+                                is_syntax_line = True
+                            # If line doesn't look like syntax, exit syntax block
+                            elif not is_syntax_line:
+                                in_syntax_block = False
+                        
+                        if is_syntax_line:
+                            # Append to syntax (multi-line syntax)
+                            current_macro.syntax += '\n' + content
+                        else:
+                            # Parse as regular macro documentation line
+                            self._parse_macro_line(content, current_macro)
                     elif current_section_title and doc.sections:
                         doc.sections[-1][1].append(content)
                 
                 last_line_empty = False
             else:
                 last_line_empty = False
+                in_syntax_block = False
         
         # Save last macro
         if current_macro:
@@ -448,7 +476,8 @@ class IncludeParser:
         
         # Accumulate description lines
         if not any(key in line_lower for key in ['result', 'return', 'register', 'modified', 'note']):
-            if line and not line.startswith('<'):  # Skip HTML tags
+            # Skip section headers (start with <h) but allow other HTML like <i> or <b>
+            if line and not line.startswith('<h'):
                 macro.description.append(line)
         
         # Extract returns information
@@ -669,10 +698,31 @@ class ComprehensiveGenerator:
         f.write(f"### `{clean_name}`\n\n")
         
         # Syntax (strip HTML tags and convert entities)
+        # Handle both single-line and multi-line syntax
         if macro.syntax:
-            clean_syntax = strip_html_tags(macro.syntax)
-            clean_syntax = self._convert_html_entities(clean_syntax)
-            f.write(f"**Syntax:** `{clean_syntax}`\n\n")
+            syntax_lines = macro.syntax.split('\n')
+            
+            # Filter out placeholder lines (just dots) and clean up each line
+            cleaned_lines = []
+            for syntax_line in syntax_lines:
+                clean_line = strip_html_tags(syntax_line)
+                clean_line = self._convert_html_entities(clean_line)
+                clean_line = clean_line.strip()
+                
+                # Skip pure placeholder lines (just dots)
+                if clean_line and not re.match(r'^\.\.\.+$', clean_line):
+                    cleaned_lines.append(clean_line)
+            
+            if len(cleaned_lines) == 1:
+                # Single-line syntax
+                f.write(f"**Syntax:** `{cleaned_lines[0]}`\n\n")
+            elif len(cleaned_lines) > 1:
+                # Multi-line syntax
+                f.write("**Syntax:**\n\n")
+                f.write("```\n")
+                for clean_line in cleaned_lines:
+                    f.write(f"{clean_line}\n")
+                f.write("```\n\n")
         
         # Description (strip HTML tags from each line and convert entities)
         if macro.description:

@@ -317,63 +317,272 @@ sm_to_add=*+1
   .endscope
 .endmacro
 
+
 ;; div8 arg
 ;; div8 #arg
 ;; Divides the unsigned 8 bit value in A by an immediate value or the 8 bit value stored at addr
+;; If the quotient is constant and a power of 2, the function uses efficient shift commands
 ;; Quotient is returned in A, remainder in X
 ;; Registers modified: A,X
-
 .macro div8 arg
-  .scope
-        sta quotient
-        lda #0
-        ldx #8
-        asl quotient
-L1:     rol
-        cmp arg
-        bcc L2
-        sbc arg
-L2:     rol quotient
-        dex
-        bne L1
-        tax
+    ; Check for power-of-2 optimization
+    .if (.match (.left (1, {arg}), #))
+        .ifconst (.right (.tcount ({arg})-1, {arg}))
+            .if ((.right (.tcount ({arg})-1, {arg})) = 2)
+                .scope
+                pha
+                and #1
+                tax
+                pla
+                lsr
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 4)
+                .scope
+                pha
+                and #3
+                tax
+                pla
+                lsr
+                lsr
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 8)
+                .scope
+                pha
+                and #7
+                tax
+                pla
+                lsr
+                lsr
+                lsr
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 16)
+                .scope
+                pha
+                and #15
+                tax
+                pla
+                lsr
+                lsr
+                lsr
+                lsr
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 32)
+                .scope
+                pha
+                and #31
+                tax
+                pla
+                lsr
+                lsr
+                lsr
+                lsr
+                lsr
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 64)
+                .scope
+                pha
+                and #63
+                tax
+                pla
+                lsr
+                lsr
+                lsr
+                lsr
+                lsr
+                lsr
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 128)
+                .scope
+                pha
+                and #127
+                tax
+                pla
+                lsr
+                lsr
+                lsr
+                lsr
+                lsr
+                lsr
+                lsr
+                .endscope
+                .exitmacro
+            .endif
+        .endif
+    .endif
+    .scope
+    sta quotient
+    lda #0
+    ldx #8
+    asl quotient
+L1: rol
+    cmp arg
+    bcc L2
+    sbc arg
+L2: rol quotient
+    dex
+    bne L1
+    tax
 quotient=*+1
-        lda #00
-  .endscope
+    lda #00
+    .endscope
 .endmacro
+
 
 ;; div16by8 arg
 ;; div16by8 #arg
 ;; Divides the unsigned 16 bit value in AX by an immediate value or the 8 bit value stored at addr
+;; If the quotient is constant and a power of 2, the function uses efficient shift commands
 ;; Resulting quotient must be 8 bit
 ;; Quotient is returned in A, remainder in X
 ;; Registers modified: A,X
-
 .macro div16by8 arg
-  .scope
-        sta quotient
-        txa
-        ldx #8
-        asl quotient
-L1:     rol
-        bcs L2
-        cmp arg
-        bcc L3
-L2:     sbc arg
-        sec
-L3:     rol quotient
-        dex
-        bne L1
-        tax
+    ; Check for power-of-2 optimization
+    .if (.match (.left (1, {arg}), #))
+        .ifconst (.right (.tcount ({arg})-1, {arg}))
+            .if ((.right (.tcount ({arg})-1, {arg})) = 2)
+                .scope
+                pha
+                and #1
+                sta remainder
+                pla
+                lsrax
+                remainder=*+1
+                ldx #$42
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 4)
+                .scope
+                pha
+                and #3
+                sta remainder
+                pla
+                lsrax
+                lsrax
+                remainder=*+1
+                ldx #$42
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 8)
+                .scope
+                pha
+                and #7
+                sta remainder
+                pla
+                lsrax
+                lsrax
+                lsrax
+                remainder=*+1
+                ldx #$42
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 16)
+                .scope
+                pha
+                and #15
+                sta remainder
+                pla
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                remainder=*+1
+                ldx #$42
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 32)
+                .scope
+                pha
+                and #31
+                sta remainder
+                pla
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                remainder=*+1
+                ldx #$42
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 64)
+                .scope
+                pha
+                and #63
+                sta remainder
+                pla
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                remainder=*+1
+                ldx #$42
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 128)
+                .scope
+                pha
+                and #127
+                sta remainder
+                pla
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                remainder=*+1
+                ldx #$42
+                .endscope
+                .exitmacro
+            .endif
+        .endif
+    .endif
+    .scope
+    sta quotient
+    txa
+    ldx #8
+    asl quotient
+L1: rol
+    bcs L2
+    cmp arg
+    bcc L3
+L2: sbc arg
+    sec
+L3: rol quotient
+    dex
+    bne L1
+    tax
 quotient=*+1
-        lda #00
-  .endscope
+    lda #00
+    .endscope
 .endmacro
 
-;; div16 arg
+
+;; div16 arg  
 ;; div16 #arg
 ;; Divides the unsigned 16 bit value in AX by an immediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)
-;; Implemented as a subroutinge, link with -lib lamalib.lib
+;; Implemented as a subroutinge, except for cases where the divident is a power of 2 up to 256
 ;; When using this function in interrupt save _div16_sr, _div16_rem, _div16_arg_lo, and _div16_arg_hi before calling and restore those values afterwards.
 ;; Result is returned in AX
 ;; Registers modified: all
@@ -382,22 +591,141 @@ quotient=*+1
 .importzp _div16_rem
 
 .macro div16 arg
-  .scope
+    ; Check for power-of-2 optimization
     .if (.match (.left (1, {arg}), #))
-            ; immediate mode
-        ldy     #<(.right (.tcount ({arg})-1, {arg}))
+        .ifconst (.right (.tcount ({arg})-1, {arg}))
+            .if ((.right (.tcount ({arg})-1, {arg})) = 2)
+                .scope
+                pha
+                and #1
+                sta _div16_rem
+                lda #0
+                sta _div16_rem+1
+                pla
+                lsrax
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 4)
+                .scope
+                pha
+                and #3
+                sta _div16_rem
+                lda #0
+                sta _div16_rem+1
+                pla
+                lsrax
+                lsrax
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 8)
+                .scope
+                pha
+                and #7
+                sta _div16_rem
+                lda #0
+                sta _div16_rem+1
+                pla
+                lsrax
+                lsrax
+                lsrax
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 16)
+                .scope
+                pha
+                and #15
+                sta _div16_rem
+                lda #0
+                sta _div16_rem+1
+                pla
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 32)
+                .scope
+                pha
+                and #31
+                sta _div16_rem
+                lda #0
+                sta _div16_rem+1
+                pla
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 64)
+                .scope
+                pha
+                and #63
+                sta _div16_rem
+                lda #0
+                sta _div16_rem+1
+                pla
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 128)
+                .scope
+                pha
+                and #127
+                sta _div16_rem
+                lda #0
+                sta _div16_rem+1
+                pla
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                lsrax
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 256)
+                .scope
+                sta _div16_rem
+	        txa
+                ldx #0
+                stx _div16_rem+1
+                .endscope
+                .exitmacro
+            .endif
+        .endif
+        ; immediate mode
+        .scope
+        ldy #<(.right (.tcount ({arg})-1, {arg}))
         sty _div16_arg_lo
-        ldy     #>(.right (.tcount ({arg})-1, {arg}))
+        ldy #>(.right (.tcount ({arg})-1, {arg}))
         sty _div16_arg_hi
+        .endscope
     .else
-            ; assume absolute or zero page
-        ldy     arg
-        sty _div16_arg_lo
-        ldy     1+(arg)
-        sty _div16_arg_hi
+        ; memory mode
+        .scope
+        lda arg
+        sta _div16_arg_lo
+        lda 1+(arg)
+        sta _div16_arg_hi
+        .endscope
     .endif
-        jsr _div16_sr ;div16 subroutine
-  .endscope
+    jsr _div16_sr
 .endmacro
 
 
@@ -413,23 +741,84 @@ quotient=*+1
 .importzp _div16_rem
 
 .macro mod16 arg
-  .scope
+    ; Check for power-of-2 optimization  
     .if (.match (.left (1, {arg}), #))
-            ; immediate mode
-        ldy     #<(.right (.tcount ({arg})-1, {arg}))
+        .ifconst (.right (.tcount ({arg})-1, {arg}))
+            .if ((.right (.tcount ({arg})-1, {arg})) = 2)
+                .scope
+                and #1
+                ldx #0
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 4)
+                .scope
+                and #3
+                ldx #0
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 8)
+                .scope
+                and #7
+                ldx #0
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 16)
+                .scope
+                and #15
+                ldx #0
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 32)
+                .scope
+                and #31
+                ldx #0
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 64)
+                .scope
+                and #63
+                ldx #0
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 128)
+                .scope
+                and #127
+                ldx #0
+                .endscope
+                .exitmacro
+            .endif
+            .if ((.right (.tcount ({arg})-1, {arg})) = 256)
+                .scope
+                txa
+                ldx #0
+                .endscope
+                .exitmacro
+            .endif
+        .endif
+        ; immediate mode
+        .scope
+        ldy #<(.right (.tcount ({arg})-1, {arg}))
         sty _div16_arg_lo
-        ldy     #>(.right (.tcount ({arg})-1, {arg}))
+        ldy #>(.right (.tcount ({arg})-1, {arg}))
         sty _div16_arg_hi
+        .endscope
     .else
-            ; assume absolute or zero page
-        ldy     arg
+        ; assume absolute or zero page
+        .scope
+        ldy arg
         sty _div16_arg_lo
-        ldy     1+(arg)
+        ldy arg+1
         sty _div16_arg_hi
+        .endscope
     .endif
-        jsr _div16_sr ;div16 subroutine
-        ldax _div16_rem
-  .endscope
+    jsr _div16_sr
+    ldax _div16_rem
 .endmacro
 
 
@@ -1703,10 +2092,23 @@ to_x=*+1
 .endmacro
 
 
-;; toggle_carry
+;; swn
+;; Swaps nibbles, that is exchanges the lower four bits with the upper four bits of the value in the accu.
+;; Registers modified: A
+.macro swn
+asl
+adc #$80
+rol
+asl
+adc #$80
+rol
+.endmacro
+
+
+;; toc
 ;; Toggles the carry
 ;; Registers modified: none
-.macro  toggle_carry
+.macro  toc
         rol
         eor #$01
         ror

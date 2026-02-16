@@ -18,8 +18,8 @@
   - [polychars](#polychars)
 
 
-Version: 0.351  
-Date: 2026-01-04  
+Version: 0.37  
+Date: 2026-02-16  
 Author: Wil Elmenreich (wilfried at gmx dot at)  
 License: The Unlicense (public domain)  
 
@@ -393,7 +393,7 @@ When the address is a constant this defaults to lda addr
 
 ### `poke`
 
-**Syntax:** `poke arg1,arg2 `
+**Syntax:** `poke arg1,arg2`
 
 Copies arg2 into the address of arg1  
 arg1 can be a constant or AX  
@@ -412,13 +412,13 @@ arg1, arg2 can be both constants or one can be AX and the other a constant
 
 ### `pullax`
 
-**Syntax:** `pullax `
+**Syntax:** `pullax`
 
 Pulls AX from the stack  
 
 ### `pushax`
 
-**Syntax:** `pushax `
+**Syntax:** `pushax`
 
 Pushes AX to the stack and preserves AX  
 
@@ -572,17 +572,17 @@ This macro needs to be called once before using gfx_plot or any function that us
 
 ### `gfx_pclr`
 
-**Syntax:** `gfx_pclr `
+**Syntax:** `gfx_pclr`
 
 ### `gfx_pget`
 
-**Syntax:** `gfx_pget `
+**Syntax:** `gfx_pget`
 
 **Returns:** Return value (0 or 1) in A
 
 ### `gfx_pset`
 
-**Syntax:** `gfx_pset `
+**Syntax:** `gfx_pset`
 
 ### `set_VIC_addr`
 
@@ -623,14 +623,19 @@ Shows the screen again after it was blanked, effective with next frame
 
 ### `do`
 
-**Syntax:** `do`
+**Syntax:**
 
-...  
-**Alternate:** `[until|while cond]`
+```
+do
+[until|while cond]
+loop [until|while cond]
+```
 
-...  
 Defines a loop that is exit based on a while or until condition  
+cond can be eq, ne, mi, pl, cc, cs, vc, vs, lt, ge  
 This corresponds to assembler commands BEQ, BNE, BMI, BPL, BCC, BCS, BVC, BVS  
+lt (less than) is equal to cc (BCC), ge (greater or equal) is equal to cs (BCS)  
+until and while can be used on a seperate line or after loop  
 There can be any number of until or while conditions, also none, which defines an endless loop  
 Within a do...loop, the macros break and continue can be used to exit the loop or go to next iteration.  
 Any line with a until, while, loop until, or while until will be typically preceded with code that sets the respective processor flags, in many cases this  
@@ -660,9 +665,13 @@ loop until eq
 
 ### `do_every`
 
-**Syntax:** `do_every interval[,phase]`
+**Syntax:**
 
-...  
+```
+do_every interval[,phase]
+end_every
+```
+
 Defines a block that is executed every n-th time  
 interval: Specifies the interval between each execution. Maximum value 255.  
 phase: Determines the phase offset of the first iteration. If 0 the event is triggered in the first iteration.  
@@ -672,9 +681,13 @@ Default value for phase is the interval-1
 
 ### `do_once`
 
-**Syntax:** `do_once [maxcalls]`
+**Syntax:**
 
-...  
+```
+do_once [maxcalls]
+end_once
+```
+
 Defines a block that is executed a specified number of times.  
 maxcalls: Specifies the number of times the code within the block will be executed (default=1).  
 
@@ -682,9 +695,13 @@ maxcalls: Specifies the number of times the code within the block will be execut
 
 ### `do_skip_every`
 
-**Syntax:** `do_skip_every interval[,phase]`
+**Syntax:**
 
-...  
+```
+do_skip_every interval[,phase]
+end_skip_every
+```
+
 Defines a block that is skipped every n-th time (runs n-1 out of n times)  
 interval: Specifies the interval at which to skip execution. Maximum value 255.  
 phase: Determines the phase offset of the first skip. If 0 the skip occurs in the first iteration.  
@@ -694,10 +711,20 @@ Default value for phase is the interval-1
 
 ### `for`
 
-**Syntax:** `for X|Y|A|AX|addr,start,to|downto,end,step`
+**Syntax:**
 
-...  
+```
+for X|Y|A|AX|addr,start,to|downto,end,step
+next
+```
+
 The for loop iterates from the start value to the end value, inclusive. This is similar to the behavior of FOR in BASIC  
+start can be a constant or a memory address pointing to the value; (xxx) indicates a 16 bit value at address xxx and xxx+1, [xxx] indicates an 8 bit value at adress xxx  
+end can be a constant or a memory address pointing to the value. The loop is continued including an iteration reaching the end value  
+start can be a constant or a memory address pointing to the value  
+to indicates a loop that counts up, downto indicates a loop that counts down  
+end can be a constant or a memory address pointing to the value  
+step is optional and defines the increment/decrement (default=1). This value is alway positive, counting down is indicated with downto  
 Memory references can also go to zero page. In this case the zero page addressing mode is used which speeds up the code.  
 It is possible to nest multiple for loops but each for must be followed by exactly one corresponding next later in the code.  
 Within a for loop, the macros break and continue can be used to exit the loop or go to next iteration.  
@@ -711,16 +738,26 @@ next
 
 ### `if`
 
-**Syntax:** `if cond`
+**Syntax:**
 
-...  
-**Alternate:** `[else]`
+```
+if cond
+longif cond
+if_A_in arg1,arg2,...
+if_X_in arg1,arg2,...
+if_Y_in arg1,arg2,...
+[else]
+endif
+```
 
-...  
 This is a structure for conditional execution  
+cond can be eq, ne, mi, pl, cc, cs, vc, vs, lt, ge  
 This corresponds to assembler commands BEQ, BNE, BMI, BPL, BCC, BCS, BVC, BVS  
 Therefore the amount of code between if and else must not exceed the range of a branch instruction (127 byte for a forward branch)  
+lt (less than) is equal to cc (BCC), ge (greater or equal) is equal to cs (BCS)  
 using else is optional  
+longif is doing the same as if, but it is using long branches  
+if_A_in arg1,arg2,... triggers if A (or, respectively, X,Y) is equal to any value (immediate or address) in the list  
 
 **Registers modified: none**
 
@@ -799,13 +836,23 @@ If the value of A exceeds the number of provided addresses, no subroutine is cal
 
 ### `switch`
 
-**Syntax:** `switch [A|X|Y|AX]`
+**Syntax:**
 
-...  
-...  
-...  
-...  
+```
+switch [A|X|Y|AX]
+[case|case_eq|case_lt|case_ge] num1
+[break]
+[case|case_eq|case_lt|case_ge] num2
+[break]
+[case|case_eq|case_lt|case_ge] num3
+[break]
+[default]
+endswitch
+```
+
+break jumps out of the structure. Other than with the switch structure in C, fallthroughs before another case do not work because there is code generated for the comparison and branch function before each case part.  
 Only a fallthrough into the default part works correctly.  
+default performs no comparison but triggers always, there is no need for a break command at the end of default  
 Example:  
 **Alternate:** `switch A`
 
@@ -828,7 +875,13 @@ Example:
 
 ### `_ld_reg`
 
-**Syntax:** `_ld_reg reg,arg`
+**Syntax:**
+
+```
+_ld_reg reg,arg
+_st_reg reg,arg
+_cp_reg reg,arg
+```
 
 For example, _ld_reg A,#12 translates into lda #12 while _st_reg $1234,Y translates into sty $1234  
 If reg is blank, A is used as a default  
@@ -993,7 +1046,7 @@ This code only reads the number without further text
 **Alternate:** `div16 #arg`
 
 Divides the unsigned 16 bit value in AX by an immediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)  
-Implemented as a subroutinge, link with -lib lamalib.lib  
+Implemented as a subroutinge, except for cases where the divident is a power of 2 up to 256  
 When using this function in interrupt save _div16_sr, _div16_rem, _div16_arg_lo, and _div16_arg_hi before calling and restore those values afterwards.  
 
 **Returns:** Result is returned in AX
@@ -1007,6 +1060,7 @@ When using this function in interrupt save _div16_sr, _div16_rem, _div16_arg_lo,
 **Alternate:** `div16by8 #arg`
 
 Divides the unsigned 16 bit value in AX by an immediate value or the 8 bit value stored at addr  
+If the quotient is constant and a power of 2, the function uses efficient shift commands  
 
 **Returns:** Quotient is returned in A, remainder in X
 
@@ -1019,6 +1073,7 @@ Divides the unsigned 16 bit value in AX by an immediate value or the 8 bit value
 **Alternate:** `div8 #arg`
 
 Divides the unsigned 8 bit value in A by an immediate value or the 8 bit value stored at addr  
+If the quotient is constant and a power of 2, the function uses efficient shift commands  
 
 **Returns:** Quotient is returned in A, remainder in X
 
@@ -1031,7 +1086,9 @@ Divides the unsigned 8 bit value in A by an immediate value or the 8 bit value s
 Draws a frame around the window defined by the window parameters  
 When using in interrupt, save contents of _llzp_word1,_llzp_word2 before calling and restore afterwards  
 Window parameters:  
+.import _window_x1,_window_y1,_window_x2,_window_y2  
 Further configuration parameters (default is a white frame using PETSCII characters):  
+ .import _frame_upper_left  
 .import _frame_upper_right  
 .import _frame_lower_left  
 .import _frame_lower_right  
@@ -1039,6 +1096,7 @@ Further configuration parameters (default is a white frame using PETSCII charact
 .import _frame_horizontal  
 .import _frame_color  
 For example to change the lower left corner to a rounded one, add  
+  .import _frame_lower_left  
 poke _frame_lower_left,74  
 
 **Notes:**
@@ -1058,7 +1116,9 @@ Switches the Kernal chrout vector to a routine that prints within a window
 The page of the textscreen (stored in $288 / 648) is used to determine the output screen, but if you change the screen page, enable_chrout2window needs to be called again.  
 Limitations: no backspace, no insert  
 Window parameters:  
+.import _window_x1,_window_y1,_window_x2,_window_y2  
 For example to set a window starting on column 5, write  
+  .import _window_x1  
 poke _window_x1,5  
 
 **Notes:**
@@ -1266,7 +1326,14 @@ These tables are referenced by other matrix macros, for example, get_matrix_elem
 
 ### `memcopy`
 
-**Syntax:** `memcopy src_addr,target_addr,length`
+**Syntax:**
+
+```
+memcopy src_addr,target_addr,length
+memcopy_from [AX|addr]
+memcopy_to   [AX|addr]
+memcopy [AX|length]
+```
 
 Copies the memory area src_addr to src_addr+length over target_addr  
 If the areas are overlapping, then target_addr must be < src_addr  
@@ -1286,7 +1353,14 @@ This macro is interrupt-safe and can be used concurrently in both the main progr
 
 ### `memswap`
 
-**Syntax:** `memswap src_addr,target_addr,length`
+**Syntax:**
+
+```
+memswap src_addr,target_addr,length
+memswap_from [AX|addr]
+memswap_to [AX|addr]
+memswap [AX|length]
+```
 
 Swaps length bytes of memory starting at src_addr and target_addr, respectively.  
 Areas must not overlap.  
@@ -1529,6 +1603,7 @@ Function is independent of the Kernal keyboard routine
 
 Checks the keyboard for keypresses of W, A ,S, D and Space  
 Output is a byte in A in the same format as a joystick value  
+readWASDspace is an alias to read_keys_WASDspace for backwards compatibility  
 Function is independent of the Kernal keyboard routine  
 
 **Returns:** Since movement of joystick 1 disturbs the reading, no keys are returned if joystick 1 is moved in any direction
@@ -1712,6 +1787,7 @@ The current and the next two rasterlines must not be badlines
 Uses the double IRQ method with a NOP slide and a conditional jump to eliminate jitter  
 Assembling may fail if the conditional branch goes of a page boundary, enable the option extranops in this case.  
 Minimal example showing a typical usage:  
+init:   set_isr_for_stabilize_raster_cycle  
         set_raster_irq 48,isr  
         rts  
 isr:    poke 1,$35  
@@ -1730,6 +1806,7 @@ Combination of set_irq_for_stabilize_raster_cycle and stabilize_raster_cycle
 This macro is useful when you have your interrupt service routine called via $FFFE/$FFFF  
 The macros are encapsuled into a common scope, so that this macro can be used multiple times.  
 Minimal example showing a typical usage:  
+init:   sei  
         set_raster_irq 48  
         pokew $fffe,isr  
         poke 1,$35  
@@ -1785,6 +1862,14 @@ Application example: str_enc "\x93\x05hello world in white after a clear screen\
 
 Same as str_enc, but the string will be terminated with a 0 byte  
 
+### `swn`
+
+**Syntax:** `swn`
+
+Swaps nibbles, that is exchanges the lower four bits with the upper four bits of the value in the accu.  
+
+**Registers modified: A**
+
 ### `sync_to_rasterline256`
 
 **Syntax:** `sync_to_rasterline256`
@@ -1810,9 +1895,9 @@ Control codes will lead to an arbitrary byte.
 
 **Returns:** If the PETSCII value in A belongs to a printable character, it is converted to the corresponding screencode and returned in A
 
-### `toggle_carry`
+### `toc`
 
-**Syntax:** `toggle_carry`
+**Syntax:** `toc`
 
 Toggles the carry  
 
@@ -1883,36 +1968,7 @@ Function works independly of IRQ routine or ROM
 
 **Syntax:** `wait_key_or_button`
 
-Waits until either a key is pressed or a joystick button is pressed.  
-If either is already pressed, the command continues immediately.  
-Function works independently of IRQ routine or ROM.  
-
-**Registers modified: A**
-
-### `wait_key_or_button_released`
-
-**Syntax:** `wait_key_or_button_released`
-
-Waits until both all keys and joystick buttons are released.  
-If both are already released, the command continues immediately.  
-Function works independently of IRQ routine or ROM.  
-
-**Registers modified: A**
-
-### `wait_key_released`
-
-**Syntax:** `wait_key_released`
-
-Waits until all keys are released. If no key is already pressed, the command continues immediately.  
-Function works independly of IRQ routine  
-
-**Registers modified: A**
-
-### `wait_screen_off`
-
-**Syntax:** `wait_screen_off`
-
-Waits until raster>249 and turns screen off. Since it is necessary to write to $D011 to turn the screen off, we cannot avoid setting the high bit.  
+Waits until either a key is pressed or a joystick button is preWaits until raster>249 and turns screen off. Since it is necessary to write to $D011 to turn the screen off, we cannot avoid setting the high bit.  
 The function always sets a 0 as high bit to avoid an unreachable raster irq line.  
 
 ## String Routines
@@ -1979,7 +2035,47 @@ I/O must be enabled for this macro to work
 **Syntax:** `shadowIRQ off|on`
 
 screen. It further handles the BASIC commands SOUND, PLAY, and SPRITE. To  
-avoid this, the macro  shadowIRQ off puts a 0 into memory address $0A04, ### `enableXexpandSprite`
+avoid this, the macro  shadowIRQ off puts a 0 into memory address $0A04,   
+telling the Kernal that BASIC has not been initialized yet.  
+Cutting the IRQ routine provides a speed gain of about 2.5%  
+
+**Registers modified: A**
+
+## Other Macros
+
+### `disableMultiColorSprite`
+
+**Syntax:** `disableMultiColorSprite n`
+
+Disable multicolor mode for sprite n  
+
+**Registers modified: A**
+
+### `disableXexpandSprite`
+
+**Syntax:** `disableXexpandSprite n`
+
+Disable horizontal expansion for sprite n  
+
+**Registers modified: A**
+
+### `disableYexpandSprite`
+
+**Syntax:** `disableYexpandSprite n`
+
+Disable vertical expansion for sprite n  
+
+**Registers modified: A**
+
+### `enableMultiColorSprite`
+
+**Syntax:** `enableMultiColorSprite n`
+
+Enable multicolor mode for sprite n  
+
+**Registers modified: A**
+
+### `enableXexpandSprite`
 
 **Syntax:** `enableXexpandSprite n`
 
