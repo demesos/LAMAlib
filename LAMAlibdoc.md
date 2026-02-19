@@ -16,6 +16,7 @@
   - [mousedriver](#mousedriver)
   - [PETSCII decode and display](#petscii-decode-and-display)
   - [polychars](#polychars)
+  - [Sprite Multiplexer with Overlay Support](#sprite-multiplexer-with-overlay-support)
 
 
 Version: 0.37  
@@ -1966,9 +1967,7 @@ Function works independly of IRQ routine or ROM
 
 ### `wait_key_or_button`
 
-**Syntax:** `wait_key_or_button`
-
-Waits until either a key is pressed or a joystick button is preWaits until raster>249 and turns screen off. Since it is necessary to write to $D011 to turn the screen off, we cannot avoid setting the high bit.  
+**Syntax:*Waits until raster>249 and turns screen off. Since it is necessary to write to $D011 to turn the screen off, we cannot avoid setting the high bit.  
 The function always sets a 0 as high bit to avoid an unreachable raster irq line.  
 
 ## String Routines
@@ -2431,6 +2430,70 @@ TABLES=$9800
 In this case you can only use the chrout on one of the modules at the same time
 you need to add a rasterline interrupt that switches between the two SCREEN_ADDR and SCREEN_ADDR
 by modifying VIC register $d018
+```
+
+---
+
+## Sprite Multiplexer with Overlay Support
+
+**Version:** 2.1  
+**Author:** Wil  
+
+Raster-IRQ sprite multiplexer supporting up to 24 logical sprites
+using only 8 hardware sprites. Includes Y-priority depth sorting,
+optional two-layer overlay sprites for extra colors, and a grounded
+sprite mode for platformers.
+Sprite visibility convention: msprite_y = 0 means hidden.
+Use showSprite/hideSprite macros to show/hide sprites safely.
+
+**Features:**
+- Up to 24 multiplexed sprites with Y-priority depth sorting
+- Overlay support: two hardware sprites per logical sprite for extra colors
+- Grounded sprite: one sprite always rendered behind overlapping others
+- updateSpriteAttributes: reads color/overlay from sprite data automatically
+- PRE_ROUTINE hook: called at raster start (before sort), ideal for music
+- POST_ROUTINE hook: called after all sprites drawn, ideal for game logic
+- Zero page or normal RAM for sprite Y array (configurable)
+- Debug mode: border color shows raster budget consumption
+
+**Configuration Parameters:**
+
+| Parameter | Default | Required | Description |
+|-----------|---------|----------|-------------|
+| `MAXSPRITES` | — | ✓ | Required - no default |
+| `ENABLE_OVERLAY` | `1` |  |  |
+| `ENABLE_YPRIORITY` | `1` |  |  |
+| `ENABLE_GROUNDED` | `1` |  |  |
+| `ENABLE_UPDATE_ATTRIBUTES` | `1` |  |  |
+| `SPRITES_UNDER_ROM` | `0` |  | 1 = sprite data is beneath ROM ($A000-$FFFF) |
+| `PRE_ROUTINE` | `0` |  |  |
+| `POST_ROUTINE` | `0` |  |  |
+| `SPRMUX_NO_ZP` | `0` |  |  |
+| `RASTERLINE_START` | `262` |  |  |
+| `DEBUG_RASTER_TIME` | `0` |  |  |
+
+**Usage:**
+
+```assembly
+.scope Sprite Multiplexer with Overlay Support
+  ; Set required parameters
+  MAXSPRITES=value
+  .include "modules/m_sprmultiplexer.s"
+.endscope
+
+m_init Sprite Multiplexer with Overlay Support
+```
+
+**API:**
+
+```
+Include LAMAlib-muplex-sprites.inc for the sprite macros.
+Macros are compatible with LAMAlib-sprites.inc naming.
+setSpriteX 0, 100
+setSpriteY 0, 100
+setSpriteCostume 0, 128
+setSpriteColor 0, 2
+showSprite 0
 ```
 
 ---
