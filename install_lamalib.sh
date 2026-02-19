@@ -61,7 +61,8 @@ popd
 echo Installing library into $installdir
 
 install -m 644 LAMAlib*.inc "$installdir/asminc/"
-install -m 755 -D modules "$installdir/asminc/"
+mkdir -p "$installdir/asminc/modules"
+install -m 644 modules/* "$installdir/asminc/modules/"
 install -m 644 LAMAlib*.lib "$installdir/lib/"
 install -m 644 LAMAlib128.lib "$installdir/lib/"
 install -m 644 LAMAlib20.lib "$installdir/lib/"
