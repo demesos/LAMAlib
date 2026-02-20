@@ -1,11 +1,11 @@
 ;***********************************************************************
 ;* Module: Sprite Multiplexer with Overlay Support
-;* Version 2.1
+;* Version 2.2
 ;* by Wil
-;* Date: 2026-02-19
+;* Date: 2026-02-20
 ;*
 ;* Purpose:
-;* Raster-IRQ sprite multiplexer supporting up to 24 logical sprites
+;* Raster-IRQ sprite multiplexer supporting 24+ logical sprites
 ;* using only 8 hardware sprites. Includes Y-priority depth sorting,
 ;* optional two-layer overlay sprites for extra colors, and a grounded
 ;* sprite mode for platformers.
@@ -14,7 +14,8 @@
 ;* Use showSprite/hideSprite macros to show/hide sprites safely.
 ;*
 ;* Features:
-;* - Up to 24 multiplexed sprites with Y-priority depth sorting
+;* - Configurable number of multiplexed sprites
+;* - feature for Y-priority depth sorting
 ;* - Overlay support: two hardware sprites per logical sprite for extra colors
 ;* - Grounded sprite: one sprite always rendered behind overlapping others
 ;* - updateSpriteAttributes: reads color/overlay from sprite data automatically
@@ -61,28 +62,24 @@
 ;***********************************************************************
 ;* parameters - can be overwritten from main
 
-def_const MAXSPRITES  ; Required - no default
+def_const MAXSPRITES,16			; maximum number depends on enabled features, CPU load, and available zero page memory)
 
-def_const ENABLE_OVERLAY,1
-def_const ENABLE_YPRIORITY,1
-def_const ENABLE_GROUNDED,1
-def_const ENABLE_UPDATE_ATTRIBUTES,1
-def_const SPRITES_UNDER_ROM,0          ; 1 = sprite data is beneath ROM ($A000-$FFFF)
+def_const ENABLE_OVERLAY,1		; automatically puts a second sprite on top when overlay flag is set for this sprite
+def_const ENABLE_YPRIORITY,1            ; prioritizes sprites with a higher Y coordinate in front.
+def_const ENABLE_GROUNDED,1             ; allows the selection of a single sprite to be rendered behind others (like an object on the ground). Only to be used with YPRIORITY
+def_const ENABLE_UPDATE_ATTRIBUTES,1	; adds a routine to automatically detect color, multicolor mode and overlay from the 64th byte of the sprite data
+def_const SPRITES_UNDER_ROM,0           ; set to 1 to support reading sprite data beneath ROM
 
-def_const PRE_ROUTINE,0
-def_const POST_ROUTINE,0
+def_const PRE_ROUTINE,0			; set an address of a routine to be called before the multiplexer starts. Routine must end with an RTS
+def_const POST_ROUTINE,0		; set an address of a routine to be called after the multiplexing is done. Routine must end with a JMP $EA81 or similar
 
-def_const SPRMUX_NO_ZP,0
+def_const SPRMUX_NO_ZP,0		; set to 1 to avoid usage of zero page memory. Makes the code less performant.
 
-def_const RASTERLINE_START,262
-def_const DEBUG_RASTER_TIME,0
+def_const RASTERLINE_START,262		; rasterline at which the multiplexer should start its preparations
+def_const DEBUG_RASTER_TIME,0		; enable to show fram border color changes when the multiplexer is active
 
 ;***********************************************************************
 ;* Parameter validation
-
-.if MAXSPRITES < 2 || MAXSPRITES > 24
-    .error "MAXSPRITES must be between 2 and 24"
-.endif
 
 .if ENABLE_GROUNDED
   .if .not ENABLE_YPRIORITY
@@ -238,7 +235,7 @@ skip_sprites_with_y_coord_0:
 
 found_sprite_to_display:
         stx nextspr_idx
-        pokew $314,multiplexer_nextspr
+        pokew $314,multiplexer_nextspr_isr
 
 .if ENABLE_YPRIORITY
         ; =====================================================================
@@ -530,6 +527,11 @@ recover_border_color=*+1
 ;***********************************************************************
 ;* multiplexer_nextspr - Display next sprite
 
+multiplexer_nextspr_isr:
+.if DEBUG_RASTER_TIME
+	inc $d020
+.endif
+
 multiplexer_nextspr: ;entry point for isr and loop for multiplexed sprites
 
 nextspr_idx=*+1
@@ -567,6 +569,9 @@ nextspr_idx_set:
         cmp #3
         if cs
             asl $d019             ;acknowledge raster interrupt
+.if DEBUG_RASTER_TIME
+	    dec $d020
+.endif
             jmp $ea81
         endif
         ;less than three rasterlines until planned IRQ
@@ -592,6 +597,9 @@ ldmax=*+1
         cmp #3
         if pl
             asl $d019             ;acknowledge raster interrupt
+.if DEBUG_RASTER_TIME
+	    dec $d020
+.endif
             jmp $ea81
         endif
         restore A
@@ -736,6 +744,10 @@ sprites_done:
 
 multiplexing_done:
         asl $d019       ;acknowlegde raster interrupt
+
+.if DEBUG_RASTER_TIME
+	dec $d020
+.endif
 
 .if POST_ROUTINE
 	jmp POST_ROUTINE
