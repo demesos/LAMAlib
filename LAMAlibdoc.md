@@ -2436,10 +2436,10 @@ by modifying VIC register $d018
 
 ## Sprite Multiplexer with Overlay Support
 
-**Version:** 2.1  
+**Version:** 2.2  
 **Author:** Wil  
 
-Raster-IRQ sprite multiplexer supporting up to 24 logical sprites
+Raster-IRQ sprite multiplexer supporting 24+ logical sprites
 using only 8 hardware sprites. Includes Y-priority depth sorting,
 optional two-layer overlay sprites for extra colors, and a grounded
 sprite mode for platformers.
@@ -2447,7 +2447,8 @@ Sprite visibility convention: msprite_y = 0 means hidden.
 Use showSprite/hideSprite macros to show/hide sprites safely.
 
 **Features:**
-- Up to 24 multiplexed sprites with Y-priority depth sorting
+- Configurable number of multiplexed sprites
+- feature for Y-priority depth sorting
 - Overlay support: two hardware sprites per logical sprite for extra colors
 - Grounded sprite: one sprite always rendered behind overlapping others
 - updateSpriteAttributes: reads color/overlay from sprite data automatically
@@ -2460,24 +2461,22 @@ Use showSprite/hideSprite macros to show/hide sprites safely.
 
 | Parameter | Default | Required | Description |
 |-----------|---------|----------|-------------|
-| `MAXSPRITES` | — | ✓ | Required - no default |
-| `ENABLE_OVERLAY` | `1` |  |  |
-| `ENABLE_YPRIORITY` | `1` |  |  |
-| `ENABLE_GROUNDED` | `1` |  |  |
-| `ENABLE_UPDATE_ATTRIBUTES` | `1` |  |  |
-| `SPRITES_UNDER_ROM` | `0` |  | 1 = sprite data is beneath ROM ($A000-$FFFF) |
-| `PRE_ROUTINE` | `0` |  |  |
-| `POST_ROUTINE` | `0` |  |  |
-| `SPRMUX_NO_ZP` | `0` |  |  |
-| `RASTERLINE_START` | `262` |  |  |
-| `DEBUG_RASTER_TIME` | `0` |  |  |
+| `MAXSPRITES` | `16` |  | maximum number depends on enabled features, CPU load, and available zero page memory) |
+| `ENABLE_OVERLAY` | `1` |  | automatically puts a second sprite on top when overlay flag is set for this sprite |
+| `ENABLE_YPRIORITY` | `1` |  | prioritizes sprites with a higher Y coordinate in front. |
+| `ENABLE_GROUNDED` | `1` |  | allows the selection of a single sprite to be rendered behind others (like an object on the ground). Only to be used with YPRIORITY |
+| `ENABLE_UPDATE_ATTRIBUTES` | `1` |  | adds a routine to automatically detect color, multicolor mode and overlay from the 64th byte of the sprite data |
+| `SPRITES_UNDER_ROM` | `0` |  | set to 1 to support reading sprite data beneath ROM |
+| `PRE_ROUTINE` | `0` |  | set an address of a routine to be called before the multiplexer starts. Routine must end with an RTS |
+| `POST_ROUTINE` | `0` |  | set an address of a routine to be called after the multiplexing is done. Routine must end with a JMP $EA81 or similar |
+| `SPRMUX_NO_ZP` | `0` |  | set to 1 to avoid usage of zero page memory. Makes the code less performant. |
+| `RASTERLINE_START` | `262` |  | rasterline at which the multiplexer should start its preparations |
+| `DEBUG_RASTER_TIME` | `0` |  | enable to show fram border color changes when the multiplexer is active |
 
 **Usage:**
 
 ```assembly
 .scope Sprite Multiplexer with Overlay Support
-  ; Set required parameters
-  MAXSPRITES=value
   .include "modules/m_sprmultiplexer.s"
 .endscope
 
