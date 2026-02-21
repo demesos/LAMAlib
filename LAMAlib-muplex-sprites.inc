@@ -952,7 +952,7 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 ;; Update sprite n's attributes (requires ENABLE_UPDATE_ATTRIBUTES=1 in module)
 ;; n can be: constant, A, X, or Y
 ;; Pass sprite number in A register to the routine
-;; Registers modified: A
+;; Registers modified: A, X, Y
 .macro updateSpriteAttributes n
   .import _sprmultiplexer_UpdateSpriteAttributes
   .if (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
