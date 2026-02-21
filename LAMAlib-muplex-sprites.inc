@@ -2,7 +2,7 @@
 ;* LAMAlib-muplex-sprites.inc
 ;* Sprite Multiplexer Macros
 ;* by Wil
-;* Version 2.2
+;* Version 2.3
 ;*
 ;* Macro interface for the m_sprmultiplexer module.
 ;* Drop-in replacement for LAMAlib-sprites.inc when using the multiplexer:
@@ -10,6 +10,11 @@
 
 .ifndef LAMALIB_MUPLEX_SPRITES_INC
 LAMALIB_MUPLEX_SPRITES_INC = 1
+
+;if user has a shadow VIC configuration, the alternative VIC address needs to be set before including this file
+.ifndef VIC_BASE
+    VIC_BASE = $D000
+.endif
 
 ; Import symbols from multiplexer module
 ; Conditional import based on whether Y array is in zero page
@@ -177,26 +182,29 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
   .else
     ; Sprite number is constant - use absolute addressing
     .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
-      asl
-      bit _msprite_col_ov+n
-      ror
+      sta :+ +1
+      lda _msprite_col_ov+n
+      and #$80
+:     ora #$42
       sta _msprite_col_ov+n
     .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
       txa
-      asl
-      bit _msprite_col_ov+n
-      ror
+      sta :+ +1
+      lda _msprite_col_ov+n
+      and #$80
+:     ora #$42
       sta _msprite_col_ov+n
     .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
       tya
-      asl
-      bit _msprite_col_ov+n
-      ror
+      sta :+ +1
+      lda _msprite_col_ov+n
+      and #$80
+:     ora #$42
       sta _msprite_col_ov+n
     .else
-      lda #2*arg
-      bit _msprite_col_ov+n
-      ror
+      lda _msprite_col_ov+n
+      and #$80
+      ora #arg
       sta _msprite_col_ov+n
     .endif
   .endif
@@ -217,6 +225,10 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
     .elseif (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
       lda _msprite_col_ov,x
       and #$7f
+    .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
+      lda _msprite_col_ov,x
+      and #$7f
+      tax
     .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
       lda _msprite_col_ov,x
       and #$7f
@@ -236,8 +248,12 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
       lda _msprite_col_ov,y
       and #$7f
       tax
+    .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
+      lda _msprite_col_ov,y
+      and #$7f
+      tay
     .else
-      .error "getSpriteColor: register must be A or X when sprite number is in Y"
+      .error "getSpriteColor: register must be A, X or Y when sprite number is in Y"
     .endif
   .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
     ; Sprite number in A register
@@ -435,6 +451,9 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
     ; Sprite number in X register
     .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
       sta _msprite_costume_ov,x
+    .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
+      txa
+      sta _msprite_costume_ov,x
     .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
       tya
       sta _msprite_costume_ov,x
@@ -449,6 +468,9 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
     .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
       txa
       sta _msprite_costume_ov,y
+    .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
+      tya
+      sta _msprite_costume_ov,y
     .else
       lda #arg
       sta _msprite_costume_ov,y
@@ -456,7 +478,9 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
   .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
     ; Sprite number in A register
     .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
-      .error "setSpriteCostume: cannot use A for both sprite number and costume"
+      ; sprite# == costume value: A serves both roles
+      tax
+      sta _msprite_costume_ov,x
     .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
       ; Swap: sprite# in A, costume in X
       tay
@@ -500,6 +524,9 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
       lda _msprite_costume_ov,x
     .elseif (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
       lda _msprite_costume_ov,x
+    .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
+      lda _msprite_costume_ov,x
+      tax
     .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
       lda _msprite_costume_ov,x
       tay
@@ -515,6 +542,9 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
     .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
       lda _msprite_costume_ov,y
       tax
+    .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
+      lda _msprite_costume_ov,y
+      tay
     .else
       .error "getSpriteCostume: register must be A or X when sprite number is in Y"
     .endif
@@ -569,7 +599,6 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
     ; Sprite number in Y register
     .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
       ; AX register pair (A=low, X=high)
-      ; Need workaround since stx doesn't support absolute,y
       sta _msprite_x_ov,y
       txa
       sta _msprite_x_hi_ov,y
@@ -589,7 +618,12 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
   .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
     ; Sprite number in X register
     .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
-      .error "setSpriteX: sprite number cannot be in X when arg is AX (X conflict)"
+      ; cpx #1 sets carry iff X>=1 (hi byte nonzero), X free for the store after
+      cpx #1
+      sta _msprite_x_ov,x
+      lda #0
+      rol
+      sta _msprite_x_hi_ov,x
     .elseif (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
       ; A register with carry as bit 8
       sta _msprite_x_ov,x
@@ -604,7 +638,44 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
       sta _msprite_x_hi_ov,x
     .endif
   .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
-    .error "setSpriteX: sprite number cannot be in A register (conflicts with position argument)"
+    ; Sprite number in A register - move to Y, arg in A or X is safe
+    .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
+      ; A=lo, X=hi: save lo, move sprite# to Y
+      tay
+      sta _msprite_x_ov,y
+      txa 
+      sta _msprite_x_hi_ov,y
+    .elseif (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
+      ; A=lo, carry=bit8, sprite# also in A: same value, coord lo = sprite#
+      tay
+      sta _msprite_x_ov,y
+      lda #0
+      rol
+      sta _msprite_x_hi_ov,y
+    .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
+      ; sprite# in A, coord lo in X (carry=bit8)
+      tay
+      txa
+      sta _msprite_x_ov,y
+      lda #0
+      rol
+      sta _msprite_x_hi_ov,y
+    .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
+      ; sprite# in A, coord lo in Y (carry=bit8)
+      tax
+      tya
+      sta _msprite_x_ov,x
+      lda #0
+      rol
+      sta _msprite_x_hi_ov,x
+    .else
+      ; Constant 16-bit value, sprite# in A
+      tay
+      lda #<arg
+      sta _msprite_x_ov,y
+      lda #>arg
+      sta _msprite_x_hi_ov,y
+    .endif
   .else
     ; Sprite number is constant
     .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
@@ -639,6 +710,10 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
     .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
       sta _msprite_y_ov,x
       sta _msprite_y_shadow,x
+    .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
+      txa
+      sta _msprite_y_ov,x
+      sta _msprite_y_shadow,x
     .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
       tya
       sta _msprite_y_ov,x
@@ -657,6 +732,10 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
       txa
       sta _msprite_y_ov,y
       sta _msprite_y_shadow,y
+    .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
+      tya
+      sta _msprite_y_ov,y
+      sta _msprite_y_shadow,y
     .else
       lda #arg
       sta _msprite_y_ov,y
@@ -664,7 +743,11 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
     .endif
   .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
     ; Sprite number in A register
-    .if (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
+    .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
+      tax
+      sta _msprite_y_ov,x
+      sta _msprite_y_shadow,x
+    .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
       ; Swap: sprite# in A, Y pos in X
       tay
       txa
@@ -710,18 +793,15 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 .macro getSpriteX n, reg
   .if (.xmatch ({reg}, {AX}) .or .xmatch ({reg}, {ax}))
     .if (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
-      ; Sprite number in X - need to preserve sprite# and get both values
-      ; Read with race protection, result in AX
-:     lda _msprite_x_ov,x
-      ldy _msprite_x_hi_ov,x
-      cmp _msprite_x_ov,x
-      bne :-
-      ; Now A=low, Y=high, move Y to X
-      pha
-      tya
+      ; Sprite number in X - move to Y, then use n=Y path (no stack needed)
+      txa
+      tay
+:     lda _msprite_x_hi_ov,y
       tax
-      pla
-      ; Now A=low, X=high
+      lda _msprite_x_ov,y
+      cmp _msprite_x_ov,y
+      bne :-
+      ; A=lo, X=hi
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
       ; Sprite number in Y
       ; Note: cpx abs,y is illegal on 6502, use lda+cmp for race check
@@ -764,11 +844,14 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
     ; Sprite number in X register
     .if (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
       lda _msprite_y_shadow,x
+    .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
+      lda _msprite_y_shadow,x
+      tax
     .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
       lda _msprite_y_shadow,x
       tay
     .else
-      .error "getSpriteY: register must be A or Y when sprite number is in X"
+      .error "getSpriteY: register must be A, X or Y when sprite number is in X"
     .endif
   .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
     ; Sprite number in Y register
@@ -815,7 +898,7 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 
 ;; setSpriteXY n, xpos, ypos
 ;; Set both X and Y position of sprite n
-;; n can be: constant, Y (sprite number) - NOT A or X
+;; n can be: constant, A, X, Y
 ;; xpos can be: 16-bit immediate value, AX, or A (with carry)
 ;; ypos can be: immediate value, A, X, or Y
 ;; Registers modified: A, potentially X or Y depending on arguments
@@ -825,9 +908,7 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 .endmacro
 
 ;***********************************************************************
-;* Overlay sprite macros (if enabled)
-
-.ifdef _msprite_col_overlay_ov
+;* Overlay sprite macros
 
 ;; setOverlayColor n, color
 ;; Set overlay color for sprite n (enables overlay mode)
@@ -911,12 +992,8 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
   .endif
 .endmacro
 
-.endif
-
 ;***********************************************************************
-;* Grounded sprite macros (if enabled)
-
-.ifdef _msprite_grounded_ov
+;* Grounded sprite macros
 
 ;; setGroundedSprite n
 ;; Mark sprite n as grounded (always below others)
@@ -942,8 +1019,6 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
   lda #$ff
   sta _msprite_grounded_ov
 .endmacro
-
-.endif
 
 ;***********************************************************************
 ;* Optional feature macros
