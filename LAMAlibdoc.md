@@ -9,6 +9,21 @@
   - [String Routines](#string-routines)
   - [Interacting with BASIC](#interacting-with-basic)
   - [Special Macros for C128 in C128 Mode](#special-macros-for-c128-in-c128-mode)
+- [Sprite Macros (Direct VIC)](#sprite-macros-direct-vic)
+  - [Visibility](#visibility)
+  - [Attributes](#attributes)
+  - [Color](#color)
+  - [Costume](#costume)
+  - [Position](#position)
+- [Sprite Macros (Multiplexer)](#sprite-macros-multiplexer)
+  - [Visibility](#visibility)
+  - [Color](#color)
+  - [Costume](#costume)
+  - [Position](#position)
+  - [Overlay Sprites](#overlay-sprites)
+  - [Grounded Sprites](#grounded-sprites)
+  - [Optional Features](#optional-features)
+  - [VIC Register Batch Macros](#vic-register-batch-macros)
 - [Modules](#modules)
   - [bigcharout](#bigcharout)
   - [copycharset](#copycharset)
@@ -1968,7 +1983,36 @@ Function works independly of IRQ routine or ROM
 
 **Syntax:** `wait_key_or_button`
 
-Waits untWaits until raster>249 and turns screen off. Since it is necessary to write to $D011 to turn the screen off, we cannot avoid setting the high bit.  
+Waits until either a key is pressed or a joystick button is pressed.  
+If either is already pressed, the command continues immediately.  
+Function works independently of IRQ routine or ROM.  
+
+**Registers modified: A**
+
+### `wait_key_or_button_released`
+
+**Syntax:** `wait_key_or_button_released`
+
+Waits until both all keys and joystick buttons are released.  
+If both are already released, the command continues immediately.  
+Function works independently of IRQ routine or ROM.  
+
+**Registers modified: A**
+
+### `wait_key_released`
+
+**Syntax:** `wait_key_released`
+
+Waits until all keys are released. If no key is already pressed, the command continues immediately.  
+Function works independly of IRQ routine  
+
+**Registers modified: A**
+
+### `wait_screen_off`
+
+**Syntax:** `wait_screen_off`
+
+Waits until raster>249 and turns screen off. Since it is necessary to write to $D011 to turn the screen off, we cannot avoid setting the high bit.  
 The function always sets a 0 as high bit to avoid an unreachable raster irq line.  
 
 ## String Routines
@@ -2044,55 +2088,534 @@ Cutting the IRQ routine provides a speed gain of about 2.5%
 
 ---
 
-# Modules
+# Sprite Macros (Direct VIC)
 
-LAMAlib modules are reusable, configurable components that can be included in your programs. Each module is configured using `def_const` parameters and included within a scope.
+Assembler macros to control VIC sprites directly (no multiplexing).  
+Include separately with:  
+.include "LAMAlib-sprites.inc"  
+Version 2.4, February 2026  
 
-## bigcharout
+## Visibility
 
-**Version:** 0.2  
-**Author:** a screen character (default: space ;* for 0, reverse space for 1).  
+showSprite n  
+n can be: constant, A, X, Y, or "all"  
+Registers modified: A (always); X when n=A or n=Y  
 
-**Configuration Parameters:**
+### `hideSprite`
 
-| Parameter | Default | Required | Description |
-|-----------|---------|----------|-------------|
-| `CHARSET_BASE` | `$3800` |  |  |
-| `SCREEN_WIDTH` | `40` |  |  |
-| `SET_PIXEL` | `160` |  | character to be used when a pixel is set, as screencode |
-| `EMPTY_PIXEL` | `32` |  | character to be used when a pixel is empty, as screencode |
-| `COLOR_SUPPORT` | `1` |  |  |
-| `END_OF_SCREEN_CHECK` | `1` |  |  |
+**Syntax:** `hideSprite n`
 
-**Usage:**
+Hide sprite n  
+n can be: constant, A, X, Y, or "all"  
+Sprite attribute flags: multicolor mode, size expansion, display priority.  
+enableMultiColorSprite n  
+n can be: constant, A, X, Y, or "all"  
 
-```assembly
-.scope bigcharout
-  .include "modules/m_bigcharout.s"
-.endscope
+**Registers modified: A (always); X when n=A or n=Y**
 
-m_init bigcharout
-m_run bigcharout
-```
+## Attributes
+
+### `disableMultiColorSprite`
+
+**Syntax:** `disableMultiColorSprite n`
+
+Disable multicolor mode for sprite n  
+n can be: constant, A, X, Y, or "all"  
+
+**Registers modified: A (always); X when n=A or n=Y**
+
+### `disableXexpandSprite`
+
+**Syntax:** `disableXexpandSprite n`
+
+Disable horizontal expansion for sprite n  
+n can be: constant, A, X, Y, or "all"  
+
+**Registers modified: A (always); X when n=A or n=Y**
+
+### `disableYexpandSprite`
+
+**Syntax:** `disableYexpandSprite n`
+
+Disable vertical expansion for sprite n  
+n can be: constant, A, X, Y, or "all"  
+
+**Registers modified: A (always); X when n=A or n=Y**
+
+### `enableXexpandSprite`
+
+**Syntax:** `enableXexpandSprite n`
+
+Enable horizontal expansion for sprite n  
+n can be: constant, A, X, Y, or "all"  
+
+**Registers modified: A (always); X when n=A or n=Y**
+
+### `enableYexpandSprite`
+
+**Syntax:** `enableYexpandSprite n`
+
+Enable vertical expansion for sprite n  
+n can be: constant, A, X, Y, or "all"  
+
+**Registers modified: A (always); X when n=A or n=Y**
+
+### `spriteBeforeBackground`
+
+**Syntax:** `spriteBeforeBackground n`
+
+Make sprite n appear in front of the background  
+n can be: constant, A, X, Y, or "all"  
+
+**Registers modified: A (always); X when n=A or n=Y**
+
+### `spriteBehindBackground`
+
+**Syntax:** `spriteBehindBackground n`
+
+Make sprite n appear behind the background  
+n can be: constant, A, X, Y, or "all"  
+setSpriteColor n, arg  
+n can be: constant, A, X, Y  
+arg can be: A, X, Y, or constant  
+
+**Registers modified: depends on n and arg (see cases below)**
+
+## Color
+
+### `getSpriteColor`
+
+**Syntax:** `getSpriteColor n, reg`
+
+n can be: constant, A, X, Y  
+**Alternate:** `reg can be: A, X, Y (defaults to A)`
+
+
+**Registers modified: reg (and clobbers an index reg when n is A/X/Y)**
+
+### `getSpriteMultiColor1`
+
+**Syntax:** `getSpriteMultiColor1 reg`
+
+**Alternate:** `reg can be: A, X, Y (defaults to A)`
+
+
+**Registers modified: A, X, or Y (depending on reg)**
+
+### `getSpriteMultiColor2`
+
+**Syntax:** `getSpriteMultiColor2 reg`
+
+**Alternate:** `reg can be: A, X, Y (defaults to A)`
+
+**Alternate:** `Sprite costume (shape) selection.`
+
+setSpriteCostume n, arg  
+If arg is a value > 255, interpreted as the absolute address of the sprite data  
+**Alternate:** `(needs to align to a 64 byte block)`
+
+n can be: constant, A, X, Y  
+arg can be: A, X, Y, or constant  
+
+**Registers modified: depends on n and arg (see cases below)**
+
+### `setSpriteMultiColor1`
+
+**Syntax:** `setSpriteMultiColor1 arg`
+
+Set the first multicolor for sprites  
+arg can be: A, X, Y, or constant  
+
+**Registers modified: A (or specified register)**
+
+### `setSpriteMultiColor2`
+
+**Syntax:** `setSpriteMultiColor2 arg`
+
+Set the second multicolor for sprites  
+arg can be: A, X, Y, or constant  
+
+**Registers modified: A (or specified register)**
+
+## Costume
+
+### `getSpriteCostume`
+
+**Syntax:** `getSpriteCostume n, reg`
+
+n can be: constant, A, X, Y  
+**Alternate:** `reg can be: A, X, Y (defaults to A)`
+
+Sprite position read/write macros.  
+setSpriteX n, arg  
+n can be: constant, A, X, Y  
+arg can be: AX (A=low byte, X=high byte),  
+A  (carry flag = bit 8 of X coordinate),  
+or 16-bit constant  
+
+**Registers modified: A if n is constant, otherwise clobbers the other index register**
+
+## Position
+
+### `getSpriteX`
+
+**Syntax:** `getSpriteX n, reg`
+
+Get the X position of sprite n  
+n can be: constant, X, Y, A  
+reg must be: AX (A=low byte, X=high byte / bit 8)  
+
+**Registers modified: A, X; Y when n=Y**
+
+### `getSpriteY`
+
+**Syntax:** `getSpriteY n, reg`
+
+n can be: constant, A, X, Y  
+reg can be: A, X, Y  
+
+**Registers modified: see cases; always clobbers at least one index reg when n is runtime**
+
+### `setSpriteXY`
+
+**Syntax:** `setSpriteXY n, xpos, ypos`
+
+Set the X and Y positions of sprite n  
+n can be: constant, A, X, Y (delegates to setSpriteX / setSpriteY)  
+xpos: see setSpriteX  
+ypos: see setSpriteY  
+
+**Registers modified: A, X, Y**
+
+### `setSpriteY`
+
+**Syntax:** `setSpriteY n, arg`
+
+Set the Y position of sprite n  
+n can be: constant  
+arg can be: A, X, Y, or constant  
+
+**Registers modified: none if n is constant, otherwise clobbers the other index register**
+
+### `updateSpriteAttributes`
+
+**Syntax:** `updateSpriteAttributes n`
+
+Update sprite n's attributes  
+n can be: constant, A, X, or Y  
+
+**Registers modified: A, X, Y**
+
 
 ---
 
-## copycharset
+# Sprite Macros (Multiplexer)
 
-**Version:** 0.2  
-**Author:** Wil  
+Macro interface for the m_sprmultiplexer module.  
+Drop-in replacement for LAMAlib-sprites.inc when using the multiplexer:  
+same macro names and calling conventions.  
+Include separately (after configuring and including the m_sprmultiplexer module) with:  
+.include "LAMAlib-muplex-sprites.inc"  
+Version 2.3  
 
-**Configuration Parameters:**
+## Visibility
 
-| Parameter | Default | Required | Description |
-|-----------|---------|----------|-------------|
-| `CHARSET_SRC` | `$D000` |  | use $d800 to copy from upper/lower charset |
-| `CHARSET_BASE` | `$3800` |  |  |
-| `CHARSET_LENGTH` | `$800` |  |  |
-| `EFFECT` | `0` |  | Effects: 1 italic |
-| `EFFECT_RVS` | `0` |  | if 1 the modified chars will be placed instead of reverse chars |
-| `MATCH_RVS` | `1` |  | match rvs chars |
-| `MEM_CONFIG` | `51` |  | memory configuration ($1 value) during copying |
+Show and hide multiplexer sprites.  
+
+### `hideSprite`
+
+**Syntax:** `hideSprite n`
+
+Hide sprite n by setting Y coordinate to 0  
+n can be a constant, A, X, Y or the string "all" (without quotes)  
+
+**Registers modified: A, when the argument is A or "all" also X is used**
+
+### `showSprite`
+
+**Syntax:** `showSprite n`
+
+Make sprite n visible by copying shadow Y to active Y  
+n can be a constant, A, X, Y or the string "all" (without quotes)  
+
+**Registers modified: A, when the argument is A or "all" also X is used**
+
+## Color
+
+### `disableMultiColorSprite`
+
+**Syntax:** `disableMultiColorSprite n`
+
+Disable multicolor mode for sprite n  
+n can be a constant, A, X, Y or the string "all" (without quotes)  
+
+**Registers modified: A, when the argument is A or "all" also X is used**
+
+### `enableMultiColorSprite`
+
+**Syntax:** `enableMultiColorSprite n`
+
+Enable multicolor mode for sprite n  
+n can be a constant, A, X, Y or the string "all" (without quotes)  
+
+**Registers modified: A, when the argument is A or "all" also X is used**
+
+### `getSpriteColor`
+
+**Syntax:** `getSpriteColor n, reg`
+
+n can be: constant, A, X, or Y (sprite number)  
+
+**Returns:** Returns color without multicolor bit
+
+**Registers modified: A (or specified register)**
+
+### `getSpriteMultiColor1`
+
+**Syntax:** `getSpriteMultiColor1 reg`
+
+Get first shared multicolor  
+reg can be: A, X, or Y (defaults to A if blank)  
+
+**Registers modified: A (or specified register)**
+
+### `getSpriteMultiColor2`
+
+**Syntax:** `getSpriteMultiColor2 reg`
+
+Get second shared multicolor  
+reg can be: A, X, or Y (defaults to A if blank)  
+**Alternate:** `Sprite costume (shape) selection.`
+
+
+**Registers modified: A (or specified register)**
+
+### `setSpriteColor`
+
+**Syntax:** `setSpriteColor n, arg`
+
+Set color for sprite n  
+For multicolor sprites, bit 7 is preserved (multicolor flag)  
+n can be: constant, A, X, or Y (sprite number)  
+arg can be: immediate value, A, X, or Y (color value)  
+
+**Registers modified: A, potentially X or Y depending on arguments**
+
+### `setSpriteMultiColor1`
+
+**Syntax:** `setSpriteMultiColor1 arg`
+
+Set first shared multicolor  
+arg can be: immediate value, A, X, or Y  
+
+**Registers modified: A**
+
+### `setSpriteMultiColor2`
+
+**Syntax:** `setSpriteMultiColor2 arg`
+
+Set second shared multicolor  
+arg can be: immediate value, A, X, or Y  
+
+**Registers modified: A**
+
+## Costume
+
+### `getSpriteCostume`
+
+**Syntax:** `getSpriteCostume n, reg`
+
+Get costume of sprite n  
+n can be: constant, A, X, or Y (sprite number)  
+Sprite position read/write macros.  
+
+**Registers modified: A (or specified register)**
+
+### `setSpriteCostume`
+
+**Syntax:** `setSpriteCostume n, arg`
+
+Set costume (graphic) for sprite n  
+n can be: constant, A, X, or Y (sprite number)  
+arg can be: immediate value, A, X, or Y (costume value)  
+
+**Registers modified: A, potentially X or Y depending on arguments**
+
+## Position
+
+### `getSpriteX`
+
+**Syntax:** `getSpriteX n, reg`
+
+Get X position of sprite n  
+n can be: constant, A, X, or Y (sprite number)  
+reg must be: AX (A=low byte, X=high byte)  
+
+**Registers modified: A, X, Y (when X is used as sprite index)**
+
+### `getSpriteY`
+
+**Syntax:** `getSpriteY n, reg`
+
+Get Y position of sprite n  
+n can be: constant, A, X, or Y (sprite number)  
+
+**Registers modified: A (or specified register)**
+
+**Notes:**
+- Note: when n=X, reg can be A or Y only (X holds sprite index)
+
+### `setSpriteX`
+
+**Syntax:** `setSpriteX n, arg`
+
+**Alternate:** `Set X position (0-511) of sprite n`
+
+n can be: constant, X, Y (sprite number) - NOT A  
+arg can be: 16-bit immediate value, AX, or A (with carry as bit 8)  
+When arg is A: carry flag contains bit 8 of X coordinate  
+When arg is AX: A=low byte, X=high byte, carry is ignored  
+
+**Registers modified: A, potentially X depending on arguments**
+
+**Notes:**
+- Note: n=X with arg=AX is not supported (X conflict)
+
+### `setSpriteXY`
+
+**Syntax:** `setSpriteXY n, xpos, ypos`
+
+Set both X and Y position of sprite n  
+n can be: constant, A, X, Y  
+xpos can be: 16-bit immediate value, AX, or A (with carry)  
+ypos can be: immediate value, A, X, or Y  
+Control overlay sprites (hardware VIC sprites used on top of multiplexed sprites).  
+
+**Registers modified: A, potentially X or Y depending on arguments**
+
+### `setSpriteY`
+
+**Syntax:** `setSpriteY n, arg`
+
+**Alternate:** `Set Y position (0-255) of sprite n`
+
+Updates both active and shadow Y  
+n can be: constant, A, X, or Y (sprite number)  
+arg can be: immediate value, A, X, or Y (Y coordinate value)  
+
+**Registers modified: A, potentially X or Y depending on arguments**
+
+## Overlay Sprites
+
+### `disableOverlay`
+
+**Syntax:** `disableOverlay n`
+
+Disable overlay mode for sprite n  
+n can be: constant, A, X, or Y (sprite number)  
+Sprites locked to the ground plane (fixed Y, scrolling X).  
+
+**Registers modified: A, potentially X depending on argument**
+
+### `setOverlayColor`
+
+**Syntax:** `setOverlayColor n, color`
+
+Set overlay color for sprite n (enables overlay mode)  
+Set to 0 to disable overlay  
+n can be: constant, A, X, or Y (sprite number)  
+color can be: immediate value, A, X, or Y  
+
+**Registers modified: A, potentially X or Y depending on arguments**
+
+## Grounded Sprites
+
+### `setGroundedSprite`
+
+**Syntax:** `setGroundedSprite n`
+
+Mark sprite n as grounded (always below others)  
+n can be: constant, A, X, or Y  
+
+**Registers modified: A**
+
+### `unsetGroundedSprite`
+
+**Syntax:** `unsetGroundedSprite`
+
+Clear grounded sprite flag  
+Macros to enable optional multiplexer capabilities at runtime.  
+
+**Registers modified: A**
+
+## Optional Features
+
+### `updateSpriteAttributes`
+
+**Syntax:** `updateSpriteAttributes n`
+
+Update sprite n's attributes (requires ENABLE_UPDATE_ATTRIBUTES=1 in module)  
+n can be: constant, A, X, or Y  
+since the multiplexer assigns logical-to-hardware sprites dynamically.  
+
+**Registers modified: A, X, Y**
+
+## VIC Register Batch Macros
+
+### `disableXexpandSprite`
+
+**Syntax:** `disableXexpandSprite all`
+
+Disable horizontal doubling for all hardware sprites  
+
+**Registers modified: A**
+
+### `disableYexpandSprite`
+
+**Syntax:** `disableYexpandSprite all`
+
+Disable vertical doubling for all hardware sprites  
+
+**Registers modified: A**
+
+### `enableXexpandSprite`
+
+**Syntax:** `enableXexpandSprite all`
+
+Enable horizontal doubling for all hardware sprites  
+
+**Registers modified: A**
+
+### `enableYexpandSprite`
+
+**Syntax:** `enableYexpandSprite all`
+
+Enable vertical doubling for all hardware sprites  
+
+**Registers modified: A**
+
+### `spriteBeforeBackground`
+
+**Syntax:** `spriteBeforeBackground all`
+
+Place all hardware sprites in front of the background  
+
+**Registers modified: A**
+
+### `spriteBehindBackground`
+
+**Syntax:** `spriteBehindBackground all`
+
+Place all hardware sprites behind the background  
+
+**Registers modified: A**
+
+
+---
+
+# Modules
+
+LAMAlib modules are reusable, configurable components tha| `MEM_CONFIG` | `51` |  | memory configuration ($1 value) during copying |
 
 **Usage:**
 

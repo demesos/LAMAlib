@@ -1,12 +1,11 @@
-;***********************************************************************
-;* LAMAlib-muplex-sprites.inc
-;* Sprite Multiplexer Macros
-;* by Wil
-;* Version 2.3
-;*
-;* Macro interface for the m_sprmultiplexer module.
-;* Drop-in replacement for LAMAlib-sprites.inc when using the multiplexer:
-;* same macro names and calling conventions.
+;; <h1>Sprite Macros (Multiplexer)</h1>
+;; Macro interface for the m_sprmultiplexer module.
+;; Drop-in replacement for LAMAlib-sprites.inc when using the multiplexer:
+;; same macro names and calling conventions.
+;; Include separately (after configuring and including the m_sprmultiplexer module) with:
+;; .include "LAMAlib-muplex-sprites.inc"
+;;
+;; Version 2.3
 
 .ifndef LAMALIB_MUPLEX_SPRITES_INC
 LAMALIB_MUPLEX_SPRITES_INC = 1
@@ -31,7 +30,8 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 .import _msprite_col_ov
 
 ;***********************************************************************
-;* Basic sprite control macros
+;; <h2>Visibility</h2>
+;; Show and hide multiplexer sprites.
 
 ;; showSprite n
 ;; Make sprite n visible by copying shadow Y to active Y
@@ -92,7 +92,8 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 .endmacro
 
 ;***********************************************************************
-;* Sprite color macros
+;; <h2>Color</h2>
+;; Per-sprite color and shared multicolor registers.
 
 ;; setSpriteColor n, arg
 ;; Set color for sprite n
@@ -439,7 +440,8 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 .endmacro
 
 ;***********************************************************************
-;* Sprite costume macros
+;; <h2>Costume</h2>
+;; Sprite costume (shape) selection.
 
 ;; setSpriteCostume n, arg
 ;; Set costume (graphic) for sprite n
@@ -584,7 +586,8 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 .endmacro
 
 ;***********************************************************************
-;* Sprite position macros
+;; <h2>Position</h2>
+;; Sprite position read/write macros.
 
 ;; setSpriteX n, arg
 ;; Set X position (0-511) of sprite n
@@ -908,7 +911,8 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 .endmacro
 
 ;***********************************************************************
-;* Overlay sprite macros
+;; <h2>Overlay Sprites</h2>
+;; Control overlay sprites (hardware VIC sprites used on top of multiplexed sprites).
 
 ;; setOverlayColor n, color
 ;; Set overlay color for sprite n (enables overlay mode)
@@ -993,7 +997,8 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 .endmacro
 
 ;***********************************************************************
-;* Grounded sprite macros
+;; <h2>Grounded Sprites</h2>
+;; Sprites locked to the ground plane (fixed Y, scrolling X).
 
 ;; setGroundedSprite n
 ;; Mark sprite n as grounded (always below others)
@@ -1021,7 +1026,8 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 .endmacro
 
 ;***********************************************************************
-;* Optional feature macros
+;; <h2>Optional Features</h2>
+;; Macros to enable optional multiplexer capabilities at runtime.
 
 ;; updateSpriteAttributes n
 ;; Update sprite n's attributes (requires ENABLE_UPDATE_ATTRIBUTES=1 in module)
@@ -1043,9 +1049,9 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 .endmacro
 
 ;***********************************************************************
-;* VIC register batch macros (all hardware sprites at once)
-;* These operate on real VIC hardware registers - only "all" is supported
-;* since the multiplexer assigns logical->hardware sprites dynamically.
+;; <h2>VIC Register Batch Macros</h2>
+;; Operate directly on VIC hardware registers — only "all" is supported
+;; since the multiplexer assigns logical-to-hardware sprites dynamically.
 
 ;; enableXexpandSprite all
 ;; Enable horizontal doubling for all hardware sprites

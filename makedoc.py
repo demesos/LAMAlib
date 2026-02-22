@@ -82,6 +82,8 @@ class MacroDoc:
 class IncludeFileDoc:
     """Complete documentation from an .inc file"""
     filename: str = ""
+    standalone: bool = False   # True → rendered as its own top-level # section
+    title: str = ""            # Section title extracted from <h1> tag (standalone files)
     header: List[str] = field(default_factory=list)
     sections: List[tuple] = field(default_factory=list)  # (title, content)
     macros: List[MacroDoc] = field(default_factory=list)
@@ -303,15 +305,27 @@ class ModuleParser:
 class IncludeParser:
     """Parser for LAMAlib .inc files"""
     
-    def parse(self, filepath: Path) -> IncludeFileDoc:
-        """Parse an .inc file and extract documentation"""
-        doc = IncludeFileDoc(filename=filepath.name)
+    def parse(self, filepath: Path, standalone: bool = False) -> IncludeFileDoc:
+        """Parse an .inc file and extract documentation.
+        
+        standalone=True marks the file as a self-contained section that will
+        appear as its own top-level heading in the output.  The section title
+        is taken from the first <h1> tag found in the file header.
+        """
+        doc = IncludeFileDoc(filename=filepath.name, standalone=standalone)
         
         # Read and process file (handle .include directives)
         lines = self._process_file(filepath)
         
         # Parse header (initial comment block)
         header_end = self._parse_header(lines, doc)
+        
+        # Extract <h1> title if present (used as standalone section heading)
+        for line in doc.header:
+            m = re.match(r'<h1>(.*?)</h1>', line, re.IGNORECASE)
+            if m:
+                doc.title = m.group(1).strip()
+                break
         
         # Parse rest of content (sections and macros)
         self._parse_content(lines[header_end:], doc)
@@ -323,7 +337,7 @@ class IncludeParser:
         lines = []
         base_dir = filepath.parent
         
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
             for line in f:
                 line = line.rstrip('\r\n')
                 
@@ -335,7 +349,7 @@ class IncludeParser:
                     include_path = base_dir / include_file
                     
                     if include_path.exists():
-                        with open(include_path, 'r', encoding='utf-8') as inc_f:
+                        with open(include_path, 'r', encoding='utf-8', errors='replace') as inc_f:
                             for inc_line in inc_f:
                                 lines.append(inc_line.rstrip('\r\n'))
                     else:
@@ -383,6 +397,12 @@ class IncludeParser:
             if len(line.strip()) == 0:
                 last_line_empty = True
                 in_syntax_block = False  # End of syntax block
+                continue
+            
+            # ;***… lines (bare fence, no ;; prefix) are visual separators only.
+            # Treat them as transparent so that ;; macro docs immediately after
+            # still register as a new macro start (last_line_empty stays True).
+            if re.match(r'^;\*{3,}', line) and not line.startswith(';;'):
                 continue
             
             # Extract comment content
@@ -612,67 +632,89 @@ class ComprehensiveGenerator:
         return text
     
     def _write_api_reference(self, f, include_docs: List[IncludeFileDoc]):
-        """Write complete API reference section"""
+        """Write complete API reference section.
+        
+        Docs with standalone=False are merged into the main # API Reference.
+        Docs with standalone=True each get their own # section, with the title
+        taken from the <h1> tag embedded in the file header.
+        """
+        main_docs = [d for d in include_docs if not d.standalone]
+        standalone_docs = [d for d in include_docs if d.standalone]
+        
+        # ── Main API Reference ───────────────────────────────────────────────
         f.write("# API Reference\n\n")
         self._add_toc_entry("API Reference", level=1)
         
-        # Collect all macros from all docs
+        if main_docs:
+            self._write_api_docs(f, main_docs, section_level=2)
+        
+        f.write("\n---\n\n")
+        
+        # ── Standalone sections ───────────────────────────────────────────────
+        for doc in standalone_docs:
+            title = doc.title or doc.filename
+            f.write(f"# {title}\n\n")
+            self._add_toc_entry(title, level=1)
+            
+            # Write intro lines from the file header, skipping the h1 title itself
+            for line in doc.header:
+                clean = strip_html_tags(line)
+                clean = self._convert_html_entities(clean)
+                stripped = clean.strip()
+                if not stripped or stripped == title:
+                    continue
+                f.write(f"{stripped}  \n")
+            f.write("\n")
+            
+            self._write_api_docs(f, [doc], section_level=2,
+                                 orphan_section_name="Macro Reference")
+            f.write("\n---\n\n")
+    
+    def _write_api_docs(self, f, include_docs: List[IncludeFileDoc], section_level: int = 2,
+                        orphan_section_name: str = "Other Macros"):
+        """Write sections and macros from a list of IncludeFileDocs."""
+        hdr = '#' * section_level
+        
+        # Collect all macros and sections from these docs
         all_macros = []
         for doc in include_docs:
             all_macros.extend(doc.macros)
         
-        # Collect all sections (in order they appear)
         all_sections = []
         sections_seen = set()
-        
         for doc in include_docs:
             for section_title, section_content in doc.sections:
-                # Clean HTML tags from section title
                 clean_title = strip_html_tags(section_title)
                 if not clean_title.strip():
                     continue
-                
-                # Only add each section once (first occurrence)
                 if clean_title not in sections_seen:
                     all_sections.append((clean_title, section_content))
                     sections_seen.add(clean_title)
         
         # Process each section
         for section_title, section_content in all_sections:
-            # Write section header
-            f.write(f"## {section_title}\n\n")
-            self._add_toc_entry(section_title, level=2)
+            f.write(f"{hdr} {section_title}\n\n")
+            self._add_toc_entry(section_title, level=section_level)
             
-            # Write section content if any
             if section_content:
                 for line in section_content:
                     clean_line = strip_html_tags(line)
                     clean_line = self._convert_html_entities(clean_line)
                     if clean_line.strip():
-                        # Add two spaces before newline for hard line break
                         f.write(f"{clean_line}  \n")
                 f.write("\n")
             
-            # Write macros belonging to this section
             section_macros = [m for m in all_macros if m.section == section_title]
-            
-            if section_macros:
-                # Sort macros alphabetically within the section
-                for macro in sorted(section_macros, key=lambda m: m.name.lower()):
-                    self._write_macro(f, macro)
-        
-        # Handle macros that don't belong to any section (orphans)
-        orphan_macros = [m for m in all_macros if not m.section or m.section not in sections_seen]
-        
-        if orphan_macros:
-            # Create a catch-all section for orphans
-            f.write(f"## Other Macros\n\n")
-            self._add_toc_entry("Other Macros", level=2)
-            
-            for macro in sorted(orphan_macros, key=lambda m: m.name.lower()):
+            for macro in sorted(section_macros, key=lambda m: m.name.lower()):
                 self._write_macro(f, macro)
         
-        f.write("\n---\n\n")
+        # Orphan macros (no matching section)
+        orphan_macros = [m for m in all_macros if not m.section or m.section not in sections_seen]
+        if orphan_macros:
+            f.write(f"{hdr} {orphan_section_name}\n\n")
+            self._add_toc_entry(orphan_section_name, level=section_level)
+            for macro in sorted(orphan_macros, key=lambda m: m.name.lower()):
+                self._write_macro(f, macro)
     
     def _get_section_name(self, filename: str) -> str:
         """Convert filename to section name"""
@@ -875,31 +917,56 @@ class LAMAlibDocGenerator:
         self.include_parser = IncludeParser()
         self.comprehensive_gen = ComprehensiveGenerator()
     
-    def generate_all(self, output_file: Path, include_files: List[Path], 
-                     modules_dir: Path):
-        """Generate complete documentation in a single file"""
+    def generate_all(self, output_file: Path, root_inc: Path, modules_dir: Path):
+        """Generate complete documentation in a single file.
+        
+        Discovers which .inc files are transitively included by root_inc and
+        parses those as the main API Reference.  Any other LAMAlib*.inc files
+        in the same directory are parsed as standalone top-level sections,
+        using the <h1> tag in each file as the section title.
+        """
         print("=" * 70)
         print("LAMAlib Documentation Generator")
         print("=" * 70)
         print()
         
-        # Parse include files
-        include_docs = []
-        if include_files:
-            print(f"Processing {len(include_files)} .inc files...")
-            for inc_file in include_files:
-                if inc_file.exists():
-                    print(f"  • {inc_file.name}")
-                    try:
-                        doc = self.include_parser.parse(inc_file)
-                        include_docs.append(doc)
-                    except Exception as e:
-                        print(f"    Error: {e}")
-                else:
-                    print(f"  ✗ {inc_file} not found")
+        base_dir = root_inc.parent
+        
+        # ── Discover which .inc files are pulled in by root_inc ──────────────
+        included = self._collect_includes(root_inc)
+        included.add(root_inc.name)
+        
+        # ── Find standalone .inc files (present but not included) ────────────
+        all_incs = sorted(base_dir.glob('LAMAlib*.inc'))
+        standalone_incs = sorted(
+            [f for f in all_incs if f.name not in included and f != root_inc],
+            key=lambda f: (1 if 'muplex' in f.name else 0, f.name)
+        )
+        
+        # ── Parse root include (expands all sub-includes inline) ─────────────
+        include_docs: List[IncludeFileDoc] = []
+        print(f"Processing root include: {root_inc.name}")
+        print(f"  (pulls in: {', '.join(sorted(included - {root_inc.name}))})")
+        try:
+            doc = self.include_parser.parse(root_inc)
+            include_docs.append(doc)
+        except Exception as e:
+            print(f"  Error: {e}")
+        print()
+        
+        # ── Parse standalone .inc files ───────────────────────────────────────
+        if standalone_incs:
+            print(f"Processing {len(standalone_incs)} standalone .inc file(s)...")
+            for inc_file in standalone_incs:
+                print(f"  • {inc_file.name}")
+                try:
+                    doc = self.include_parser.parse(inc_file, standalone=True)
+                    include_docs.append(doc)
+                except Exception as e:
+                    print(f"    Error: {e}")
             print()
         
-        # Parse modules
+        # ── Parse modules ─────────────────────────────────────────────────────
         module_docs = []
         if modules_dir.exists():
             module_files = sorted(modules_dir.glob('m_*.s'))
@@ -916,19 +983,21 @@ class LAMAlibDocGenerator:
         else:
             print(f"Note: modules directory '{modules_dir}' not found, skipping modules\n")
         
-        # Generate comprehensive documentation
+        # ── Generate ──────────────────────────────────────────────────────────
         print(f"Generating documentation → {output_file}")
         try:
             self.comprehensive_gen.generate(output_file, include_docs, module_docs)
             
-            # Print summary
             print()
             print("=" * 70)
             print("✓ Documentation generated successfully!")
             print("=" * 70)
             print()
             print(f"Output file: {output_file.absolute()}")
-            print(f"  • API sections: {len(include_docs)}")
+            main_count = sum(1 for d in include_docs if not d.standalone)
+            standalone_count = sum(1 for d in include_docs if d.standalone)
+            print(f"  • Main API .inc files: {main_count}")
+            print(f"  • Standalone .inc sections: {standalone_count}")
             print(f"  • Modules: {len(module_docs)}")
             print(f"  • TOC entries: {len(self.comprehensive_gen.toc)}")
             print()
@@ -940,6 +1009,25 @@ class LAMAlibDocGenerator:
             return False
         
         return True
+    
+    def _collect_includes(self, filepath: Path) -> set:
+        """Recursively collect all .inc filenames referenced by filepath."""
+        found = set()
+        try:
+            with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith('.include'):
+                        parts = line.split(None, 1)
+                        if len(parts) == 2:
+                            name = parts[1].strip().strip('"')
+                            found.add(name)
+                            sub = filepath.parent / name
+                            if sub.exists():
+                                found |= self._collect_includes(sub)
+        except Exception:
+            pass
+        return found
 
 
 # ============================================================================
@@ -953,14 +1041,14 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Generate with default settings (LAMAlib.inc + LAMAlib-sprites.inc)
+  # Generate with default settings (auto-discovers all .inc files)
   python makedoc.py
-  
-  # Specify custom include files
-  python makedoc.py --include LAMAlib.inc LAMAlib-macros16.inc
-  
+
   # Custom output file
   python makedoc.py --output MyDoc.md
+
+  # Custom root include or modules directory
+  python makedoc.py --root LAMAlib.inc --modules-dir modules/
         """
     )
     
@@ -972,11 +1060,13 @@ Examples:
     )
     
     parser.add_argument(
-        '--include',
+        '--root',
         type=str,
-        nargs='+',
-        default=['LAMAlib.inc', 'LAMAlib-sprites.inc'],
-        help='Include files to process (default: LAMAlib.inc LAMAlib-sprites.inc)'
+        default='LAMAlib.inc',
+        help='Root include file (default: LAMAlib.inc). '
+             'All .inc files it pulls in become the main API Reference. '
+             'Other LAMAlib*.inc files in the same directory are rendered '
+             'as standalone top-level sections.'
     )
     
     parser.add_argument(
@@ -988,16 +1078,18 @@ Examples:
     
     args = parser.parse_args()
     
-    # Convert paths
     output_file = Path(args.output)
-    include_files = [Path(f) for f in args.include]
+    root_inc = Path(args.root)
     modules_dir = Path(args.modules_dir)
     
-    # Create generator and run
+    if not root_inc.exists():
+        print(f"Error: root include file '{root_inc}' not found", file=sys.stderr)
+        return 1
+    
     generator = LAMAlibDocGenerator()
     
     try:
-        success = generator.generate_all(output_file, include_files, modules_dir)
+        success = generator.generate_all(output_file, root_inc, modules_dir)
         return 0 if success else 1
         
     except KeyboardInterrupt:
