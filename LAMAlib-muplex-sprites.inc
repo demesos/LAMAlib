@@ -5,10 +5,14 @@
 ;; Include separately (after configuring and including the m_sprmultiplexer module) with:
 ;; .include "LAMAlib-muplex-sprites.inc"
 ;;
-;; Version 2.3
+;; Version 2.4
 
 .ifndef LAMALIB_MUPLEX_SPRITES_INC
 LAMALIB_MUPLEX_SPRITES_INC = 1
+
+.ifndef SAVE_REGS
+  ::SAVE_REGS .set 0
+.endif
 
 ;if user has a shadow VIC configuration, the alternative VIC address needs to be set before including this file
 .ifndef VIC_BASE
@@ -39,26 +43,56 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 ;; Registers modified: A, when the argument is A or "all" also X is used
 .macro showSprite n
   .if (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
+    .if ::SAVE_REGS>1
+    store A
+    .endif
     lda _msprite_y_shadow,x
     sta _msprite_y_ov,x
+    .if ::SAVE_REGS>1
+    restore A
+    .endif
   .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
+    .if ::SAVE_REGS>1
+    store A
+    .endif
     lda _msprite_y_shadow,y
     sta _msprite_y_ov,y
+    .if ::SAVE_REGS>1
+    restore A
+    .endif
   .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
+    .if ::SAVE_REGS>1
+    store AX
+    .endif
     tax
     lda _msprite_y_shadow,x
     sta _msprite_y_ov,x
+    .if ::SAVE_REGS>1
+    restore AX
+    .endif
   .elseif (.xmatch ({n}, {ALL}) .or .xmatch ({n}, {all}))
     .importzp _mmaxsprites
+    .if ::SAVE_REGS>1
+    store AX
+    .endif
     ldx #_mmaxsprites-1
 :
     lda _msprite_y_shadow,x
     sta _msprite_y_ov,x
     dex
     bpl :-
+    .if ::SAVE_REGS>1
+    restore AX
+    .endif
   .else ; constant value
+    .if ::SAVE_REGS>1
+    store A
+    .endif
     lda _msprite_y_shadow+n
     sta _msprite_y_ov+n
+    .if ::SAVE_REGS>1
+    restore A
+    .endif
   .endif
 .endmacro
 
@@ -68,26 +102,56 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 ;; Registers modified: A, when the argument is A or "all" also X is used
 .macro hideSprite n
   .if (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
+    .if ::SAVE_REGS>1
+    store A
+    .endif
     lda #0
     sta _msprite_y_ov,x
+    .if ::SAVE_REGS>1
+    restore A
+    .endif
   .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
+    .if ::SAVE_REGS>1
+    store A
+    .endif
     lda #0
     sta _msprite_y_ov,y
+    .if ::SAVE_REGS>1
+    restore A
+    .endif
   .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
+    .if ::SAVE_REGS>1
+    store AX
+    .endif
     tax
     lda #0
     sta _msprite_y_ov,x
+    .if ::SAVE_REGS>1
+    restore AX
+    .endif
   .elseif (.xmatch ({n}, {ALL}) .or .xmatch ({n}, {all}))
     .importzp _mmaxsprites
+    .if ::SAVE_REGS>1
+    store AX
+    .endif
     lda #0
     ldx #_mmaxsprites-1
 :
     sta _msprite_y_ov,x
     dex
     bpl :-
+    .if ::SAVE_REGS>1
+    restore AX
+    .endif
   .else ; constant value
+    .if ::SAVE_REGS>1
+    store A
+    .endif
     lda #0
     sta _msprite_y_ov+n
+    .if ::SAVE_REGS>1
+    restore A
+    .endif
   .endif
 .endmacro
 
@@ -106,56 +170,96 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
     ; Sprite number in X register - use indexed addressing
     .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
       ; Color in A, sprite in X
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       sta :+ +1
       lda _msprite_col_ov,x
       and #$80
 :     ora #$42
       sta _msprite_col_ov,x
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
       ; Color in Y, sprite in X
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       tya
       sta :+ +1
       lda _msprite_col_ov,x
       and #$80
 :     ora #$42
       sta _msprite_col_ov,x
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .else
       ; Constant color, sprite in X
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda _msprite_col_ov,x
       and #$80
       ora #arg
       sta _msprite_col_ov,x
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .endif
   .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
     ; Sprite number in Y register - use indexed addressing
     .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
       ; Color in A, sprite in Y
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       sta :+ +1
       lda _msprite_col_ov,y
       and #$80
 :     ora #$42
       sta _msprite_col_ov,y
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
       ; Color in X, sprite in Y
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       txa
       sta :+ +1
       lda _msprite_col_ov,y
       and #$80
 :     ora #$42
       sta _msprite_col_ov,y
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .else
       ; Constant color, sprite in Y
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda _msprite_col_ov,y
       and #$80
       ora #arg
       sta _msprite_col_ov,y
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .endif
   .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
     ; Sprite number in A register - move to X for indexed addressing
     .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
       .error "setSpriteColor: cannot use A for both sprite number and color"
     .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
-      ; Color in X, sprite# in A
+      ; Color in X, sprite# in A — clobbers A, Y
+      .if ::SAVE_REGS>1
+      store A
+      store Y
+      .endif
       tay                   ; Save sprite# to Y
       txa                   ; Color to A
       sta :+ +1
@@ -163,8 +267,15 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
       and #$80
 :     ora #$42
       sta _msprite_col_ov,y
+      .if ::SAVE_REGS>1
+      restore A
+      restore Y
+      .endif
     .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
-      ; Color in Y, sprite# in A
+      ; Color in Y, sprite# in A — clobbers A, X
+      .if ::SAVE_REGS>1
+      store AX
+      .endif
       tax                   ; Sprite# to X
       tya                   ; Color to A
       sta :+ +1
@@ -172,41 +283,74 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
       and #$80
 :     ora #$42
       sta _msprite_col_ov,x
+      .if ::SAVE_REGS>1
+      restore AX
+      .endif
     .else
-      ; Constant color, sprite# in A
+      ; Constant color, sprite# in A — clobbers A, X
+      .if ::SAVE_REGS>1
+      store AX
+      .endif
       tax
       lda _msprite_col_ov,x
       and #$80
       ora #arg
       sta _msprite_col_ov,x
+      .if ::SAVE_REGS>1
+      restore AX
+      .endif
     .endif
   .else
     ; Sprite number is constant - use absolute addressing
     .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       sta :+ +1
       lda _msprite_col_ov+n
       and #$80
 :     ora #$42
       sta _msprite_col_ov+n
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       txa
       sta :+ +1
       lda _msprite_col_ov+n
       and #$80
 :     ora #$42
       sta _msprite_col_ov+n
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       tya
       sta :+ +1
       lda _msprite_col_ov+n
       and #$80
 :     ora #$42
       sta _msprite_col_ov+n
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .else
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda _msprite_col_ov+n
       and #$80
       ora #arg
       sta _msprite_col_ov+n
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .endif
   .endif
 .endmacro
@@ -246,36 +390,74 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
       lda _msprite_col_ov,y
       and #$7f
     .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda _msprite_col_ov,y
       and #$7f
       tax
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda _msprite_col_ov,y
       and #$7f
       tay
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .else
       .error "getSpriteColor: register must be A, X or Y when sprite number is in Y"
     .endif
   .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
     ; Sprite number in A register
     .ifblank reg
+      .if ::SAVE_REGS>1
+      store X
+      .endif
       tax
       lda _msprite_col_ov,x
       and #$7f
+      .if ::SAVE_REGS>1
+      restore X
+      .endif
     .elseif (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
+      .if ::SAVE_REGS>1
+      store X
+      .endif
       tax
       lda _msprite_col_ov,x
       and #$7f
+      .if ::SAVE_REGS>1
+      restore X
+      .endif
     .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
+      .if ::SAVE_REGS>1
+      store A
+      store Y
+      .endif
       tay
       lda _msprite_col_ov,y
       and #$7f
       tax
+      .if ::SAVE_REGS>1
+      restore A
+      restore Y
+      .endif
     .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
+      .if ::SAVE_REGS>1
+      store AX
+      .endif
       tax
       lda _msprite_col_ov,x
       and #$7f
       tay
+      .if ::SAVE_REGS>1
+      restore AX
+      .endif
     .else
       .error "getSpriteColor: register must be A, X or Y"
     .endif
@@ -307,20 +489,41 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 ;; Registers modified: A, when the argument is A or "all" also X is used
 .macro enableMultiColorSprite n
   .if (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
+    .if ::SAVE_REGS>1
+    store A
+    .endif
     lda _msprite_col_ov,x
     ora #$80
     sta _msprite_col_ov,x
+    .if ::SAVE_REGS>1
+    restore A
+    .endif
   .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
+    .if ::SAVE_REGS>1
+    store A
+    .endif
     lda _msprite_col_ov,y
     ora #$80
     sta _msprite_col_ov,y
+    .if ::SAVE_REGS>1
+    restore A
+    .endif
   .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
+    .if ::SAVE_REGS>1
+    store AX
+    .endif
     tax
     lda _msprite_col_ov,x
     ora #$80
     sta _msprite_col_ov,x
+    .if ::SAVE_REGS>1
+    restore AX
+    .endif
   .elseif (.xmatch ({n}, {ALL}) .or .xmatch ({n}, {all}))
     .importzp _mmaxsprites
+    .if ::SAVE_REGS>1
+    store AX
+    .endif
     ldx #_mmaxsprites-1
 :
     lda _msprite_col_ov,x
@@ -328,10 +531,19 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
     sta _msprite_col_ov,x
     dex
     bpl :-
+    .if ::SAVE_REGS>1
+    restore AX
+    .endif
   .else ; constant value
+    .if ::SAVE_REGS>1
+    store A
+    .endif
     lda _msprite_col_ov+n
     ora #$80
     sta _msprite_col_ov+n
+    .if ::SAVE_REGS>1
+    restore A
+    .endif
   .endif
 .endmacro
 
@@ -341,20 +553,41 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 ;; Registers modified: A, when the argument is A or "all" also X is used
 .macro disableMultiColorSprite n
   .if (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
+    .if ::SAVE_REGS>1
+    store A
+    .endif
     lda _msprite_col_ov,x
     and #$7f
     sta _msprite_col_ov,x
+    .if ::SAVE_REGS>1
+    restore A
+    .endif
   .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
+    .if ::SAVE_REGS>1
+    store A
+    .endif
     lda _msprite_col_ov,y
     and #$7f
     sta _msprite_col_ov,y
+    .if ::SAVE_REGS>1
+    restore A
+    .endif
   .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
+    .if ::SAVE_REGS>1
+    store AX
+    .endif
     tax
     lda _msprite_col_ov,x
     and #$7f
     sta _msprite_col_ov,x
+    .if ::SAVE_REGS>1
+    restore AX
+    .endif
   .elseif (.xmatch ({n}, {ALL}) .or .xmatch ({n}, {all}))
     .importzp _mmaxsprites
+    .if ::SAVE_REGS>1
+    store AX
+    .endif
     ldx #_mmaxsprites-1
 :
     lda _msprite_col_ov,x
@@ -362,10 +595,19 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
     sta _msprite_col_ov,x
     dex
     bpl :-
+    .if ::SAVE_REGS>1
+    restore AX
+    .endif
   .else ; constant value
+    .if ::SAVE_REGS>1
+    store A
+    .endif
     lda _msprite_col_ov+n
     and #$7f
     sta _msprite_col_ov+n
+    .if ::SAVE_REGS>1
+    restore A
+    .endif
   .endif
 .endmacro
 
@@ -454,50 +696,112 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
     .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
       sta _msprite_costume_ov,x
     .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       txa
       sta _msprite_costume_ov,x
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       tya
       sta _msprite_costume_ov,x
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .else
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda #arg
       sta _msprite_costume_ov,x
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .endif
   .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
     ; Sprite number in Y register
     .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
       sta _msprite_costume_ov,y
     .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       txa
       sta _msprite_costume_ov,y
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       tya
       sta _msprite_costume_ov,y
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .else
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda #arg
       sta _msprite_costume_ov,y
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .endif
   .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
     ; Sprite number in A register
     .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
-      ; sprite# == costume value: A serves both roles
+      ; sprite# == costume value — clobbers X
+      .if ::SAVE_REGS>1
+      store X
+      .endif
       tax
       sta _msprite_costume_ov,x
+      .if ::SAVE_REGS>1
+      restore X
+      .endif
     .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
-      ; Swap: sprite# in A, costume in X
+      ; Swap: sprite# in A, costume in X — clobbers A, Y
+      .if ::SAVE_REGS>1
+      store A
+      store Y
+      .endif
       tay
       txa
       sta _msprite_costume_ov,y
+      .if ::SAVE_REGS>1
+      restore A
+      restore Y
+      .endif
     .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
-      ; sprite# in A, costume in Y
+      ; sprite# in A, costume in Y — clobbers A, X
+      .if ::SAVE_REGS>1
+      store AX
+      .endif
       tax
       tya
       sta _msprite_costume_ov,x
+      .if ::SAVE_REGS>1
+      restore AX
+      .endif
     .else
-      ; sprite# in A, costume is constant
+      ; sprite# in A, costume is constant — clobbers A, X
+      .if ::SAVE_REGS>1
+      store AX
+      .endif
       tax
       lda #arg
       sta _msprite_costume_ov,x
+      .if ::SAVE_REGS>1
+      restore AX
+      .endif
     .endif
   .else
     ; Sprite number is constant
@@ -508,8 +812,14 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
     .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
       sty _msprite_costume_ov+n
     .else
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda #arg
       sta _msprite_costume_ov+n
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .endif
   .endif
 .endmacro
@@ -553,19 +863,45 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
   .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
     ; Sprite number in A register
     .ifblank reg
+      .if ::SAVE_REGS>1
+      store X
+      .endif
       tax
       lda _msprite_costume_ov,x
+      .if ::SAVE_REGS>1
+      restore X
+      .endif
     .elseif (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
+      .if ::SAVE_REGS>1
+      store X
+      .endif
       tax
       lda _msprite_costume_ov,x
+      .if ::SAVE_REGS>1
+      restore X
+      .endif
     .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
+      .if ::SAVE_REGS>1
+      store A
+      store Y
+      .endif
       tay
       lda _msprite_costume_ov,y
       tax
+      .if ::SAVE_REGS>1
+      restore A
+      restore Y
+      .endif
     .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
+      .if ::SAVE_REGS>1
+      store AX
+      .endif
       tax
       lda _msprite_costume_ov,x
       tay
+      .if ::SAVE_REGS>1
+      restore AX
+      .endif
     .else
       .error "getSpriteCostume: register must be A, X or Y"
     .endif
@@ -601,44 +937,80 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
   .if (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
     ; Sprite number in Y register
     .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
-      ; AX register pair (A=low, X=high)
+      ; AX register pair (A=low, X=high) — clobbers A
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       sta _msprite_x_ov,y
       txa
       sta _msprite_x_hi_ov,y
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .elseif (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
-      ; A register with carry as bit 8
+      ; A register with carry as bit 8 — clobbers A
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       sta _msprite_x_ov,y
       lda #0
       rol
       sta _msprite_x_hi_ov,y
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .else
-      ; Constant 16-bit value
+      ; Constant 16-bit value — clobbers A
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda #<arg
       sta _msprite_x_ov,y
       lda #>arg
       sta _msprite_x_hi_ov,y
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .endif
   .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
     ; Sprite number in X register
     .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
-      ; cpx #1 sets carry iff X>=1 (hi byte nonzero), X free for the store after
+      ; cpx #1 captures hi into carry — clobbers A
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       cpx #1
       sta _msprite_x_ov,x
       lda #0
       rol
       sta _msprite_x_hi_ov,x
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .elseif (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
-      ; A register with carry as bit 8
+      ; A register with carry as bit 8 — clobbers A
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       sta _msprite_x_ov,x
       lda #0
       rol
       sta _msprite_x_hi_ov,x
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .else
-      ; Constant 16-bit value
+      ; Constant 16-bit value — clobbers A
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda #<arg
       sta _msprite_x_ov,x
       lda #>arg
       sta _msprite_x_hi_ov,x
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .endif
   .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
     ; Sprite number in A register - move to Y, arg in A or X is safe
@@ -682,21 +1054,39 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
   .else
     ; Sprite number is constant
     .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
-      ; AX register pair (A=low, X=high)
+      ; AX register pair — clobbers A
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       sta _msprite_x_ov+n
       stx _msprite_x_hi_ov+n
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .elseif (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
-      ; A register with carry as bit 8
+      ; A register with carry as bit 8 — clobbers A
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       sta _msprite_x_ov+n
       lda #0
       rol
       sta _msprite_x_hi_ov+n
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .else
-      ; Constant 16-bit value
+      ; Constant 16-bit value — clobbers A
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda #<arg
       sta _msprite_x_ov+n
       lda #>arg
       sta _msprite_x_hi_ov+n
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .endif
   .endif
 .endmacro
@@ -714,17 +1104,35 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
       sta _msprite_y_ov,x
       sta _msprite_y_shadow,x
     .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       txa
       sta _msprite_y_ov,x
       sta _msprite_y_shadow,x
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       tya
       sta _msprite_y_ov,x
       sta _msprite_y_shadow,x
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .else
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda #arg
       sta _msprite_y_ov,x
       sta _msprite_y_shadow,x
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .endif
   .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
     ; Sprite number in Y register
@@ -732,42 +1140,87 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
       sta _msprite_y_ov,y
       sta _msprite_y_shadow,y
     .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       txa
       sta _msprite_y_ov,y
       sta _msprite_y_shadow,y
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       tya
       sta _msprite_y_ov,y
       sta _msprite_y_shadow,y
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .else
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda #arg
       sta _msprite_y_ov,y
       sta _msprite_y_shadow,y
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .endif
   .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
     ; Sprite number in A register
     .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
+      ; A=sprite#=ypos — clobbers A, X
+      .if ::SAVE_REGS>1
+      store AX
+      .endif
       tax
       sta _msprite_y_ov,x
       sta _msprite_y_shadow,x
+      .if ::SAVE_REGS>1
+      restore AX
+      .endif
     .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
-      ; Swap: sprite# in A, Y pos in X
+      ; Swap: sprite# in A, Y pos in X — clobbers A, Y
+      .if ::SAVE_REGS>1
+      store A
+      store Y
+      .endif
       tay
       txa
       sta _msprite_y_ov,y
       sta _msprite_y_shadow,y
+      .if ::SAVE_REGS>1
+      restore A
+      restore Y
+      .endif
     .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
-      ; sprite# in A, Y pos in Y
+      ; sprite# in A, Y pos in Y — clobbers A, X
+      .if ::SAVE_REGS>1
+      store AX
+      .endif
       tax
       tya
       sta _msprite_y_ov,x
       sta _msprite_y_shadow,x
+      .if ::SAVE_REGS>1
+      restore AX
+      .endif
     .else
-      ; sprite# in A, Y pos is constant
+      ; sprite# in A, Y pos is constant — clobbers A, X
+      .if ::SAVE_REGS>1
+      store AX
+      .endif
       tax
       lda #arg
       sta _msprite_y_ov,x
       sta _msprite_y_shadow,x
+      .if ::SAVE_REGS>1
+      restore AX
+      .endif
     .endif
   .else
     ; Sprite number is constant
@@ -781,9 +1234,15 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
       sty _msprite_y_ov+n
       sty _msprite_y_shadow+n
     .else
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda #arg
       sta _msprite_y_ov+n
       sta _msprite_y_shadow+n
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .endif
   .endif
 .endmacro
@@ -796,7 +1255,10 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 .macro getSpriteX n, reg
   .if (.xmatch ({reg}, {AX}) .or .xmatch ({reg}, {ax}))
     .if (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
-      ; Sprite number in X - move to Y, then use n=Y path (no stack needed)
+      ; Sprite number in X - move to Y — clobbers Y
+      .if ::SAVE_REGS>1
+      store Y
+      .endif
       txa
       tay
 :     lda _msprite_x_hi_ov,y
@@ -805,17 +1267,22 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
       cmp _msprite_x_ov,y
       bne :-
       ; A=lo, X=hi
+      .if ::SAVE_REGS>1
+      restore Y
+      .endif
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
-      ; Sprite number in Y
-      ; Note: cpx abs,y is illegal on 6502, use lda+cmp for race check
+      ; Sprite number in Y — no extra clobber
 :     lda _msprite_x_hi_ov,y
       tax
       lda _msprite_x_ov,y
-      cmp _msprite_x_ov,y     ; re-read lo byte to detect IRQ mid-update
+      cmp _msprite_x_ov,y
       bne :-
       ; A=lo, X=hi
     .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
-      ; Sprite number in A
+      ; Sprite number in A — clobbers Y
+      .if ::SAVE_REGS>1
+      store Y
+      .endif
       tay
 :     lda _msprite_x_hi_ov,y
       tax
@@ -823,8 +1290,11 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
       cmp _msprite_x_ov,y
       bne :-
       ; A=lo, X=hi
+      .if ::SAVE_REGS>1
+      restore Y
+      .endif
     .else
-      ; Constant sprite number
+      ; Constant sprite number — no extra clobber
 :     ldx _msprite_x_hi_ov+n
       lda _msprite_x_ov+n
       cpx _msprite_x_hi_ov+n
@@ -848,11 +1318,23 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
     .if (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
       lda _msprite_y_shadow,x
     .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda _msprite_y_shadow,x
       tax
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda _msprite_y_shadow,x
       tay
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .else
       .error "getSpriteY: register must be A, X or Y when sprite number is in X"
     .endif
@@ -861,32 +1343,64 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
     .if (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
       lda _msprite_y_shadow,y
     .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda _msprite_y_shadow,y
       tax
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
+      .if ::SAVE_REGS>1
+      store A
+      .endif
       lda _msprite_y_shadow,y
       tay
+      .if ::SAVE_REGS>1
+      restore A
+      .endif
     .else
       .error "getSpriteY: register must be A, X or Y when sprite number is in Y"
     .endif
   .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
     ; Sprite number in A register
     .if (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
+      .if ::SAVE_REGS>1
+      store X
+      .endif
       tax
       lda _msprite_y_shadow,x
+      .if ::SAVE_REGS>1
+      restore X
+      .endif
     .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
+      .if ::SAVE_REGS>1
+      store A
+      store Y
+      .endif
       tay
       lda _msprite_y_shadow,y
       tax
+      .if ::SAVE_REGS>1
+      restore A
+      restore Y
+      .endif
     .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
+      .if ::SAVE_REGS>1
+      store AX
+      .endif
       tax
       lda _msprite_y_shadow,x
       tay
+      .if ::SAVE_REGS>1
+      restore AX
+      .endif
     .else
       .error "getSpriteY: register must be A, X or Y"
     .endif
   .else
-    ; Sprite number is constant
+    ; Sprite number is constant — no extra clobber
     .if (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
       lda _msprite_y_shadow+n
     .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
@@ -906,7 +1420,10 @@ LAMALIB_MUPLEX_SPRITES_INC = 1
 ;; ypos can be: immediate value, A, X, or Y
 ;; Registers modified: A, potentially X or Y depending on arguments
 .macro setSpriteXY n, xpos, ypos
+  BACKUP_SAVE_REGS .set ::SAVE_REGS
+  ::SAVE_REGS .set 2
   setSpriteY n, ypos
+  ::SAVE_REGS .set BACKUP_SAVE_REGS
   setSpriteX n, xpos
 .endmacro
 

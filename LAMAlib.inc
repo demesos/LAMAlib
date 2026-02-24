@@ -65,10 +65,33 @@
 ; The LAMAlib implementations are also faster, so USE_BASIC_ROM can also be set to 0 if you would like to increase performance.
 ; USE_BASIC_ROM does not actually change the ROM configuration.
 ; The switch can be changed multiple times to create program parts using the ROM and parts that do not.
+;
+; <b>SAVE_REGS</b> .set [0|1|2]
+; This switch controls whether LAMAlib macros preserve CPU registers (A, X, Y) around their internal operations.
+; Some macros necessarily clobber registers other than those used for input or output. SAVE_REGS allows transparent
+; use of such macros without the caller having to manually save and restore registers beforehand.
+; LAMAlib uses SMC-based (self-modifying code) store/restore, so there is no stack overhead.
+;
+; SAVE_REGS=0: No register preservation. Callers are responsible for saving registers as documented
+;   in each macro's header comment. 
+;
+; SAVE_REGS=1 (default): Print macros (print, println, etc.) preserve all registers they clobber.
+;   This is useful during development when adding debug output using print.
+;
+; SAVE_REGS=2: Full register preservation. All LAMAlib macros — including sprite, color, position, and costume
+;   setters — save and restore any registers they clobber beyond their documented inputs and outputs.
+;   However, this comes with a 3% code overhead.
+;
+; The switch can be changed multiple times within a source file to apply different preservation levels
+; to different sections of code.
 
 .ifndef LAMAlib_inc
 
 LAMAlib_inc=1
+
+.ifndef SAVE_REGS
+  ::SAVE_REGS .set 1
+.endif
 
 .include "LAMAlib-macros16.inc"
 .include "LAMAlib-systemaddresses.inc"
