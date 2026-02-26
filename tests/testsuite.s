@@ -13,6 +13,10 @@
 
 ;.MACPACK generic
 
+.ifdef SAVEREGS
+  ::SAVE_REGS .set 2
+.endif
+
 .if .not .definedmacro(add)
 	.macpack generic
 .endif

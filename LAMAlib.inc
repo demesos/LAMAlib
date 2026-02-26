@@ -70,7 +70,6 @@
 ; This switch controls whether LAMAlib macros preserve CPU registers (A, X, Y) around their internal operations.
 ; Some macros necessarily clobber registers other than those used for input or output. SAVE_REGS allows transparent
 ; use of such macros without the caller having to manually save and restore registers beforehand.
-; LAMAlib uses SMC-based (self-modifying code) store/restore, so there is no stack overhead.
 ;
 ; SAVE_REGS=0: No register preservation. Callers are responsible for saving registers as documented
 ;   in each macro's header comment. 

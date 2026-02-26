@@ -95,6 +95,19 @@ This switch tells LAMAlib if it should use calls into BASIC ROM or not. If USE_B
 The LAMAlib implementations are also faster, so USE_BASIC_ROM can also be set to 0 if you would like to increase performance.  
 USE_BASIC_ROM does not actually change the ROM configuration.  
 The switch can be changed multiple times to create program parts using the ROM and parts that do not.  
+SAVE_REGS .set [0|1|2]  
+This switch controls whether LAMAlib macros preserve CPU registers (A, X, Y) around their internal operations.  
+Some macros necessarily clobber registers other than those used for input or output. SAVE_REGS allows transparent  
+use of such macros without the caller having to manually save and restore registers beforehand.  
+SAVE_REGS=0: No register preservation. Callers are responsible for saving registers as documented  
+in each macro's header comment.   
+SAVE_REGS=1 (default): Print macros (print, println, etc.) preserve all registers they clobber.  
+This is useful during development when adding debug output using print.  
+SAVE_REGS=2: Full register preservation. All LAMAlib macros — including sprite, color, position, and costume  
+setters — save and restore any registers they clobber beyond their documented inputs and outputs.  
+However, this comes with a 3% code overhead.  
+The switch can be changed multiple times within a source file to apply different preservation levels  
+to different sections of code.  
 
 ---
 
@@ -559,11 +572,15 @@ Supports zero page addressing mode
 
 Turn bitmap mode off  
 
+**Registers modified: A**
+
 ### `bitmap_on`
 
 **Syntax:** `bitmap_on`
 
 Turn bitmap mode on and initialize tables in case the project uses plotting commands (plot, line, circle, ...)  
+
+**Registers modified: A**
 
 ### `blank_screen`
 
@@ -571,11 +588,15 @@ Turn bitmap mode on and initialize tables in case the project uses plotting comm
 
 Waits until rasterbar is below screen area, then blanks the screen and shows only the border color  
 
+**Registers modified: A**
+
 ### `gfx_clrscr`
 
 **Syntax:** `gfx_clrscr bgcolor,fgcolor`
 
 Clear graphics screen and set background and foreground colors  
+
+**Registers modified: A, X, Y**
 
 ### `gfx_init`
 
@@ -585,9 +606,13 @@ Initializes the look up tables used by the gfx_plot function
 The optional argument defines where the look up tables needed by gfx_pset and gfx_pclr are placed ($2c9 bytes). This address should be page-aligned ($xx00). Without the argument, the address $9000 is used as a default.  
 This macro needs to be called once before using gfx_plot or any function that uses gfx_plot (e.g. gfx_line)  
 
+**Registers modified: A, X, Y**
+
 ### `gfx_pclr`
 
 **Syntax:** `gfx_pclr`
+
+**Registers modified: A, X, Y**
 
 ### `gfx_pget`
 
@@ -595,9 +620,13 @@ This macro needs to be called once before using gfx_plot or any function that us
 
 **Returns:** Return value (0 or 1) in A
 
+**Registers modified: X, Y**
+
 ### `gfx_pset`
 
 **Syntax:** `gfx_pset`
+
+**Registers modified: A, X, Y**
 
 ### `set_VIC_addr`
 
@@ -605,6 +634,8 @@ This macro needs to be called once before using gfx_plot or any function that us
 
 screen_addr must be a constant that is a multiple of $400, charset_addr a multiple of $800  
 This macro does not adjust the VIC bank, see set_VIC_bank  
+
+**Registers modified: A**
 
 ### `set_VIC_bank`
 
@@ -614,12 +645,16 @@ addr must be a constant that is a multiple of $4000
 These commands allow you to use constructs like if .. else .. endif, do...loop, for...next, and switch...case in assembly language! The structures can even be nested. The implementation of these structures is basically as efficient as a a handcoded composure of branches, jumps as labels, while it is much easier to write and read.  
 All macros can be nested.  
 
+**Registers modified: A**
+
 ### `set_VIC_charset`
 
 **Syntax:** `set_VIC_charset addr`
 
 addr must be a constant that is a multiple of $800  
 This macro does not adjust the VIC bank, see set_VIC_bank  
+
+**Registers modified: A**
 
 ### `set_VIC_screen`
 
@@ -628,11 +663,15 @@ This macro does not adjust the VIC bank, see set_VIC_bank
 addr must be a constant that is a multiple of $400  
 This macro does not adjust the VIC bank, see set_VIC_bank  
 
+**Registers modified: A**
+
 ### `unblank_screen`
 
 **Syntax:** `unblank_screen`
 
 Shows the screen again after it was blanked, effective with next frame  
+
+**Registers modified: A**
 
 ## Structured Programming
 
@@ -2316,7 +2355,7 @@ Drop-in replacement for LAMAlib-sprites.inc when using the multiplexer:
 same macro names and calling conventions.  
 Include separately (after configuring and including the m_sprmultiplexer module) with:  
 .include "LAMAlib-muplex-sprites.inc"  
-Version 2.3  
+Version 2.4  
 
 ## Visibility
 
@@ -2555,67 +2594,48 @@ Macros to enable optional multiplexer capabilities at runtime.
 **Syntax:** `updateSpriteAttributes n`
 
 Update sprite n's attributes (requires ENABLE_UPDATE_ATTRIBUTES=1 in module)  
-n can be: constant, A, X, or Y  
-since the multiplexer assigns logical-to-hardware sprites dynamically.  
+n**Author:** a screen character (default: space ;* for 0, reverse space for 1).  
 
-**Registers modified: A, X, Y**
+**Configuration Parameters:**
 
-## VIC Register Batch Macros
+| Parameter | Default | Required | Description |
+|-----------|---------|----------|-------------|
+| `CHARSET_BASE` | `$3800` |  |  |
+| `SCREEN_WIDTH` | `40` |  |  |
+| `SET_PIXEL` | `160` |  | character to be used when a pixel is set, as screencode |
+| `EMPTY_PIXEL` | `32` |  | character to be used when a pixel is empty, as screencode |
+| `COLOR_SUPPORT` | `1` |  |  |
+| `END_OF_SCREEN_CHECK` | `1` |  |  |
 
-### `disableXexpandSprite`
+**Usage:**
 
-**Syntax:** `disableXexpandSprite all`
+```assembly
+.scope bigcharout
+  .include "modules/m_bigcharout.s"
+.endscope
 
-Disable horizontal doubling for all hardware sprites  
-
-**Registers modified: A**
-
-### `disableYexpandSprite`
-
-**Syntax:** `disableYexpandSprite all`
-
-Disable vertical doubling for all hardware sprites  
-
-**Registers modified: A**
-
-### `enableXexpandSprite`
-
-**Syntax:** `enableXexpandSprite all`
-
-Enable horizontal doubling for all hardware sprites  
-
-**Registers modified: A**
-
-### `enableYexpandSprite`
-
-**Syntax:** `enableYexpandSprite all`
-
-Enable vertical doubling for all hardware sprites  
-
-**Registers modified: A**
-
-### `spriteBeforeBackground`
-
-**Syntax:** `spriteBeforeBackground all`
-
-Place all hardware sprites in front of the background  
-
-**Registers modified: A**
-
-### `spriteBehindBackground`
-
-**Syntax:** `spriteBehindBackground all`
-
-Place all hardware sprites behind the background  
-
-**Registers modified: A**
-
+m_init bigcharout
+m_run bigcharout
+```
 
 ---
 
-# Modules
+## copycharset
 
-LAMAlib modules are reusable, configurable components tha| `MEM_CONFIG` | `51` |  | memory configuration ($1 value) during copying |
+**Version:** 0.2  
+**Author:** Wil  
+
+**Configuration Parameters:**
+
+| Parameter | Default | Required | Description |
+|-----------|---------|----------|-------------|
+| `CHARSET_SRC` | `$D000` |  | use $d800 to copy from upper/lower charset |
+| `CHARSET_BASE` | `$3800` |  |  |
+| `CHARSET_LENGTH` | `$800` |  |  |
+| `EFFECT` | `0` |  | Effects: 1 italic |
+| `EFFECT_RVS` | `0` |  | if 1 the modified chars will be placed instead of reverse chars |
+| `MATCH_RVS` | `1` |  | match rvs chars |
+| `MEM_CONFIG` | `51` |  | memory configuration ($1 value) during copying |
 
 **Usage:**
 
