@@ -1,19 +1,23 @@
 ;; <h2>Hires Graphics Functions - CURRENTLY UNDER DEVELOPMENT</h2>
 
+.ifndef SAVE_REGS
+  ::SAVE_REGS .set 0
+.endif
+
 ;; blank_screen
 ;; Waits until rasterbar is below screen area, then blanks the screen and shows only the border color
 ;; Registers modified: A
 .macro blank_screen
 .scope
-  .if ::SAVE_REGS>1
-  store A
+  .if ::SAVE_REGS
+  pha
   .endif
 :	lda $D011
 	bpl :-      ;wait until rasterbar is below screen area
 	and #%11101111 ;bit 4 off = Screen blanked
 	sta $D011 
-  .if ::SAVE_REGS>1
-  restore A
+  .if ::SAVE_REGS
+  pla
   .endif
 .endscope
 .endmacro
@@ -22,14 +26,14 @@
 ;; Shows the screen again after it was blanked, effective with next frame
 ;; Registers modified: A
 .macro unblank_screen
-  .if ::SAVE_REGS>1
-  store A
+  .if ::SAVE_REGS
+  pha
   .endif
 	lda $D011   ;bit 4 on = Screen visible
 	ora #%00010000
 	sta $D011 
-  .if ::SAVE_REGS>1
-  restore A
+  .if ::SAVE_REGS
+  pla
   .endif
 .endmacro
 
@@ -39,16 +43,16 @@
 ;; Registers modified: A
 .import gfx_inittables_sr
 .macro bitmap_on
-  .if ::SAVE_REGS>1
-  store A
+  .if ::SAVE_REGS
+  pha
   .endif
 	lda #59   ;bit 5 on = Bitmap-Modus
 	sta $D011 
 	lda $D018
 	ora #8
 	sta $D018
-  .if ::SAVE_REGS>1
-  restore A
+  .if ::SAVE_REGS
+  pla
   .endif
 .endmacro
 
@@ -56,16 +60,16 @@
 ;; Turn bitmap mode off
 ;; Registers modified: A
 .macro bitmap_off
-  .if ::SAVE_REGS>1
-  store A
+  .if ::SAVE_REGS
+  pha
   .endif
 	lda #27   ;standard text mode
 	sta $D011 
 	lda $D018
 	and #255-8
 	sta $D018 
-  .if ::SAVE_REGS>1
-  restore A
+  .if ::SAVE_REGS
+  pla
   .endif
 .endmacro
 
@@ -76,15 +80,17 @@
 
 .macro gfx_clrscr bgcolor,fgcolor
 .scope
-  .if ::SAVE_REGS>1
-  store AX
+  .if ::SAVE_REGS
+  pha
+  store X
   store Y
   .endif
 	ldy #bgcolor+$10*fgcolor
 	jsr _gfx_clrscr_sr
-  .if ::SAVE_REGS>1
-  restore AX
+  .if ::SAVE_REGS
   restore Y
+  restore X
+  pla
   .endif
 .endscope
 .endmacro
@@ -107,14 +113,16 @@
 	  .endif
 	.endif
 	.export gfxtables
-  .if ::SAVE_REGS>1
-  store AX
+  .if ::SAVE_REGS
+  pha
+  store X
   store Y
   .endif
 	jsr _gfx_init_sr
-  .if ::SAVE_REGS>1
-  restore AX
+  .if ::SAVE_REGS
   restore Y
+  restore X
+  pla
   .endif
 .endmacro
 
@@ -123,7 +131,7 @@
 ;; Registers modified: A, X, Y
 .import _gfx_pset_sr
 .macro gfx_pset
-  .if ::SAVE_REGS>1
+  .if ::SAVE_REGS
   store AX
   store Y
   .endif
@@ -131,7 +139,7 @@
 	.ifnref _gfx_init_sr 
 	.warning "The function gfx_pset requires the function gfx_init to be called beforehand, are you sure you have done this?"
 	.endif
-  .if ::SAVE_REGS>1
+  .if ::SAVE_REGS
   restore AX
   restore Y
   .endif
@@ -142,7 +150,7 @@
 ;; Registers modified: A, X, Y
 .import _gfx_pclr_sr
 .macro gfx_pclr
-  .if ::SAVE_REGS>1
+  .if ::SAVE_REGS
   store AX
   store Y
   .endif
@@ -150,7 +158,7 @@
 	.ifnref _gfx_init_sr 
 	.warning "The function gfx_pclr requires the function gfx_init to be called beforehand, are you sure you have done this?"
 	.endif
-  .if ::SAVE_REGS>1
+  .if ::SAVE_REGS
   restore AX
   restore Y
   .endif
@@ -162,7 +170,7 @@
 ;; Registers modified: X, Y
 .import _gfx_pget_sr
 .macro gfx_pget
-  .if ::SAVE_REGS>1
+  .if ::SAVE_REGS
   store X
   store Y
   .endif
@@ -170,7 +178,7 @@
 	.ifnref _gfx_init_sr 
 	.warning "The function gfx_pclr requires the function gfx_init to be called beforehand, are you sure you have done this?"
 	.endif
-  .if ::SAVE_REGS>1
+  .if ::SAVE_REGS
   restore X
   restore Y
   .endif
@@ -182,15 +190,15 @@
 ;; This macro does not adjust the VIC bank, see set_VIC_bank
 ;; Registers modified: A
 .macro set_VIC_charset addr
-  .if ::SAVE_REGS>1
-  store A
+  .if ::SAVE_REGS
+  pha
   .endif
 	lda $D018
 	and #$f0
 	ora #((addr & $3800)/$400)
 	sta $D018
-  .if ::SAVE_REGS>1
-  restore A
+  .if ::SAVE_REGS
+  pla
   .endif
 .endmacro
 
@@ -200,15 +208,15 @@
 ;; This macro does not adjust the VIC bank, see set_VIC_bank
 ;; Registers modified: A
 .macro set_VIC_screen addr
-  .if ::SAVE_REGS>1
-  store A
+  .if ::SAVE_REGS
+  pha
   .endif
 	lda $D018
 	and #$0f
 	ora #((addr & $3C00)/$40)
 	sta $D018
-  .if ::SAVE_REGS>1
-  restore A
+  .if ::SAVE_REGS
+  pla
   .endif
 .endmacro
 
@@ -218,13 +226,13 @@
 ;; This macro does not adjust the VIC bank, see set_VIC_bank
 ;; Registers modified: A
 .macro set_VIC_addr screen_addr,charset_addr
-  .if ::SAVE_REGS>1
-  store A
+  .if ::SAVE_REGS
+  pha
   .endif
 	lda #((screen_addr & $3C00)/$40) | ((charset_addr & $3800)/$400)
 	sta $D018
-  .if ::SAVE_REGS>1
-  restore A
+  .if ::SAVE_REGS
+  pla
   .endif
 .endmacro
 
@@ -233,14 +241,14 @@
 ;; addr must be a constant that is a multiple of $4000
 ;; Registers modified: A
 .macro set_VIC_bank addr
-  .if ::SAVE_REGS>1
-  store A
+  .if ::SAVE_REGS
+  pha
   .endif
 	lda $DD00
 	and #$fc
 	ora #(3 - addr/$4000)
 	sta $DD00
-  .if ::SAVE_REGS>1
-  restore A
+  .if ::SAVE_REGS
+  pla
   .endif
 .endmacro

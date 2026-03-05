@@ -3,6 +3,10 @@
 ; part of LAMAlib
 ; by Wil 2021
 
+.ifndef SAVE_REGS
+  ::SAVE_REGS .set 0
+.endif
+
 ; auxiliary defintions for long branches, basically a copy of macro package longbranch
 ; but with other names, since we don't know if the user will use the macro package
 .macro  longbeq     Target
@@ -508,23 +512,23 @@
     .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-4
       ldax 0+start
     .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-5
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
         pha
       .endif
       lda 0+start
       sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
       lda 0+start+1
       sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
         pla
       .endif
     .else
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
         pha
       .endif
       lda 0+start
       sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
         pla
       .endif
     .endif
@@ -565,14 +569,14 @@
       .else
         .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=0
       .endif
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
         pha
       .endif
       lda #<(start)
       sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
       lda #>(start)
       sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
         pla
       .endif
     .else
@@ -581,12 +585,12 @@
       .else
         .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=0
       .endif
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
         pha
       .endif
       lda #(start)
       sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
         pla
       .endif
     .endif
@@ -606,14 +610,14 @@
   .if .ident(.sprintf("for_dir%d", ::nesting_level/10))>0   ;--- incrementing loops ---
     .if .ident(.sprintf("for_var%d", ::nesting_level/10))=-2   ;--- next X ---
       .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
           pha
         .endif
         txa
         clc
         adc .ident(.sprintf("for_inc%d", ::nesting_level/10))
         tax
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
           pla
         .endif
         .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
@@ -626,13 +630,13 @@
         .endif
       .else
         .if .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 3
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pha
           .endif
           txa
           .byte $cb	;sbx # illegal opcode
           .byte <($100-.ident(.sprintf("for_inc%d", ::nesting_level/10)))
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pla
           .endif
         .else
@@ -658,14 +662,14 @@
       .endif
     .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-3   ;--- next Y ---
       .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
           pha
         .endif
         tya
         clc
         adc .ident(.sprintf("for_inc%d", ::nesting_level/10))
         tay
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
           pla
         .endif
         .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
@@ -678,14 +682,14 @@
         .endif
       .else
         .if .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 5
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pha
           .endif
           tya
           clc
           adc #.ident(.sprintf("for_inc%d", ::nesting_level/10))
           tay
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pla
           .endif
         .else
@@ -784,7 +788,7 @@
       .endif
     .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-5   ;--- next (addr) to ---
       .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
           pha
         .endif
         lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
@@ -796,7 +800,7 @@
         sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
         .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1       ;we work from here
           cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             bcs :+
             pla
             jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -811,13 +815,13 @@
           .endif
           lda .ident(.sprintf("for_end%d", ::nesting_level/10))
           cmp .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pla
           .endif
           longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
           cmp #>.ident(.sprintf("for_end%d", ::nesting_level/10))
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             bcs :+
             pla
             jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -832,7 +836,7 @@
           .endif
           lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
           cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pla
           .endif
           longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))        ;until there
@@ -840,22 +844,22 @@
       .else ; for_inc%d_indirect == 0 case
         .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
           inc16 .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pha
           .endif
           .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
             lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
             cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pla
             .endif
             longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pha
             .endif
             lda .ident(.sprintf("for_end%d", ::nesting_level/10))
             cmp .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pla
             .endif
             longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -864,7 +868,7 @@
             .if (<.ident(.sprintf("for_end%d", ::nesting_level/10)))>0
               cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               beq :+
               pla
               jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -876,7 +880,7 @@
             .if (>.ident(.sprintf("for_end%d", ::nesting_level/10)))>0
               cmp #>.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               beq :+
               pla
               jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -886,7 +890,7 @@
             .endif
           .endif
         .else ;for_inc%d_indirect == 0, for_inc > 1
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pha
           .endif
           lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
@@ -898,7 +902,7 @@
           sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
           .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
             cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               bcs :+
               pla
               jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -913,13 +917,13 @@
             .endif
             lda .ident(.sprintf("for_end%d", ::nesting_level/10))
             cmp .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pla
             .endif
             longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
             cmp #>.ident(.sprintf("for_end%d", ::nesting_level/10))
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               bcs :+
               pla
               jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -934,7 +938,7 @@
             .endif
             lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
             cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pla
             .endif
             longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -943,7 +947,7 @@
       .endif
     .else ;--- next [addr] ---
       .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
           pha
         .endif
         lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
@@ -952,14 +956,14 @@
         sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
         .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
           cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pla
           .endif
           longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           longbeq .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
           cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pla
           .endif
           longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -967,7 +971,7 @@
       .else ;for_inc given as number
         .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
           inc .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pha
           .endif
           .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
@@ -977,7 +981,7 @@
             lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
             cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))
           .endif
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             beq :+
             pla
             jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -986,7 +990,7 @@
             longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .endif
         .else
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pha
           .endif
           lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
@@ -998,7 +1002,7 @@
           .else
             cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))
           .endif
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pla
           .endif
           longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1009,14 +1013,14 @@
   .else              ;--- decrementing loops ---
     .if .ident(.sprintf("for_var%d", ::nesting_level/10))=-2   ;--- next X ---
       .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
           pha
         .endif
         txa
         sec
         sbc .ident(.sprintf("for_inc%d", ::nesting_level/10))
         tax
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
           pla
         .endif
         .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
@@ -1026,7 +1030,7 @@
           .if .ident(.sprintf("for_end%d", ::nesting_level/10)) >= 0
             cpx #.ident(.sprintf("for_end%d", ::nesting_level/10))+1
           .else
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               cpx #0  ;re-establish N flag from X after pla
             .endif
           .endif
@@ -1034,13 +1038,13 @@
         .endif
       .else
         .if .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 3
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pha
           .endif
           txa
           .byte $cb	;sbx # illegal opcode
           .byte .ident(.sprintf("for_inc%d", ::nesting_level/10))
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pla
           .endif
         .else
@@ -1069,7 +1073,7 @@
           .else
             .if .ident(.sprintf("for_end%d", ::nesting_level/10))-.ident(.sprintf("for_inc%d", ::nesting_level/10)) < 0
               .if .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=1
-                .if ::SAVE_REGS>1 .and .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 3
+                .if ::SAVE_REGS .and .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 3
                   cpx #0  ;re-establish N flag from X after pla
                 .endif
                 bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
@@ -1084,7 +1088,7 @@
               cpx #.ident(.sprintf("for_end%d", ::nesting_level/10))+1
               longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     	    .else
-              .if ::SAVE_REGS>1 .and .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 3
+              .if ::SAVE_REGS .and .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 3
                 cpx #0  ;re-establish N/Z flags from X after pla
               .endif
               longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1094,14 +1098,14 @@
       .endif
     .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-3   ;--- next Y ---
       .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
           pha
         .endif
         tya
         sec
         sbc .ident(.sprintf("for_inc%d", ::nesting_level/10))
         tay
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
           pla
         .endif
         .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
@@ -1111,7 +1115,7 @@
           .if .ident(.sprintf("for_end%d", ::nesting_level/10)) >= 0
             cpy #.ident(.sprintf("for_end%d", ::nesting_level/10))+1
           .else
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               cpy #0  ;re-establish N flag from Y after pla
             .endif
           .endif
@@ -1119,14 +1123,14 @@
         .endif
       .else
         .if .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 5
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pha
           .endif
           tya
           sec
           sbc #.ident(.sprintf("for_inc%d", ::nesting_level/10))
           tay
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pla
           .endif
         .else
@@ -1155,7 +1159,7 @@
           .else
             .if .ident(.sprintf("for_end%d", ::nesting_level/10))-.ident(.sprintf("for_inc%d", ::nesting_level/10)) < 0
               .if .ident(.sprintf("for_start_positive%d", ::nesting_level/10))=1
-                .if ::SAVE_REGS>1 .and .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 5
+                .if ::SAVE_REGS .and .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 5
                   cpy #0  ;re-establish N flag from Y after pla
                 .endif
                 bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
@@ -1170,7 +1174,7 @@
               cpy #.ident(.sprintf("for_end%d", ::nesting_level/10))+1
               longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
     	    .else
-              .if ::SAVE_REGS>1 .and .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 5
+              .if ::SAVE_REGS .and .ident(.sprintf("for_inc%d", ::nesting_level/10)) > 5
                 cpy #0  ;re-establish N/Z flags from Y after pla
               .endif
               longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1291,7 +1295,7 @@
       .endif
     .elseif .ident(.sprintf("for_var%d", ::nesting_level/10))=-5   ;--- next (addr) ---
       .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
           pha
         .endif
         lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
@@ -1303,7 +1307,7 @@
         sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
         .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
           cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             bpl :+
             pla
             jmp .ident(.sprintf("end_loop%d", ::nesting_level/10))
@@ -1311,7 +1315,7 @@
           .else
             bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
           .endif
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             beq :+
             pla
             jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1321,13 +1325,13 @@
           .endif
           lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
           cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pla
           .endif
           longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
         .else
           cmp #>(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             bpl :+
             pla
             jmp .ident(.sprintf("end_loop%d", ::nesting_level/10))
@@ -1335,7 +1339,7 @@
           .else
             bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
           .endif
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             beq :+
             pla
             jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1345,7 +1349,7 @@
           .endif
           lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
           cmp #<(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pla
           .endif
           longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1353,13 +1357,13 @@
       .else
         .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
           dec16 .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pha
           .endif
           .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
             lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
             cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               bpl :+
               pla
               jmp .ident(.sprintf("end_loop%d", ::nesting_level/10))
@@ -1367,7 +1371,7 @@
             .else
               bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
             .endif
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               beq :+
               pla
               jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1377,7 +1381,7 @@
             .endif
             lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
             cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pla
             .endif
             longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1386,7 +1390,7 @@
             .if (<.ident(.sprintf("for_end%d", ::nesting_level/10)))>0
               cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif 
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               beq :+
               pla
               jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1398,7 +1402,7 @@
             .if (>.ident(.sprintf("for_end%d", ::nesting_level/10)))>0
               cmp #>.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               beq :+
               pla
               jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1409,7 +1413,7 @@
             .endif
           .endif
         .else
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pha
           .endif
           lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
@@ -1422,7 +1426,7 @@
           .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
             lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
             cmp .ident(.sprintf("for_end%d", ::nesting_level/10))+1
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               bpl :+
               pla
               jmp .ident(.sprintf("end_loop%d", ::nesting_level/10))
@@ -1430,7 +1434,7 @@
             .else
               bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
             .endif
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               beq :+
               pla
               jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1440,7 +1444,7 @@
             .endif
             lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
             cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pla
             .endif
             longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1448,7 +1452,7 @@
             .if .ident(.sprintf("for_end%d", ::nesting_level/10))-.ident(.sprintf("for_inc%d", ::nesting_level/10))>0
               lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
               cmp #>.ident(.sprintf("for_end%d", ::nesting_level/10))
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 bcs :+
                 pla
                 jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1458,14 +1462,14 @@
               .endif
               lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
               cmp #<.ident(.sprintf("for_end%d", ::nesting_level/10))
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif
               longbcc .ident(.sprintf("begin_loop%d", ::nesting_level/10))
             .else
               lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))+1
               cmp #>(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 bpl :+
                 pla
                 jmp .ident(.sprintf("end_loop%d", ::nesting_level/10))
@@ -1473,7 +1477,7 @@
               .else
                 bmi .ident(.sprintf("end_loop%d", ::nesting_level/10))
               .endif
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 beq :+
                 pla
                 jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1483,7 +1487,7 @@
               .endif
               lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
               cmp #<(.ident(.sprintf("for_end%d", ::nesting_level/10))+1)
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif
               longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1494,7 +1498,7 @@
       .endif
     .else ;--- next [addr] ---
       .if .ident(.sprintf("for_inc%d_indirect", ::nesting_level/10))=1
-	.if ::SAVE_REGS>1
+	.if ::SAVE_REGS
 	  pha
 	.endif
         lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
@@ -1506,14 +1510,14 @@
         .else
           cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))
         .endif
-	.if ::SAVE_REGS>1
+	.if ::SAVE_REGS
 	  pla
 	.endif
         longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
       .else ;for_inc given as number
         .if .ident(.sprintf("for_inc%d", ::nesting_level/10))=1
           dec .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pha
           .endif
           .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
@@ -1532,7 +1536,7 @@
               cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))
             .endif
 	  .endif
-	  .if ::SAVE_REGS>1
+	  .if ::SAVE_REGS
             beq :+
 	    pla
             jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1541,7 +1545,7 @@
             longbne .ident(.sprintf("begin_loop%d", ::nesting_level/10))
 	  .endif
         .else
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
             pha
           .endif
           lda .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
@@ -1550,20 +1554,20 @@
           sta .ident(.sprintf("for_var_addr%d", ::nesting_level/10))
           .if .ident(.sprintf("for_end%d_indirect", ::nesting_level/10))=1
             cmp .ident(.sprintf("for_end%d", ::nesting_level/10))
-	    .if ::SAVE_REGS>1
+	    .if ::SAVE_REGS
               pla
             .endif
             longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
           .else
             .if .ident(.sprintf("for_end%d", ::nesting_level/10))-.ident(.sprintf("for_inc%d", ::nesting_level/10))>0
               cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))
-	      .if ::SAVE_REGS>1
+	      .if ::SAVE_REGS
                 pla
               .endif
               longbcs .ident(.sprintf("begin_loop%d", ::nesting_level/10))
 	    .else
               cmp #.ident(.sprintf("for_end%d", ::nesting_level/10))
-	      .if ::SAVE_REGS>1
+	      .if ::SAVE_REGS
                 bmi :+
 	        pla
                 jmp .ident(.sprintf("begin_loop%d", ::nesting_level/10))
@@ -1757,12 +1761,12 @@
   inc_nesting_level_every
   dec .ident(.sprintf("do_every_counter%d", ::nesting_level_every/10))
   longbne .ident(.sprintf("end_do_every%d", ::nesting_level_every/10))
-  .if ::SAVE_REGS>1
+  .if ::SAVE_REGS
     pha
   .endif
   lda #interval
   sta .ident(.sprintf("do_every_counter%d", ::nesting_level_every/10))
-  .if ::SAVE_REGS>1
+  .if ::SAVE_REGS
     pla
   .endif
   .byte $80	;NOP #xx illegal opcode, skips next byte, 2 cycles
@@ -1789,7 +1793,7 @@
 ;; Registers modified: A
 .macro do_once maxcalls
   inc_nesting_level_every
-  .if ::SAVE_REGS>1
+  .if ::SAVE_REGS
     pha
   .endif
   .ident(.sprintf("begin_do_once%d", ::nesting_level_every/10)):
@@ -1798,7 +1802,7 @@
   .else
     lda #maxcalls
   .endif
-  .if ::SAVE_REGS>1
+  .if ::SAVE_REGS
     cmp #1  ; sets carry if A is non zero, clears carry if A=0
     pla
     longbcc .ident(.sprintf("end_do_once%d", ::nesting_level_every/10))  ; Branch to end if A is 0
@@ -1826,12 +1830,12 @@
   inc_nesting_level_every
   dec .ident(.sprintf("skip_every_counter%d", ::nesting_level_every/10))
   bne .ident(.sprintf("no_skip%d", ::nesting_level_every/10))
-  .if ::SAVE_REGS>1
+  .if ::SAVE_REGS
     pha
   .endif
   lda #interval
   sta .ident(.sprintf("skip_every_counter%d", ::nesting_level_every/10))
-  .if ::SAVE_REGS>1
+  .if ::SAVE_REGS
     pla
   .endif
   jmp .ident(.sprintf("end_skip_every%d", ::nesting_level_every/10))

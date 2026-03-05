@@ -262,7 +262,7 @@ mrk2:   eor #$E0
         ;skip writing if transparent char
 _transparent_petscii_char:
         cmp #00
-        bcc skip_transparent
+        beq skip_transparent
 .endif
 scr:    sta $400,x
 col:    lda #00

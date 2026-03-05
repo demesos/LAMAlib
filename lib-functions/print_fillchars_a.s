@@ -9,7 +9,7 @@
 ; A number to print
 ; Y fillchar
 ; Function leaves A unchanged
-; code by Wil, 2024
+; code by Wil, 2026
 
 _print_fillchars_a_sr:
 	sty fillchar_value
@@ -18,7 +18,7 @@ _print_fillchars_a_sr:
 	if cc
 	  ldy #2
 	else
-	  cmpax #100
+	  cmp #100
 	  if cc
 	    ldy #1
 	  endif

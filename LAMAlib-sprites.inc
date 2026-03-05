@@ -26,16 +26,16 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
 ;; Registers modified: A (always); X when n=A or n=Y
   .macro showSprite n
     .if (.xmatch ({n}, {ALL}) .or .xmatch ({n}, {all}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda #$ff
       sta VIC_BASE+$15
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store AX
     .endif
       tax
@@ -43,39 +43,39 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       lda _twopotentials,x
       ora VIC_BASE+$15
       sta VIC_BASE+$15
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore AX
     .endif
     .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _twopotentials
       lda _twopotentials,x
       ora VIC_BASE+$15
       sta VIC_BASE+$15
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _twopotentials
       lda _twopotentials,y
       ora VIC_BASE+$15
       sta VIC_BASE+$15
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .else
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda VIC_BASE+$15
       ora #1<<(n)
       sta VIC_BASE+$15
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .endif
@@ -88,16 +88,16 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
 ;; Registers modified: A (always); X when n=A or n=Y
   .macro hideSprite n
     .if (.xmatch ({n}, {ALL}) .or .xmatch ({n}, {all}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda #0
       sta VIC_BASE+$15
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store AX
     .endif
       tax
@@ -105,39 +105,39 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       lda _maskedtwopotentials,x
       and VIC_BASE+$15
       sta VIC_BASE+$15
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore AX
     .endif
     .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _maskedtwopotentials
       lda _maskedtwopotentials,x
       and VIC_BASE+$15
       sta VIC_BASE+$15
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _maskedtwopotentials
       lda _maskedtwopotentials,y
       and VIC_BASE+$15
       sta VIC_BASE+$15
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .else
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda VIC_BASE+$15
       and #255 - (1<<(n))
       sta VIC_BASE+$15
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .endif
@@ -152,16 +152,16 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
 ;; Registers modified: A (always); X when n=A or n=Y
   .macro enableMultiColorSprite n
     .if (.xmatch ({n}, {ALL}) .or .xmatch ({n}, {all}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda #$ff
       sta VIC_BASE+$1c
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store AX
     .endif
       tax
@@ -169,39 +169,39 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       lda _twopotentials,x
       ora VIC_BASE+$1c
       sta VIC_BASE+$1c
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore AX
     .endif
     .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _twopotentials
       lda _twopotentials,x
       ora VIC_BASE+$1c
       sta VIC_BASE+$1c
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _twopotentials
       lda _twopotentials,y
       ora VIC_BASE+$1c
       sta VIC_BASE+$1c
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .else
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda VIC_BASE+$1c
       ora #1<<(n)
       sta VIC_BASE+$1c
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .endif
@@ -214,16 +214,16 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
 ;; Registers modified: A (always); X when n=A or n=Y
   .macro disableMultiColorSprite n
     .if (.xmatch ({n}, {ALL}) .or .xmatch ({n}, {all}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda #0
       sta VIC_BASE+$1c
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store AX
     .endif
       tax
@@ -231,39 +231,39 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       lda _maskedtwopotentials,x
       and VIC_BASE+$1c
       sta VIC_BASE+$1c
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore AX
     .endif
     .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _maskedtwopotentials
       lda _maskedtwopotentials,x
       and VIC_BASE+$1c
       sta VIC_BASE+$1c
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _maskedtwopotentials
       lda _maskedtwopotentials,y
       and VIC_BASE+$1c
       sta VIC_BASE+$1c
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .else
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda VIC_BASE+$1c
       and #255 - (1<<(n))
       sta VIC_BASE+$1c
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .endif
@@ -276,16 +276,16 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
 ;; Registers modified: A (always); X when n=A or n=Y
   .macro enableXexpandSprite n
     .if (.xmatch ({n}, {ALL}) .or .xmatch ({n}, {all}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda #$ff
       sta VIC_BASE+$1d
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store AX
     .endif
       tax
@@ -293,39 +293,39 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       lda _twopotentials,x
       ora VIC_BASE+$1d
       sta VIC_BASE+$1d
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore AX
     .endif
     .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _twopotentials
       lda _twopotentials,x
       ora VIC_BASE+$1d
       sta VIC_BASE+$1d
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _twopotentials
       lda _twopotentials,y
       ora VIC_BASE+$1d
       sta VIC_BASE+$1d
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .else
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda VIC_BASE+$1d
       ora #1<<(n)
       sta VIC_BASE+$1d
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .endif
@@ -338,16 +338,16 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
 ;; Registers modified: A (always); X when n=A or n=Y
   .macro disableXexpandSprite n
     .if (.xmatch ({n}, {ALL}) .or .xmatch ({n}, {all}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda #0
       sta VIC_BASE+$1d
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store AX
     .endif
       tax
@@ -355,39 +355,39 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       lda _maskedtwopotentials,x
       and VIC_BASE+$1d
       sta VIC_BASE+$1d
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore AX
     .endif
     .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _maskedtwopotentials
       lda _maskedtwopotentials,x
       and VIC_BASE+$1d
       sta VIC_BASE+$1d
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _maskedtwopotentials
       lda _maskedtwopotentials,y
       and VIC_BASE+$1d
       sta VIC_BASE+$1d
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .else
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda VIC_BASE+$1d
       and #255 - (1<<(n))
       sta VIC_BASE+$1d
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .endif
@@ -400,16 +400,16 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
 ;; Registers modified: A (always); X when n=A or n=Y
   .macro enableYexpandSprite n
     .if (.xmatch ({n}, {ALL}) .or .xmatch ({n}, {all}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda #$ff
       sta VIC_BASE+$17
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store AX
     .endif
       tax
@@ -417,39 +417,39 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       lda _twopotentials,x
       ora VIC_BASE+$17
       sta VIC_BASE+$17
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore AX
     .endif
     .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _twopotentials
       lda _twopotentials,x
       ora VIC_BASE+$17
       sta VIC_BASE+$17
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _twopotentials
       lda _twopotentials,y
       ora VIC_BASE+$17
       sta VIC_BASE+$17
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .else
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda VIC_BASE+$17
       ora #1<<(n)
       sta VIC_BASE+$17
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .endif
@@ -462,16 +462,16 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
 ;; Registers modified: A (always); X when n=A or n=Y
   .macro disableYexpandSprite n
     .if (.xmatch ({n}, {ALL}) .or .xmatch ({n}, {all}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda #0
       sta VIC_BASE+$17
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store AX
     .endif
       tax
@@ -479,39 +479,39 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       lda _maskedtwopotentials,x
       and VIC_BASE+$17
       sta VIC_BASE+$17
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore AX
     .endif
     .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _maskedtwopotentials
       lda _maskedtwopotentials,x
       and VIC_BASE+$17
       sta VIC_BASE+$17
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _maskedtwopotentials
       lda _maskedtwopotentials,y
       and VIC_BASE+$17
       sta VIC_BASE+$17
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .else
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda VIC_BASE+$17
       and #255 - (1<<(n))
       sta VIC_BASE+$17
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .endif
@@ -524,16 +524,16 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
 ;; Registers modified: A (always); X when n=A or n=Y
   .macro spriteBeforeBackground n
     .if (.xmatch ({n}, {ALL}) .or .xmatch ({n}, {all}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda #0
       sta VIC_BASE+$1b
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store AX
     .endif
       tax
@@ -541,39 +541,39 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       lda _maskedtwopotentials,x
       and VIC_BASE+$1b
       sta VIC_BASE+$1b
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore AX
     .endif
     .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _maskedtwopotentials
       lda _maskedtwopotentials,x
       and VIC_BASE+$1b
       sta VIC_BASE+$1b
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _maskedtwopotentials
       lda _maskedtwopotentials,y
       and VIC_BASE+$1b
       sta VIC_BASE+$1b
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .else
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda VIC_BASE+$1b
       and #255 - (1<<(n))
       sta VIC_BASE+$1b
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .endif
@@ -586,16 +586,16 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
 ;; Registers modified: A (always); X when n=A or n=Y
   .macro spriteBehindBackground n
     .if (.xmatch ({n}, {ALL}) .or .xmatch ({n}, {all}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda #$ff
       sta VIC_BASE+$1b
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store AX
     .endif
       tax
@@ -603,39 +603,39 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       lda _twopotentials,x
       ora VIC_BASE+$1b
       sta VIC_BASE+$1b
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore AX
     .endif
     .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _twopotentials
       lda _twopotentials,x
       ora VIC_BASE+$1b
       sta VIC_BASE+$1b
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       .import _twopotentials
       lda _twopotentials,y
       ora VIC_BASE+$1b
       sta VIC_BASE+$1b
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .else
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     store A
     .endif
       lda VIC_BASE+$1b
       ora #1<<(n)
       sta VIC_BASE+$1b
-    .if ::SAVE_REGS>1
+    .if ::SAVE_REGS
     restore A
     .endif
     .endif
@@ -654,121 +654,121 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       ; n in A: need a free index reg for the sta ,index form
       .if (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
         ; clobbers A, Y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         store Y
         .endif
         tay
         txa
         sta VIC_BASE+$27,y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         restore Y
         .endif
       .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
         ; clobbers A, X
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store AX
         .endif
         tax
         tya
         sta VIC_BASE+$27,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore AX
         .endif
       .elseif (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
         ; clobbers A, X
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store AX
         .endif
         tax
         sta VIC_BASE+$27,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore AX
         .endif
       .else
         ; constant arg — clobbers A, X
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store AX
         .endif
         tax
         lda #arg
         sta VIC_BASE+$27,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore AX
         .endif
       .endif
     .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
       .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         sta VIC_BASE+$27,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         txa
         sta VIC_BASE+$27,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         tya
         sta VIC_BASE+$27,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .else
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         lda #arg
         sta VIC_BASE+$27,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .endif
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
       .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         sta VIC_BASE+$27,y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         txa
         sta VIC_BASE+$27,y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         tya
         sta VIC_BASE+$27,y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .else
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         lda #arg
         sta VIC_BASE+$27,y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .endif
@@ -781,12 +781,12 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
         sty VIC_BASE+$27+n
       .else
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         lda #arg
         sta VIC_BASE+$27+n
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .endif
@@ -803,42 +803,42 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
     .if (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
       ; n=A: tax clobbers X (original X gone)
       .ifblank reg
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store X
         .endif
         tax
         lda VIC_BASE+$27,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore X
         .endif
       .elseif (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store X
         .endif
         tax
         lda VIC_BASE+$27,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore X
         .endif
       .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
         ; X is output — original A is clobbered via tax
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         tax
         lda VIC_BASE+$27,x
         tax
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
         ; Y is output — original X clobbered via tax
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store X
         .endif
         tax
         ldy VIC_BASE+$27,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore X
         .endif
       .else
@@ -851,12 +851,12 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       .elseif (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
         lda VIC_BASE+$27,x
       .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         lda VIC_BASE+$27,x
         tax
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
@@ -873,12 +873,12 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
         ldx VIC_BASE+$27,y
       .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         lda VIC_BASE+$27,y
         tay
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .else
@@ -913,12 +913,12 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
     .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
         sty VIC_BASE+$25
     .else
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         lda #arg
         sta VIC_BASE+$25
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
     .endif
@@ -956,12 +956,12 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
     .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
         sty VIC_BASE+$26
     .else
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         lda #arg
         sta VIC_BASE+$26
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
     .endif
@@ -1001,121 +1001,121 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
     .if (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
       .if (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
         ; clobbers A, Y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         store Y
         .endif
         tay
         txa
         sta SCREEN_BASE+$3f8,y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         restore Y
         .endif
       .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
         ; clobbers A, X
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store AX
         .endif
         tax
         tya
         sta SCREEN_BASE+$3f8,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore AX
         .endif
       .elseif (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
         ; clobbers X
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store X
         .endif
         tax
         sta SCREEN_BASE+$3f8,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore X
         .endif
       .else
         ; clobbers A, X
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store AX
         .endif
         tax
         lda #arg
         sta SCREEN_BASE+$3f8,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore AX
         .endif
       .endif
     .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
       .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         sta SCREEN_BASE+$3f8,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         txa
         sta SCREEN_BASE+$3f8,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         tya
         sta SCREEN_BASE+$3f8,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .else
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         lda #arg
         sta SCREEN_BASE+$3f8,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .endif
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
       .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         sta SCREEN_BASE+$3f8,y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         txa
         sta SCREEN_BASE+$3f8,y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         tya
         sta SCREEN_BASE+$3f8,y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .else
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         lda #arg
         sta SCREEN_BASE+$3f8,y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .endif
@@ -1128,7 +1128,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
         sty SCREEN_BASE+$3f8+n
       .else
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         .if .const(arg) && arg>255
@@ -1137,7 +1137,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
           lda #arg
         .endif
         sta SCREEN_BASE+$3f8+n
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .endif
@@ -1154,42 +1154,42 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
     .if (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
       ; n=A: tax always clobbers original X
       .ifblank reg
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store X
         .endif
         tax
         lda SCREEN_BASE+$3f8,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore X
         .endif
       .elseif (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store X
         .endif
         tax
         lda SCREEN_BASE+$3f8,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore X
         .endif
       .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
         ; X is output — original A clobbered via tax
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         tax
         lda SCREEN_BASE+$3f8,x
         tax
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
         ; Y is output — original X clobbered via tax
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store X
         .endif
         tax
         ldy SCREEN_BASE+$3f8,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore X
         .endif
       .else
@@ -1202,12 +1202,12 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       .elseif (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
         lda SCREEN_BASE+$3f8,x
       .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         lda SCREEN_BASE+$3f8,x
         tax
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
@@ -1224,12 +1224,12 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
         ldx SCREEN_BASE+$3f8,y
       .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         lda SCREEN_BASE+$3f8,y
         tay
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .else
@@ -1266,7 +1266,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
     .if (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
       ; n in A: move to Y, then use n=Y path — clobbers A, X, Y
       .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       store AX
       store Y
       .endif
@@ -1284,13 +1284,13 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
             and _maskedtwopotentials,y
         endif
         sta VIC_BASE+$10
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       restore AX
       restore Y
       .endif
       .elseif (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
         ; A=lo, carry=bit8 — clobbers A, X, Y
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       store AX
       store Y
       .endif
@@ -1307,13 +1307,13 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
             and _maskedtwopotentials,y
         endif
         sta VIC_BASE+$10
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       restore AX
       restore Y
       .endif
       .else
         ; constant arg — clobbers A, X, Y
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       store AX
       store Y
       .endif
@@ -1331,7 +1331,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
             and _maskedtwopotentials,y
         .endif
         sta VIC_BASE+$10
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       restore AX
       restore Y
       .endif
@@ -1339,7 +1339,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
       ; --- n in Y --- clobbers A, X always
       .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       store AX
       .endif
 	cpx #1  ;set carry if X>=1
@@ -1355,12 +1355,12 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
             and _maskedtwopotentials,y
         endif
         sta VIC_BASE+$10
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       restore AX
       .endif
       .elseif (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
         ; A=lo, carry=bit8
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       store AX
       .endif
         .import _doubles_0_to_7
@@ -1375,12 +1375,12 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
             and _maskedtwopotentials,y
         endif
         sta VIC_BASE+$10
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       restore AX
       .endif
       .else
         ; constant arg
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       store AX
       .endif
         .import _doubles_0_to_7
@@ -1396,14 +1396,14 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
             and _maskedtwopotentials,y
         .endif
         sta VIC_BASE+$10
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       restore AX
       .endif
       .endif
     .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
       ; n in X — clobbers A, Y always
       .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       store A
       store Y
       .endif
@@ -1420,12 +1420,12 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
             and _maskedtwopotentials,x
         endif
         sta VIC_BASE+$10
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       restore A
       restore Y
       .endif
       .elseif (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       store A
       store Y
       .endif
@@ -1441,12 +1441,12 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
             and _maskedtwopotentials,x
         endif
         sta VIC_BASE+$10
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       restore A
       restore Y
       .endif
       .else
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       store A
       store Y
       .endif
@@ -1463,7 +1463,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
             and _maskedtwopotentials,x
         .endif
         sta VIC_BASE+$10
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       restore A
       restore Y
       .endif
@@ -1471,7 +1471,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
     .else
       ; --- n is a constant --- clobbers A always
       .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       store A
       .endif
         sta VIC_BASE+n+n
@@ -1483,11 +1483,11 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
             and #255 - (1<<(n))
         endif
         sta VIC_BASE+$10
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       restore A
       .endif
       .elseif (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       store A
       .endif
         sta VIC_BASE+n+n
@@ -1498,11 +1498,11 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
             and #255 - (1<<(n))
         endif
         sta VIC_BASE+$10
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       restore A
       .endif
       .else
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       store A
       .endif
         lda #<(arg)
@@ -1514,7 +1514,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
           and #255 - (1<<(n))
         .endif
         sta VIC_BASE+$10
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       restore A
       .endif
       .endif
@@ -1532,49 +1532,49 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       ; --- n in Y --- 
       .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
           ; clobbers X
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           store X
           .endif
           .import _doubles_0_to_7
           ldx _doubles_0_to_7,y	    ;x=2*y
           sta VIC_BASE+1,x
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           restore X
           .endif
       .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
           ; clobbers A, X
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           store AX
           .endif
           txa
           .import _doubles_0_to_7
           ldx _doubles_0_to_7,y	    ;x=2*y
           sta VIC_BASE+1,x
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           restore AX
           .endif
       .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
           ; Y = sprite number AND value — clobbers A, X
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           store AX
           .endif
           tya                         ; A = value (=sprite number, same thing)
           .import _doubles_0_to_7
           ldx _doubles_0_to_7,y	    ;x=2*y  (Y still holds sprite number)
           sta VIC_BASE+1,x
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           restore AX
           .endif
       .else
           ; clobbers A, X
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           store AX
           .endif
           .import _doubles_0_to_7
           ldx _doubles_0_to_7,y	    ;x=2*y
           lda #arg
           sta VIC_BASE+1,x
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           restore AX
           .endif
       .endif
@@ -1582,18 +1582,18 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       ; --- n in X --- 
       .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
           ; clobbers Y
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           store Y
           .endif
           .import _doubles_0_to_7
           ldy _doubles_0_to_7,x	    ;y=2*x
           sta VIC_BASE+1,y
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           restore Y
           .endif
       .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
           ; X = sprite number AND value — clobbers A, Y
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           store A
           store Y
           .endif
@@ -1601,13 +1601,13 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
           .import _doubles_0_to_7
           ldy _doubles_0_to_7,x      ;y=2*x  (X still holds sprite number)
           sta VIC_BASE+1,y
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           restore A
           restore Y
           .endif
       .else
           ; clobbers A, Y
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           store A
           store Y
           .endif
@@ -1615,7 +1615,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
           ldy _doubles_0_to_7,x	    ;y=2*x
           lda #arg
           sta VIC_BASE+1,y
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           restore A
           restore Y
           .endif
@@ -1624,7 +1624,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       ; --- n in A --- 
       .if (.xmatch ({arg}, {A}) .or .xmatch ({arg}, {a}))
           ; A = sprite number AND value — clobbers X, Y
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           store X
           store Y
           .endif
@@ -1632,13 +1632,13 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
           .import _doubles_0_to_7
           ldx _doubles_0_to_7,y      ;x=2*y
           sta VIC_BASE+1,x
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           restore X
           restore Y
           .endif
       .elseif (.xmatch ({arg}, {X}) .or .xmatch ({arg}, {x}))
           ; clobbers A, X, Y
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           store AX
           store Y
           .endif
@@ -1647,13 +1647,13 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
           .import _doubles_0_to_7
           ldx _doubles_0_to_7,y	    ;x=2*y
           sta VIC_BASE+1,x
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           restore AX
           restore Y
           .endif
       .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
           ; clobbers A, X, Y
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           store AX
           store Y
           .endif
@@ -1662,13 +1662,13 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
           .import _doubles_0_to_7
           ldy _doubles_0_to_7,x     ;y=2*x
           sta VIC_BASE+1,y
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           restore AX
           restore Y
           .endif
       .else
           ; constant — clobbers A, X, Y
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           store AX
           store Y
           .endif
@@ -1677,7 +1677,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
           ldx _doubles_0_to_7,y	    ;x=2*y
           lda #arg
           sta VIC_BASE+1,x
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           restore AX
           restore Y
           .endif
@@ -1691,12 +1691,12 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       .elseif (.xmatch ({arg}, {Y}) .or .xmatch ({arg}, {y}))
           sty VIC_BASE+n+n+1
       .else
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           store A
           .endif
           lda #arg
           sta VIC_BASE+n+n+1
-          .if ::SAVE_REGS>1
+          .if ::SAVE_REGS
           restore A
           .endif
       .endif
@@ -1714,7 +1714,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
         .error "getSpriteX: register must be AX"
     .elseif (.xmatch ({n}, {A}) .or .xmatch ({n}, {a}))
       ; n in A: tay clobbers Y
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       store Y
       .endif
       tay
@@ -1729,12 +1729,12 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       lda _doubles_0_to_7,y
       tay
       lda VIC_BASE+0,y
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       restore Y
       .endif
     .elseif (.xmatch ({n}, {X}) .or .xmatch ({n}, {x}))
       ; n in X: ldy clobbers Y
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       store Y
       .endif
       .import _doubles_0_to_7
@@ -1747,12 +1747,12 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       .byte $0c           ; skip next 2 bytes (ldx #0)
 :     ldx #0
       lda VIC_BASE+0,y
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       restore Y
       .endif
     .elseif (.xmatch ({n}, {Y}) .or .xmatch ({n}, {y}))
       ; n in Y: original Y consumed by lda _doubles,y / tay
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       store Y
       .endif
       lda VIC_BASE+$10
@@ -1766,7 +1766,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       lda _doubles_0_to_7,y
       tay
       lda VIC_BASE+0,y
-      .if ::SAVE_REGS>1
+      .if ::SAVE_REGS
       restore Y
       .endif
     .else
@@ -1792,7 +1792,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       ; n in A
       .if (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
         ; clobbers X, Y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store X
         store Y
         .endif
@@ -1800,13 +1800,13 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
         .import _doubles_0_to_7
         ldx _doubles_0_to_7,y       ; x=2*n
         lda VIC_BASE+1,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore X
         restore Y
         .endif
       .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
         ; X is output — clobbers A, Y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         store Y
         .endif
@@ -1815,13 +1815,13 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
         ldx _doubles_0_to_7,y       ; x=2*n
         lda VIC_BASE+1,x
         tax
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         restore Y
         .endif
       .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
         ; Y is output — clobbers A, X
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store AX
         .endif
         tay
@@ -1829,7 +1829,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
         ldx _doubles_0_to_7,y       ; x=2*n
         lda VIC_BASE+1,x
         tay
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore AX
         .endif
       .else
@@ -1839,18 +1839,18 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       ; n in X
       .if (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
         ; clobbers Y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store Y
         .endif
         .import _doubles_0_to_7
         ldy _doubles_0_to_7,x       ; y=2*n
         lda VIC_BASE+1,y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore Y
         .endif
       .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
         ; X is output — clobbers A, Y
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         store Y
         .endif
@@ -1858,20 +1858,20 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
         ldy _doubles_0_to_7,x       ; y=2*n (X still = sprite n)
         lda VIC_BASE+1,y
         tax
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         restore Y
         .endif
       .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
         ; Y is output — clobbers A (original Y gone but that's output)
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         .import _doubles_0_to_7
         ldy _doubles_0_to_7,x       ; y=2*n (X consumed, now Y=offset)
         lda VIC_BASE+1,y
         tay
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .else
@@ -1881,37 +1881,37 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
       ; n in Y
       .if (.xmatch ({reg}, {A}) .or .xmatch ({reg}, {a}))
         ; clobbers X
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store X
         .endif
         .import _doubles_0_to_7
         ldx _doubles_0_to_7,y       ; x=2*n
         lda VIC_BASE+1,x
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore X
         .endif
       .elseif (.xmatch ({reg}, {X}) .or .xmatch ({reg}, {x}))
         ; X is output — clobbers A (original X gone, that's output)
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store A
         .endif
         .import _doubles_0_to_7
         ldx _doubles_0_to_7,y       ; x=2*n (Y consumed, X=offset)
         lda VIC_BASE+1,x
         tax
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore A
         .endif
       .elseif (.xmatch ({reg}, {Y}) .or .xmatch ({reg}, {y}))
         ; Y is output — clobbers A, X
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         store AX
         .endif
         .import _doubles_0_to_7
         ldx _doubles_0_to_7,y       ; x=2*n
         lda VIC_BASE+1,x
         tay
-        .if ::SAVE_REGS>1
+        .if ::SAVE_REGS
         restore AX
         .endif
       .else
@@ -1940,7 +1940,7 @@ _overlay_implicit=0      ;value indicates that with this sprite macro overlay sp
 ;; Registers modified: A, X, Y
   .macro setSpriteXY n, xpos, ypos
   BACKUP_SAVE_REGS .set ::SAVE_REGS
-  ::SAVE_REGS .set 2
+  ::SAVE_REGS .set 1
   setSpriteY n, ypos
   ::SAVE_REGS .set BACKUP_SAVE_REGS
   setSpriteX n, xpos

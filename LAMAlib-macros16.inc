@@ -1,7 +1,7 @@
 ;; <h2>16-bit Emulation and Other Short Macros</h2>
 
 .ifndef SAVE_REGS
-  ::SAVE_REGS .set 1
+  ::SAVE_REGS .set 0
 .endif
 
 ;; ldax addr
@@ -501,7 +501,7 @@
           .endif
         .else	;.paramcount > 1
           .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pha
             .endif
             sta :+ + 1
@@ -517,51 +517,51 @@
 	    :
             adc $affe
             sta $affe
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pla
             .endif
           .else ;we assume that the address is a number or a label that evaluates to a number
             .if (.xmatch ({increment}, {A}) .or .xmatch ({increment}, {a}))            ;A is used as increment
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif
               clc
               adc addr
               sta addr
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif              
 	    .elseif (.xmatch ({increment}, {X}) .or .xmatch ({increment}, {x}))            ;X is used as increment
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif
               txa
               clc
               adc addr
               sta addr
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif
 	    .elseif (.xmatch ({increment}, {Y}) .or .xmatch ({increment}, {y}))            ;Y is used as increment	
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif
               tya
               clc
               adc addr
               sta addr
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif
             .else
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif
               lda addr
               clc
               adc #increment
               sta addr
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif
 	    .endif
@@ -578,7 +578,7 @@
 .macro  inc16 addr,increment
         .if .paramcount = 1
           .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pha
               store X
             .endif
@@ -592,7 +592,7 @@
             cpx #2
             bne :-	;inc again
             :
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               restore X
               pla
             .endif
@@ -604,7 +604,7 @@
           .endif
         .else	;.paramcount > 1
           .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pha
               store X
             .endif
@@ -647,13 +647,13 @@
 	        :
 	      .endif
             .endif
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               restore X
               pla
             .endif
           .else ;we assume that the address is a number or a label that evaluates to a number
             .if (.xmatch ({increment}, {A}) .or .xmatch ({increment}, {a}))            ;A is used as increment#
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif            
               clc
@@ -662,11 +662,11 @@
               bcc :+
               inc addr+1
               :
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif                          
 	    .elseif (.xmatch ({increment}, {X}) .or .xmatch ({increment}, {x}))            ;X is used as increment
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif
               txa
@@ -676,11 +676,11 @@
               bcc :+
               inc addr+1
               :
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif
 	    .elseif (.xmatch ({increment}, {Y}) .or .xmatch ({increment}, {y}))            ;Y is used as increment
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif
               tya
@@ -690,11 +690,11 @@
               bcc :+
               inc addr+1
               :
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif
             .elseif (.xmatch ({increment}, {AX}) .or .xmatch ({increment}, {ax}))          ;AX is used as increment
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif            
               clc
@@ -703,11 +703,11 @@
               txa
               adc addr+1
               sta addr+1        
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif              
             .elseif .const(increment) .and increment<256
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif  
               lda addr
@@ -717,11 +717,11 @@
               bcc :+
               inc addr+1
               :
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif
             .else
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif  
               lda addr
@@ -731,7 +731,7 @@
               lda addr+1
               adc #>(increment)
               sta addr+1
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif
             .endif
@@ -769,7 +769,7 @@
           .endif
         .else	;.paramcount > 1
           .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pha
             .endif
             sta :+ + 1
@@ -790,23 +790,23 @@
             .endif
 	    :
 	    sta $affe
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pla
             .endif
           .else ;we assume that the address is a number or a label that evaluates to a number
             .if (.xmatch ({decrement}, {A}) .or .xmatch ({decrement}, {a}))            ;A is used as decrement
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif
               clc           ;begin reverse subtraction
               sbc addr
 	          eor #$ff		;end reverse subtraction
               sta addr
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif              
 	    .elseif (.xmatch ({decrement}, {X}) .or .xmatch ({decrement}, {x}))            ;X is used as decrement
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                pha
               .endif
               txa
@@ -814,11 +814,11 @@
               sbc addr
 	          eor #$ff		;end reverse subtraction
               sta addr
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                pla
               .endif
 	    .elseif (.xmatch ({decrement}, {Y}) .or .xmatch ({decrement}, {y}))            ;Y is used as decrement	
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                pha
               .endif
               tya
@@ -826,18 +826,18 @@
               sbc addr
 	          eor #$ff		;end reverse subtraction
               sta addr
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif
             .else
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif
               lda addr
               sec
               sbc #decrement
 	          sta addr
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif
 	    .endif
@@ -855,7 +855,7 @@
 .macro  dec16 addr,decrement
         .if .paramcount = 1
           .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pha
               store X
             .endif
@@ -872,12 +872,12 @@
             dec $affe,x
             dex
             bpl :-
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               restore X
               pla
             .endif
           .else ;we assume that the address is a number or a label that evaluates to a number
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pha
             .endif          
             lda addr	;test addr for zero
@@ -885,13 +885,13 @@
             dec addr+1
             :
             dec addr
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pla
             .endif                      
           .endif
         .else   ;.paramcount > 1
           .if (.xmatch ({addr}, {AX}) .or .xmatch ({addr}, {ax}))          ;AX is used as address
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               pha
               store X
             .endif
@@ -934,13 +934,13 @@
                 :
               .endif
             .endif
-            .if ::SAVE_REGS>1
+            .if ::SAVE_REGS
               restore X
               pla
             .endif
           .else ;we assume that the address is a number or a label that evaluates to a number
             .if (.xmatch ({decrement}, {A}) .or .xmatch ({decrement}, {a}))            ;A is used as decrement
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif                
               clc               ;begin reverse subtraction
@@ -950,11 +950,11 @@
               bcc :+		;underflow
               dec addr+1
               :
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif                
             .elseif (.xmatch ({decrement}, {X}) .or .xmatch ({decrement}, {x}))            ;X is used as decrement
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif
               txa
@@ -965,11 +965,11 @@
               bcc :+		;underflow
               dec addr+1
               :
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif
             .elseif (.xmatch ({decrement}, {Y}) .or .xmatch ({decrement}, {y}))            ;Y is used as decrement
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif
               tya
@@ -980,11 +980,11 @@
               bcc :+		;underflow
               dec addr+1
               :
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif
             .elseif (.xmatch ({decrement}, {AX}) .or .xmatch ({decrement}, {ax}))          ;AX is used as decrement
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif            
               clc           ;begin reverse subtraction
@@ -995,11 +995,11 @@
               sbc addr+1	;begin reverse subtraction with carry
 	          eor #$ff		;end reverse subtraction
               sta addr+1  
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif              
             .elseif .const(decrement) .and decrement<256
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif
               lda addr
@@ -1009,11 +1009,11 @@
               bcs :+
               dec addr+1
               :
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif
             .else
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pha
               .endif
               lda addr
@@ -1023,7 +1023,7 @@
               lda addr+1
               sbc #>(decrement)
               sta addr+1
-              .if ::SAVE_REGS>1
+              .if ::SAVE_REGS
                 pla
               .endif
             .endif
@@ -1197,13 +1197,13 @@ targetsm2: lda $ffff
           .if (.xmatch ({arg2}, {Y}))         ;value in Y register is to be poked
             targetsm: sty $ffff
           .else                              ;value to be poked is a given constant
-            .if ::SAVE_REGS>1
-            store A
+            .if ::SAVE_REGS
+            pha
             .endif
                       lda #arg2
             targetsm: sta $ffff
-            .if ::SAVE_REGS>1
-            restore A
+            .if ::SAVE_REGS
+            pla
             .endif
           .endif
 .endscope
@@ -1215,13 +1215,13 @@ targetsm2: lda $ffff
           .elseif (.xmatch ({arg2}, {Y}))      ;value in y register is to be poked
             sty arg1
           .else                              ;value to be poked is a given constant
-            .if ::SAVE_REGS>1
-            store A
+            .if ::SAVE_REGS
+            pha
             .endif
             lda #arg2
             sta arg1
-            .if ::SAVE_REGS>1
-            restore A
+            .if ::SAVE_REGS
+            pla
             .endif
           .endif
         .endif
@@ -1238,8 +1238,9 @@ targetsm2: lda $ffff
 .macro  pokew arg1,arg2
         .if (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))         ;AX is used as address
 .importzp _zp_ptr1
-          .if ::SAVE_REGS>1
-          store AX
+          .if ::SAVE_REGS
+          pha
+          store X
           store Y
           .endif
           sta _zp_ptr1
@@ -1250,24 +1251,25 @@ targetsm2: lda $ffff
           lda #>(arg2)
           iny
           sta (_zp_ptr1),y
-          .if ::SAVE_REGS>1
-          restore AX
+          .if ::SAVE_REGS
           restore Y
+          restore X
+          pla
           .endif
         .else                                ;address is a given constant
           .if (.xmatch ({arg2}, {AX}) .or .xmatch ({arg2}, {ax}))       ;value to be poked in AX
             sta arg1
             stx arg1+1
           .else                              ;value to be poked is a given constant
-            .if ::SAVE_REGS>1
-            store A
+            .if ::SAVE_REGS
+            pha
             .endif
             lda #<(arg2)
             sta arg1
             lda #>(arg2)
             sta arg1+1
-            .if ::SAVE_REGS>1
-            restore A
+            .if ::SAVE_REGS
+            pla
             .endif
           .endif
         .endif

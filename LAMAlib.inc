@@ -66,20 +66,20 @@
 ; USE_BASIC_ROM does not actually change the ROM configuration.
 ; The switch can be changed multiple times to create program parts using the ROM and parts that do not.
 ;
-; <b>SAVE_REGS</b> .set [0|1|2]
+; <b>SAVE_REGS</b> .set [0|1]
 ; This switch controls whether LAMAlib macros preserve CPU registers (A, X, Y) around their internal operations.
 ; Some macros necessarily clobber registers other than those used for input or output. SAVE_REGS allows transparent
 ; use of such macros without the caller having to manually save and restore registers beforehand.
 ;
-; SAVE_REGS=0: No register preservation. Callers are responsible for saving registers as documented
-;   in each macro's header comment. 
+; SAVE_REGS=0 (default): No register preservation. Callers are responsible for saving registers as documented
+;   in each macro's header comment.
 ;
-; SAVE_REGS=1 (default): Print macros (print, println, etc.) preserve all registers they clobber.
-;   This is useful during development when adding debug output using print.
+; SAVE_REGS=1: Full register preservation. All LAMAlib macros — including sprite, color, position,
+;   and costume setters — save and restore any registers they clobber beyond their documented inputs and outputs.
+;   This comes with a small code size overhead.
 ;
-; SAVE_REGS=2: Full register preservation. All LAMAlib macros — including sprite, color, position, and costume
-;   setters — save and restore any registers they clobber beyond their documented inputs and outputs.
-;   However, this comes with a 3% code overhead.
+; Note: The print and println macros always preserve all registers regardless of SAVE_REGS, because they
+; need to capture register values passed as arguments (e.g. print "A is ",A) before any internal work.
 ;
 ; The switch can be changed multiple times within a source file to apply different preservation levels
 ; to different sections of code.
@@ -89,7 +89,7 @@
 LAMAlib_inc=1
 
 .ifndef SAVE_REGS
-  ::SAVE_REGS .set 1
+  ::SAVE_REGS .set 0
 .endif
 
 .include "LAMAlib-macros16.inc"

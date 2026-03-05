@@ -1,5 +1,9 @@
 ;; <h2>Useful Routines</h2>
 
+.ifndef SAVE_REGS
+  ::SAVE_REGS .set 0
+.endif
+
 ;; _ld_reg reg,arg
 ;; <b>_st_reg</b> <i>reg,arg</i>
 ;; <b>_cp_reg</b> <i>reg,arg</i>
@@ -58,8 +62,19 @@
 .endmacro
 
 .macro check_C128
+        ; Result is communicated via flags (Z=1: C128, C=0: C128) from cmp #$ff.
+        ; pla would clobber N/Z, so we use store A / php / restore A / plp to
+        ; preserve A while keeping the flags intact.
+        .if ::SAVE_REGS
+          store A
+        .endif
         lda $D030
         cmp #$ff
+        .if ::SAVE_REGS
+          php
+          restore A
+          plp
+        .endif
 .endmacro
 
 
@@ -69,16 +84,32 @@
 ;; Registers modified: A,Y,X
 .macro  clrscr
   .scope
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
         jsr CLRSCR
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
   .endscope
 .endmacro
 
 
 ;; checksum_eor startaddr,endaddr
 ;; Returns an 8-bit checksum calculated by EOR-conjunction over all bytes
+;; Result is returned in A
+;; Registers modified: A,X,Y
 .macro checksum_eor startaddr,endaddr
   .scope
 .importzp _llzp_word1
+        .if ::SAVE_REGS
+          store X
+          store Y
+        .endif
         pokew _llzp_word1,startaddr
         ldy #0
         tya
@@ -92,6 +123,10 @@ loop:
         cmpax #endaddr+1
         bne loop
         pla
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+        .endif
   .endscope
 .endmacro
 
@@ -105,8 +140,18 @@ loop:
 .endmacro
 
 .macro  decimal_flag_to_N
+        ; Result is communicated via the N flag (N=1: decimal mode on).
+        ; pla would clobber N/Z, so we use store A / php / restore A / plp.
+        .if ::SAVE_REGS
+          store A
+        .endif
         lda #$42
         adc #$38        ;this will result in $80 in decimal mode, but not in normal mode
+        .if ::SAVE_REGS
+          php
+          restore A
+          plp
+        .endif
 .endmacro
 
 
@@ -182,12 +227,22 @@ loop:
 .macro  delay_ms arg
 .import _delay_ms_sr
   .scope
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
     .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
         jsr _delay_ms_sr
     .else
         ldax #arg
         jsr _delay_ms_sr
     .endif
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
   .endscope
 .endmacro
 
@@ -204,12 +259,23 @@ loop:
 .macro  delay_ms_abort_on_fire arg
 .import _delay_ms_abort_on_fire_sr
   .scope
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
     .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
         jsr _delay_ms_abort_on_fire_sr
     .else
         ldax #arg
         jsr _delay_ms_abort_on_fire_sr
     .endif
+        ; carry flag is the output - it survives restore/pla unchanged
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
   .endscope
 .endmacro
 
@@ -226,6 +292,9 @@ loop:
 .endmacro
 
 .macro  disable_NMI
+        .if ::SAVE_REGS
+          pha
+        .endif
 .ifdef __C128__
 	.import _disable_NMI_128_sr
         jsr _disable_NMI_128_sr
@@ -233,6 +302,9 @@ loop:
 	.import _disable_NMI_sr
         jsr _disable_NMI_sr
 .endif
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endmacro
 
 
@@ -277,6 +349,10 @@ loop:
 .macro diskstatus devicenr
 ;ToDo - this should be a library routine with a short macro stub instead of a long macro
   .scope
+        .if ::SAVE_REGS
+          store X
+          store Y
+        .endif
         lda #0
         jsr SETNAM      ;no parameter
         lda #$0f
@@ -314,6 +390,10 @@ sm_to_add=*+1
         lda #$0f
         jsr CLOSE
         pla
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+        .endif
   .endscope
 .endmacro
 
@@ -711,6 +791,9 @@ quotient=*+1
         .endif
         ; immediate mode
         .scope
+        .if ::SAVE_REGS
+          store Y
+        .endif
         ldy #<(.right (.tcount ({arg})-1, {arg}))
         sty _div16_arg_lo
         ldy #>(.right (.tcount ({arg})-1, {arg}))
@@ -726,10 +809,10 @@ quotient=*+1
         .endscope
     .endif
     jsr _div16_sr
+        .if ::SAVE_REGS
+          restore Y
+        .endif
 .endmacro
-
-
-;; mod16 arg
 ;; mod16 #arg
 ;; Divides the unsigned 16 bit value in AX by an immediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte) and returns the remainder of the division
 ;; Implemented as a subroutinge, link with -lib lamalib.lib
@@ -803,6 +886,9 @@ quotient=*+1
         .endif
         ; immediate mode
         .scope
+        .if ::SAVE_REGS
+          store Y
+        .endif
         ldy #<(.right (.tcount ({arg})-1, {arg}))
         sty _div16_arg_lo
         ldy #>(.right (.tcount ({arg})-1, {arg}))
@@ -811,6 +897,9 @@ quotient=*+1
     .else
         ; assume absolute or zero page
         .scope
+        .if ::SAVE_REGS
+          store Y
+        .endif
         ldy arg
         sty _div16_arg_lo
         ldy arg+1
@@ -819,6 +908,9 @@ quotient=*+1
     .endif
     jsr _div16_sr
     ldax _div16_rem
+        .if ::SAVE_REGS
+          restore Y
+        .endif
 .endmacro
 
 
@@ -826,8 +918,14 @@ quotient=*+1
 ;; disable Commodore-Shift
 .macro  disable_cbm_shift
   .scope
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #8
         jsr CHROUT
+        .if ::SAVE_REGS
+          pla
+        .endif
   .endscope
 .endmacro
 
@@ -836,8 +934,14 @@ quotient=*+1
 ;; enable Commodore-Shift, this key combination toggles between the uppercase/graphics and lowercase/uppercase character set
 .macro  enable_cbm_shift
   .scope
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #9
         jsr CHROUT
+        .if ::SAVE_REGS
+          pla
+        .endif
   .endscope
 .endmacro
 
@@ -854,7 +958,13 @@ quotient=*+1
 ;;   poke _window_x1,5</tt>
 .macro enable_chrout2window
 .import _enable_chrout2window
+        .if ::SAVE_REGS
+          pha
+        .endif
         jsr _enable_chrout2window
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endmacro
 
 
@@ -862,7 +972,13 @@ quotient=*+1
 ;; Restores the original Kernal vector and disables the chrout2window mode
 .macro disable_chrout2window
 .import _disable_chrout2window
+        .if ::SAVE_REGS
+          pha
+        .endif
         jsr _disable_chrout2window
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endmacro
 
 
@@ -870,7 +986,13 @@ quotient=*+1
 ;; Clears the window that was defined by the window parametes of chrout2window and sets the cursor to the home position. When chrout2window is enabled, the same effect can be achieved by lda #147, jsr $FFD2
 .macro clear_window
 .import _clear_window
+        .if ::SAVE_REGS
+          pha
+        .endif
         jsr _clear_window
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endmacro
 
 
@@ -914,7 +1036,17 @@ quotient=*+1
         poke _frame_color,c
   .endif
 .import _draw_frame_sr
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
         jsr _draw_frame_sr
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
 .endmacro
 
 
@@ -925,7 +1057,17 @@ quotient=*+1
   .if .not( .xmatch ({char}, {A}) .or .xmatch ({char}, {a}) )
         lda char
   .endif
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
         jsr _fill_window
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
 .endmacro
 
 
@@ -934,7 +1076,15 @@ quotient=*+1
 ;; Function depends on Kernal ROM and the IRQ routine regularily scanning the keyboard
 .macro getkey
 .import _getkey
+        .if ::SAVE_REGS
+          store X
+          store Y
+        .endif
         jsr _getkey
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+        .endif
 .endmacro
 
 
@@ -956,6 +1106,9 @@ SIDbaseaddress=address
     .else
 SIDbaseaddress=$D400
     .endif
+        .if ::SAVE_REGS
+          store A
+        .endif
 	php
         sei
         lda #$ff
@@ -971,6 +1124,11 @@ waitraster:
         lda SIDbaseaddress+$1b
 	plp
         lsr
+        ; carry now holds the result (set=6581, clear=8580)
+        ; restore A uses sta-based self-modifying code, which does not affect carry
+        .if ::SAVE_REGS
+          restore A
+        .endif
   .endscope
 .endmacro
 
@@ -1123,18 +1281,30 @@ yinit = <($100-<::.ident (.sprintf ("%s_length", .string(identifier))) )
 ;; The install_irq_brk_catcher uses code that distinguishes BRK from an IRQ. Since this costs some cycles, this should be used only if BRK is used in your code.
 .macro install_irq_catcher
 .import _catchirq_sr
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #<_catchirq_sr
         sta $fffe
         lda #>_catchirq_sr
         sta $ffff
+        .if ::SAVE_REGS
+          pla
+        .endif
         rts
 .endmacro
 .macro install_irq_brk_catcher
 .import _catchirq_brk_sr
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #<_catchirq_brk_sr
         sta $fffe
         lda #>_catchirq_brk_sr
         sta $ffff
+        .if ::SAVE_REGS
+          pla
+        .endif
         rts
 .endmacro
 
@@ -1229,6 +1399,10 @@ yinit = <($100-<::.ident (.sprintf ("%s_length", .string(identifier))) )
 ;; Registers modified: A,X,Y
 .macro load_prg filename,devicenr,loadaddr
 .scope
+        .if ::SAVE_REGS
+          store X
+          store Y
+        .endif
 .if (.xmatch ({filename}, {AX}) .or .xmatch ({filename}, {ax}))          ;AX is used as filename address
         sta filenameaddr_lo
         stx filenameaddr_hi
@@ -1273,6 +1447,11 @@ devno:=devicenr
         ldy #>(loadaddr)
 .endif
         jsr LOAD
+        ; carry+A are the output; restore X,Y here (restore uses sta, doesn't affect carry)
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+        .endif
 
 .if .not ((.xmatch ({filename}, {AX}) .or .xmatch ({filename}, {ax})))          ;AX was not used as filename address
         jmp endfilename ;hop over filename data
@@ -1291,10 +1470,16 @@ endfilename:
 ;; Registers modified: A
 .macro  lowercase_mode
 .scope
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #$08
         jsr CHROUT
         lda #$0E
         jsr CHROUT
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -1315,6 +1500,9 @@ endfilename:
 
 .macro mul16 arg
 .scope
+        .if ::SAVE_REGS
+          store Y
+        .endif
 .if (.match (.left (1, {arg}), #))
             ; immediate mode
         ldy     #<(.right (.tcount ({arg})-1, {arg}))
@@ -1329,6 +1517,9 @@ endfilename:
         sty _fastmul16_arg+1
 .endif
         jsr _fastmul16_sr ;fastmul16 subroutine
+        .if ::SAVE_REGS
+          restore Y
+        .endif
 .endscope
 .endmacro
 
@@ -1337,6 +1528,9 @@ endfilename:
 
 .macro compactmul16 arg
 .scope
+        .if ::SAVE_REGS
+          store Y
+        .endif
 .if (.match (.left (1, {arg}), #))
             ; immediate mode
         ldy     #<(.right (.tcount ({arg})-1, {arg}))
@@ -1351,6 +1545,9 @@ endfilename:
         sty _mul16_arg+1
 .endif
         jsr _mul16_sr ;mul16 subroutine
+        .if ::SAVE_REGS
+          restore Y
+        .endif
 .endscope
 .endmacro
 
@@ -1362,8 +1559,14 @@ endfilename:
 ;; Registers modified: A
 .macro  newline
 .scope
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #$0d
         jsr CHROUT
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -1374,10 +1577,16 @@ endfilename:
 ;; Registers modified: A
 .macro  PETSCII_mode
 .scope
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #$08
         jsr CHROUT
         lda #$8E
         jsr CHROUT
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -1390,9 +1599,19 @@ endfilename:
 .macro  primm str
 .import _primm_sr
 .scope
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
         jsr _primm_sr
         str_enc str
         .byte 0
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -1549,6 +1768,11 @@ iarg=(.right (.tcount ({arg1})-1, {arg1}))
 ;; If unsure about the cursor position, it is suggested to place the cursor with <i>set_cursor_pos</i> beforehand.
 
 .macro print_wrapped arg
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
 .if .not ((.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax})))    ;not AX
 .if .match ({arg}, z) ;test if the argument starts with a character, then it is a label
         ldax #arg
@@ -1570,6 +1794,11 @@ iarg=(.right (.tcount ({arg1})-1, {arg1}))
 .import _print_wrapped_windowed
         jsr _print_wrapped_windowed
 .endif
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
 .endmacro
 
 ;; printax
@@ -1579,20 +1808,48 @@ iarg=(.right (.tcount ({arg1})-1, {arg1}))
 .macro  printax
 .scope
 .import _printax_sr
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
         jsr _printax_sr
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
 .endscope
 .endmacro
 
 .macro  printax_rightaligned fillchar
 .scope
 .import _print_fillchars_ax_sr
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
 .ifblank fillchar
         ldy #32       ;default fillchar is space
 .else
         ldy #fillchar
 .endif
         jsr _print_fillchars_ax_sr
+        .if ::SAVE_REGS
+          ; _print_fillchars_ax_sr clobbered A,X. Restore the original AX so
+          ; printax can print the correct value. Y restore happens at the end.
+          restore X
+          pla
+          pha
+          store X
+        .endif
         printax
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -1604,20 +1861,43 @@ iarg=(.right (.tcount ({arg1})-1, {arg1}))
 .macro  printa
 .scope
 .import _printa_sr
+        .if ::SAVE_REGS
+          pha
+          store X
+        .endif
         jsr _printa_sr
+        .if ::SAVE_REGS
+          restore X
+          pla
+        .endif
 .endscope
 .endmacro
 
 .macro  printa_rightaligned fillchar
 .scope
 .import _print_fillchars_a_sr
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
 .ifblank fillchar
         ldy #32       ;default fillchar is space
 .else
         ldy #fillchar
 .endif
         jsr _print_fillchars_a_sr
+        .if ::SAVE_REGS
+          ; restore A so printa can print the correct value
+          pla
+          pha
+        .endif
         printa
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -1627,6 +1907,11 @@ iarg=(.right (.tcount ({arg1})-1, {arg1}))
 ;; Registers modified: A,Y,X
 .macro  printax_signed
 .scope
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
         cpx #$80        ;is it a negative number?
         bcc positive
         negax           ;negate number
@@ -1638,6 +1923,11 @@ positive:
 
 .import _printax_sr
         jsr _printax_sr
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -1646,6 +1936,11 @@ positive:
 ;; BASIC and KERNAL ROM need to be enabled when using this function
 ;; Registers modified: A,Y,X
 .macro  printstr   arg
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
 .if (.xmatch ({arg}, {AX}) .or .xmatch ({arg}, {ax}))
             ;need to copy X to Y without using A
         pha
@@ -1664,6 +1959,11 @@ positive:
 .import _strout_sr
         jsr _strout_sr
 .endif
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
 .endmacro
 
 ;; randomize [timer][,raster][,sid]
@@ -1685,6 +1985,11 @@ positive:
 .endscope
         .exitmacro
 .endif
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
         firstload .set 0
 .if (.xmatch ({arg1}, {sid}) .or .xmatch ({arg2}, {sid}) .or .xmatch ({arg3}, {sid}))
 .ifdef __VIC20__
@@ -1738,6 +2043,11 @@ positive:
         sta $D412
 .endif
 .endif
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -1753,6 +2063,9 @@ positive:
 .macro rand8 max
 .scope
 .if .paramcount = 1
+        .if ::SAVE_REGS
+          store Y
+        .endif
 .if (.xmatch ({max}, {A}))                  ;calc mod A
         tay
 .elseif (.xmatch ({max}, {X}))              ;calc mod X
@@ -1788,6 +2101,9 @@ positive:
         ldy #max
         jsr _a_mod_y_sr
 .endif
+        .if ::SAVE_REGS
+          restore Y
+        .endif
 .endif
 .endscope
 .endmacro
@@ -1805,6 +2121,9 @@ positive:
 .macro rand16 max
 .scope
 .if .paramcount = 1
+        .if ::SAVE_REGS
+          store Y
+        .endif
 .if (.xmatch ({max}, {AX}) .or .xmatch ({max}, {ax}))                 ;calc mod AX
         stax _llzp_word1
 .endif
@@ -1889,6 +2208,9 @@ positive:
         sty _llzp_word1+1
         jsr _ax_mod_zpw1_sr
 .endif
+        .if ::SAVE_REGS
+          restore Y
+        .endif
 .endif
 .endscope
 .endmacro
@@ -1902,18 +2224,30 @@ positive:
 .macro rand_setseed arg1,arg2
 .scope
 .if .paramcount = 0
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #$33
         sta _seed_low
         sta _seed_high
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endscope
         .exitmacro
 .endif
 
 .if .paramcount = 1 .and (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))
+        .if ::SAVE_REGS
+          pha
+        .endif
         cmp #1              ;set carry if value != 0
         sbc #0
         sta _seed_low
         stx _seed_high
+        .if ::SAVE_REGS
+          pla
+        .endif
 
 .else
 .if .paramcount >= 1
@@ -1924,11 +2258,17 @@ positive:
 .elseif .xmatch ({arg1}, {Y})
         sty _seed_low
 .else
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #arg1
         sta _seed_low
   .if .paramcount = 1
         sta _seed_high
   .endif
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endif
 .endif
 
@@ -1940,8 +2280,14 @@ positive:
 .elseif .xmatch ({arg2}, {Y})
         sty _seed_high
 .else
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #arg2
         sta _seed_high
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endif
 .endif
 
@@ -1957,8 +2303,18 @@ positive:
 ;; Registers modified: A,X,Y
 .macro restore_screen_area addr
 .import _restore_screen_area
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
         ldax #addr
         jsr _restore_screen_area
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
 .endmacro
 
 ;; save_screen_area x1,y1,x2,y2,targetaddr
@@ -1971,12 +2327,22 @@ positive:
 .macro save_screen_area x1,y1,x2,y2,targetaddr
 .import _save_screen_window_x1,_save_screen_window_y1,_save_screen_window_x2,_save_screen_window_y2
 .import _save_screen_area,_save_screen_addr
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
         poke _save_screen_window_x1,x1
         poke _save_screen_window_y1,y1
         poke _save_screen_window_x2,x2
         poke _save_screen_window_y2,y2
         ldax #targetaddr
         jsr _save_screen_area
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
 .endmacro
 
 ;; set_cursor_pos line,column
@@ -2016,8 +2382,14 @@ to_x=*+1
         ldx #xvalue
 .endif
 
+        .if ::SAVE_REGS
+          pha
+        .endif
         clc
         jsr PLOT
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -2139,8 +2511,14 @@ rol
 .ifdef __C128__
         jsr $CD6F       ;Bank 15 needs to be enabled
 .else
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #0
         sta 204         ;cursor visibility switch for C64, VIC20
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endif
 .endmacro
 
@@ -2261,6 +2639,9 @@ rol
 ;; Function works independly of IRQ routine or ROM
 ;; Registers modified: A
 .macro wait_key
+        .if ::SAVE_REGS
+          pha
+        .endif
 .ifdef __VIC20__
 .import _waitkey_vic20_sr
 	jsr _waitkey_vic20_sr
@@ -2268,6 +2649,9 @@ rol
 .import _waitkey_sr
         jsr _waitkey_sr
 .endif
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endmacro
 
 ;; wait_key_released
@@ -2275,6 +2659,9 @@ rol
 ;; Function works independly of IRQ routine
 ;; Registers modified: A
 .macro wait_key_released
+        .if ::SAVE_REGS
+          pha
+        .endif
 .ifdef __VIC20__
 .import _waitkeyreleased_vic20_sr
 	jsr _waitkeyreleased_vic20_sr
@@ -2282,6 +2669,9 @@ rol
 .import _waitkeyreleased_sr
         jsr _waitkeyreleased_sr
 .endif
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endmacro
 
 ;; wait_key_or_button
@@ -2290,6 +2680,9 @@ rol
 ;; Function works independently of IRQ routine or ROM.
 ;; Registers modified: A
 .macro wait_key_or_button
+        .if ::SAVE_REGS
+          pha
+        .endif
 .ifdef __VIC20__
 .import _waitkeyorbutton_vic20_sr
 	jsr _waitkeyorbutton_vic20_sr
@@ -2297,6 +2690,9 @@ rol
 .import _waitkeyorbutton_sr
         jsr _waitkeyorbutton_sr
 .endif
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endmacro
 
 ;; wait_key_or_button_released
@@ -2305,6 +2701,9 @@ rol
 ;; Function works independently of IRQ routine or ROM.
 ;; Registers modified: A
 .macro wait_key_or_button_released
+        .if ::SAVE_REGS
+          pha
+        .endif
 .ifdef __VIC20__
 .import _waitkeyorbuttonreleased_vic20_sr
 	jsr _waitkeyorbuttonreleased_vic20_sr
@@ -2312,6 +2711,9 @@ rol
 .import _waitkeyorbuttonreleased_sr
         jsr _waitkeyorbuttonreleased_sr
 .endif
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endmacro
 
 
@@ -2382,6 +2784,9 @@ rol
 ;; Registers modified: A,X
 
 .macro read_keys_WASDspace
+        .if ::SAVE_REGS
+          store X
+        .endif
 .ifdef __VIC20__
 .import _read_keys_WASDspace_vic20_sr
 	jsr _read_keys_WASDspace_vic20_sr
@@ -2389,6 +2794,9 @@ rol
 .import _read_keys_WASDspace_sr
         jsr _read_keys_WASDspace_sr
 .endif
+        .if ::SAVE_REGS
+          restore X
+        .endif
 .endmacro
 
 
@@ -2521,9 +2929,15 @@ systarget=::BASICSTART+$0c+.strlen(text)
 .if (.xmatch ({col}, {x}) .or .xmatch ({col}, {X}) .or .xmatch ({col}, {y}) .or .xmatch ({col}, {Y}))
 :       lda $affe,col
 .else
+        .if ::SAVE_REGS
+          store X
+        .endif
         ldx #col
 :
         lda $affe,x
+        .if ::SAVE_REGS
+          restore X
+        .endif
 .endif
 .endscope
 .endmacro
@@ -2558,9 +2972,15 @@ systarget=::BASICSTART+$0c+.strlen(text)
 .if (.xmatch ({col}, {x}) .or .xmatch ({col}, {X}) .or .xmatch ({col}, {y}) .or .xmatch ({col}, {Y}))
 :       sta $affe,col
 .else
+        .if ::SAVE_REGS
+          store X
+        .endif
         ldx #col
 :
         sta $affe,x
+        .if ::SAVE_REGS
+          restore X
+        .endif
 .endif
 .endmacro
 
@@ -2602,6 +3022,11 @@ systarget=::BASICSTART+$0c+.strlen(text)
 .scope
 .import _memcopy_sr
 .importzp _llzp_word1,_llzp_word2
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
 .if .paramcount = 3
 yinit=<($100-<(length))
         pokew _llzp_word2,src_addr - yinit
@@ -2656,6 +3081,11 @@ yinit=<($100-<(src_addr))
         .error "Wrong number of parameters for memcopy!"
 .endif
         jsr _memcopy_sr
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -2666,10 +3096,16 @@ yinit=<($100-<(src_addr))
         sta _llzp_word2
         stx _llzp_word2+1
 .else
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #<(src_addr)
         sta _llzp_word2
         lda #>(src_addr)
         sta _llzp_word2+1
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endif
 .endscope
 .endmacro
@@ -2681,10 +3117,16 @@ yinit=<($100-<(src_addr))
         sta _llzp_word1
         stx _llzp_word1+1
 .else
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #<(target_addr)
         sta _llzp_word1
         lda #>(target_addr)
         sta _llzp_word1+1
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endif
 .endscope
 .endmacro
@@ -2696,7 +3138,14 @@ yinit=<($100-<(src_addr))
 ;; Registers modified: A, X, (Y if the memory size to fill exceeds 256 bytes)
 .macro memset start_addr,end_addr,fillvalue
 .scope
+        .if ::SAVE_REGS
+          store X
+          store Y
+        .endif
 .if (.paramcount=3) && (.not (.xmatch ({fillvalue}, {A}) .or .xmatch ({fillvalue}, {a})))
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #fillvalue
 .endif
 length = end_addr - (start_addr) + 1
@@ -2729,6 +3178,15 @@ yinit=<($100-<(length))
         dex
         bne :-
 .endif
+.if (.paramcount=3) && (.not (.xmatch ({fillvalue}, {A}) .or .xmatch ({fillvalue}, {a})))
+        .if ::SAVE_REGS
+          pla
+        .endif
+.endif
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+        .endif
 .endscope
 .endmacro
 
@@ -2745,6 +3203,11 @@ yinit=<($100-<(length))
 .scope
 .import _memswap_sr
 .importzp _llzp_word1,_llzp_word2
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
 .if .paramcount = 3
 yinit=<($100-<(length))
         pokew _llzp_word2,src_addr - yinit
@@ -2799,6 +3262,11 @@ yinit=<($100-<(src_addr))
         .error "Wrong number of parameters for memswap!"
 .endif
         jsr _memswap_sr
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -2820,6 +3288,10 @@ memcopy_to target_addr
 ;; Registers modified: A,X,Y
 .macro save_prg filename,devicenr,startaddr,endaddr
 .scope
+        .if ::SAVE_REGS
+          store X
+          store Y
+        .endif
         lda #endfilename-beginfilename
         ldx #<beginfilename
         ldy #>beginfilename
@@ -2839,6 +3311,11 @@ memcopy_to target_addr
         ldx #<(endaddr+1)
         ldy #>(endaddr+1)
         jsr SAVE
+        ; carry+A are the output; restore X,Y (sta-based, doesn't affect carry)
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+        .endif
 
         jmp endfilename ;hop over filename data
 beginfilename:
@@ -2854,6 +3331,11 @@ endfilename:
 .macro scramble startaddr,endaddr
 .scope
 .importzp _llzp_word1,_llzp_byte1,_llzp_byte2
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
         checksum_eor startaddr,endaddr
         sta _llzp_byte1
 
@@ -2890,6 +3372,11 @@ noEor:  sta _llzp_byte1
         eor (_llzp_word1),y
         sta (_llzp_word1),y
 
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -2904,6 +3391,11 @@ noEor:  sta _llzp_byte1
 .endif
 
 .scope
+        .if ::SAVE_REGS
+          pha
+          store X
+          store Y
+        .endif
         lda #$0f
         tay             ;open 15,x,15
 .if devicenr = 0
@@ -2924,6 +3416,11 @@ noEor:  sta _llzp_byte1
         jsr OPEN
         lda #$0f
         jsr CLOSE
+        .if ::SAVE_REGS
+          restore Y
+          restore X
+          pla
+        .endif
         jmp endfilename ;hop over filename data
 
 beginfilename:
@@ -2944,12 +3441,18 @@ endfilename:
 .importzp _llzp_word1
 .import _sqrt8_sr
 .macro sqrt8 arg
+        .if ::SAVE_REGS
+          store Y
+        .endif
 .if .paramcount = 1
 .if .not (.xmatch ({arg1}, {A}) .or .xmatch ({arg1}, {a}))
         lda arg     ;address or immediate number
 .endif
 .endif
         jsr _sqrt8_sr
+        .if ::SAVE_REGS
+          restore Y
+        .endif
 .endmacro
 
 
@@ -2963,6 +3466,9 @@ endfilename:
 .importzp _llzp_word1
 .import _sqrt16_sr
 .macro sqrt16 arg
+        .if ::SAVE_REGS
+          store Y
+        .endif
 .if .paramcount = 1
 .if .not (.xmatch ({arg1}, {AX}) .or .xmatch ({arg1}, {ax}))
         ldax arg    ;address or immediate number
@@ -2970,6 +3476,9 @@ endfilename:
 .endif
         stax _llzp_word1
         jsr _sqrt16_sr
+        .if ::SAVE_REGS
+          restore Y
+        .endif
 .endmacro
 
 
@@ -2985,7 +3494,9 @@ endfilename:
 .else
         rline_value .set rasterline
 .endif
-
+        .if ::SAVE_REGS
+          pha
+        .endif
         php             ; store current state of interrupt flag
         sei
 
@@ -3015,12 +3526,18 @@ endfilename:
         sta $D01A       ; set raster interrupt
 
         plp
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endmacro
 
 ;; set_irq_rasterline rasterline|A|AX|X|Y
 ;; Sets the raster line where the IRQ should occur. This macro does not set the IRQ source, use set_raster_irq for this.
 ;; Used registers: A
 .macro set_irq_rasterline rasterline
+        .if ::SAVE_REGS
+          pha
+        .endif
 .if (.xmatch ({rasterline}, {AX}) .or .xmatch ({arg1}, {ax}))          ;AX is used as argument
         sta $D012
         lda $D011
@@ -3055,6 +3572,9 @@ endfilename:
 .endif
         sta $D011
 .endif
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endmacro
 
 ;; set_isr_for_stabilize_raster_cycle
@@ -3064,11 +3584,17 @@ endfilename:
 ;; When you have multiple instances of the stabilization routine, the macros refering to each other should be put into a named scope under the same name.
 ;; Used registers: A
 .macro set_isr_for_stabilize_raster_cycle
+        .if ::SAVE_REGS
+          pha
+        .endif
         ; label is set in macro stabilize_raster_cycle
         lda #<_stabilize_raster_cycle_isr
         sta $fffe
         lda #>_stabilize_raster_cycle_isr
         sta $ffff
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endmacro
 
 ;; stabilize_raster_cycle_with_isr_set
@@ -3112,6 +3638,9 @@ endfilename:
 ;; Uses the double IRQ method with a NOP slide and a conditional jump to eliminate jitter
 ;; Assembling may fail if the conditional branch goes of a page boundary, enable the option extranops in this case.
 ;; Used registers: A,X
+;; Note: SAVE_REGS guards are intentionally omitted. This macro is cycle-exact timing code
+;; called inside ISR prologues that already save registers. Adding pha/pla would add
+;; unpredictable cycles and break the stabilization algorithm.
 ;; Minimal example showing a typical usage:
 ;;<tt>init:&nbsp;&nbsp;&nbsp;set_isr_for_stabilize_raster_cycle
 ;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set_raster_irq 48,isr
@@ -3202,10 +3731,16 @@ _stabilize_raster_cycle_isr:
         sta base_addr_value+4
         stx base_addr_value+5
 .else
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #<(arg1)
         sta base_addr_value+4
         lda #>(arg1)
         sta base_addr_value+5
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endif
 .endscope
 .endmacro
@@ -3230,9 +3765,15 @@ _stabilize_raster_cycle_isr:
 .else
         base_addr_value .set base_addr
 .endif
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda base_addr_value+$e          ;force load timer A
         ora #$10
         sta base_addr_value+$e
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -3247,9 +3788,15 @@ _stabilize_raster_cycle_isr:
 .else
         base_addr_value .set base_addr
 .endif
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda base_addr_value+$e          ;force load timer A
         and #$fe
         sta base_addr_value+$e
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -3264,9 +3811,15 @@ _stabilize_raster_cycle_isr:
 .else
         base_addr_value .set base_addr
 .endif
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda base_addr_value+$e          ;force load timer A
         ora #$01
         sta base_addr_value+$e
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -3309,10 +3862,16 @@ _stabilize_raster_cycle_isr:
         sta base_addr_value+6
         stx base_addr_value+7
 .else
+        .if ::SAVE_REGS
+          pha
+        .endif
         lda #<(arg1)
         sta base_addr_value+6
         lda #>(arg1)
         sta base_addr_value+7
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endif
 .endscope
 .endmacro
@@ -3354,6 +3913,17 @@ waitsync2:
 ;; Registers modified: A or the register (A,X, or Y) given as second argument
 
 .macro wait_for_rasterline rasterline,reg
+        .if ::SAVE_REGS
+          .ifblank reg
+            pha
+          .elseif (.xmatch ({reg}, {A}))
+            pha
+          .elseif (.xmatch ({reg}, {X}))
+            store X
+          .elseif (.xmatch ({reg}, {Y}))
+            store Y
+          .endif
+        .endif
 .if rasterline>255 .or rasterline<56
 :       ;unnamed label is only set if necessary to avoid a warning
 .endif
@@ -3369,6 +3939,17 @@ waitsync2:
         _ld_reg reg,$D011             ;check highbyte to be cleared
         bmi :--
 .endif
+        .if ::SAVE_REGS
+          .ifblank reg
+            pla
+          .elseif (.xmatch ({reg}, {A}))
+            pla
+          .elseif (.xmatch ({reg}, {X}))
+            restore X
+          .elseif (.xmatch ({reg}, {Y}))
+            restore Y
+          .endif
+        .endif
 .endmacro
 
 
@@ -3378,7 +3959,13 @@ waitsync2:
 
 .macro screen_off
 .import _screen_off
+        .if ::SAVE_REGS
+          pha
+        .endif
         jsr _screen_off
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endmacro
 
 ;; wait_screen_off
@@ -3387,7 +3974,13 @@ waitsync2:
 
 .macro wait_screen_off
 .import _wait_screen_off
+        .if ::SAVE_REGS
+          pha
+        .endif
         jsr _wait_screen_off
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endmacro
 
 ;; screen_on
@@ -3395,5 +3988,11 @@ waitsync2:
 
 .macro screen_on
 .import _screen_on
+        .if ::SAVE_REGS
+          pha
+        .endif
         jsr _screen_on
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endmacro
