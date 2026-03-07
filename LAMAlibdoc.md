@@ -95,17 +95,17 @@ This switch tells LAMAlib if it should use calls into BASIC ROM or not. If USE_B
 The LAMAlib implementations are also faster, so USE_BASIC_ROM can also be set to 0 if you would like to increase performance.  
 USE_BASIC_ROM does not actually change the ROM configuration.  
 The switch can be changed multiple times to create program parts using the ROM and parts that do not.  
-SAVE_REGS .set [0|1|2]  
+SAVE_REGS .set [0|1]  
 This switch controls whether LAMAlib macros preserve CPU registers (A, X, Y) around their internal operations.  
 Some macros necessarily clobber registers other than those used for input or output. SAVE_REGS allows transparent  
 use of such macros without the caller having to manually save and restore registers beforehand.  
-SAVE_REGS=0: No register preservation. Callers are responsible for saving registers as documented  
-in each macro's header comment.   
-SAVE_REGS=1 (default): Print macros (print, println, etc.) preserve all registers they clobber.  
-This is useful during development when adding debug output using print.  
-SAVE_REGS=2: Full register preservation. All LAMAlib macros — including sprite, color, position, and costume  
-setters — save and restore any registers they clobber beyond their documented inputs and outputs.  
-However, this comes with a 3% code overhead.  
+SAVE_REGS=0 (default): No register preservation. Callers are responsible for saving registers as documented  
+in each macro's header comment.  
+SAVE_REGS=1: Full register preservation. All LAMAlib macros — including sprite, color, position,  
+and costume setters — save and restore any registers they clobber beyond their documented inputs and outputs.  
+This comes with a small code size overhead.  
+Note: The print and println macros always preserve all registers regardless of SAVE_REGS, because they  
+need to capture register values passed as arguments (e.g. print "A is ",A) before any internal work.  
 The switch can be changed multiple times within a source file to apply different preservation levels  
 to different sections of code.  
 
@@ -953,7 +953,9 @@ Detects if we are on a C128 in C64 mode
 
 **Syntax:** `checksum_eor startaddr,endaddr`
 
-**Returns:** Returns an 8-bit checksum calculated by EOR-conjunction over all bytes
+**Returns:** Result is returned in A
+
+**Registers modified: A,X,Y**
 
 ### `clear_matrix`
 
@@ -1101,6 +1103,10 @@ This code only reads the number without further text
 
 Divides the unsigned 16 bit value in AX by an immediate value or the 16 bit value stored at addr (lo-byte) and addr+1 (hi-byte)  
 Implemented as a subroutinge, except for cases where the divident is a power of 2 up to 256  
+When using this function in interrupt save _div16_sr, _div16_rem, _div16_arg_lo, and _div16_arg_hi before calling and restore those values afterwards.  
+**Alternate:** `mod16 #arg`
+
+Implemented as a subroutinge, link with -lib lamalib.lib  
 When using this function in interrupt save _div16_sr, _div16_rem, _div16_arg_lo, and _div16_arg_hi before calling and restore those values afterwards.  
 
 **Returns:** Result is returned in AX
@@ -1422,19 +1428,6 @@ The three parameter version takes three constant numbers, alternatively, the fun
 When using this function in interrupt save _llzp_word1 and _llzp_word2 before calling and restore those values afterwards.  
 
 **Registers modified: A,X,Y**
-
-### `mod16`
-
-**Syntax:** `mod16 arg`
-
-**Alternate:** `mod16 #arg`
-
-Implemented as a subroutinge, link with -lib lamalib.lib  
-When using this function in interrupt save _div16_sr, _div16_rem, _div16_arg_lo, and _div16_arg_hi before calling and restore those values afterwards.  
-
-**Returns:** Result is returned in AX
-
-**Registers modified: all**
 
 ### `mul16`
 
@@ -1840,6 +1833,7 @@ Syncs to raster cycle 3 at current raster line+2 (cycle perfect)
 The current and the next two rasterlines must not be badlines  
 Uses the double IRQ method with a NOP slide and a conditional jump to eliminate jitter  
 Assembling may fail if the conditional branch goes of a page boundary, enable the option extranops in this case.  
+unpredictable cycles and break the stabilization algorithm.  
 Minimal example showing a typical usage:  
 init:   set_isr_for_stabilize_raster_cycle  
         set_raster_irq 48,isr  
@@ -1851,6 +1845,9 @@ isr:    poke 1,$35
         set_irq_rasterline 48  
         asl $D019  
         jmp $ea31  
+
+**Notes:**
+- Note: SAVE_REGS guards are intentionally omitted. This macro is cycle-exact timing code
 
 ### `stabilize_raster_cycle_with_isr_set`
 
@@ -2583,18 +2580,12 @@ n can be: constant, A, X, or Y
 **Syntax:** `unsetGroundedSprite`
 
 Clear grounded sprite flag  
-Macros to enable optional multiplexer capabilities at runtime.  
+Macros to enable optional multiplexer capabilities at runtiLAMAlib modules are reusable, configurable components that can be included in your programs. Each module is configured using `def_const` parameters and included within a scope.
 
-**Registers modified: A**
+## bigcharout
 
-## Optional Features
-
-### `updateSpriteAttributes`
-
-**Syntax:** `updateSpriteAttributes n`
-
-Update sprite n's attributes (requires ENABLE_UPDATE_ATTRIBUTES=1 in module)  
-n**Author:** a screen character (default: space ;* for 0, reverse space for 1).  
+**Version:** 0.2  
+**Author:** a screen character (default: space ;* for 0, reverse space for 1).  
 
 **Configuration Parameters:**
 

@@ -347,7 +347,6 @@ loop:
 ;;  73  Power up message, or write attempt with DOS Mismatch
 ;;  74  Drive not ready
 .macro diskstatus devicenr
-;ToDo - this should be a library routine with a short macro stub instead of a long macro
   .scope
         .if ::SAVE_REGS
           store X
@@ -357,13 +356,20 @@ loop:
         jsr SETNAM      ;no parameter
         lda #$0f
         tay             ;open 15,x,15
-    .if devicenr = 0
+    .if .paramcount = 0
         ldx $BA
         bne :+
         ldx #$08      ;use address 8 as default
 :
     .else
+      .if devicenr = 0
+        ldx $BA
+        bne :+
+        ldx #$08      ;use address 8 as default
+:
+      .else
         ldx #devicenr
+      .endif
     .endif
         jsr SETLFS
         jsr OPEN
@@ -1015,32 +1021,32 @@ quotient=*+1
 ;;   poke _frame_lower_left,74</tt>
 
 .macro draw_frame x1,y1,x2,y2,c
-  .ifnblank x1
-.import _window_x1
-        poke _window_x1,x1
-  .endif
-  .ifnblank y1
-.import _window_y1
-        poke _window_y1,y1
-  .endif
-  .ifnblank x2
-.import _window_x2
-        poke _window_x2,x2
-  .endif
-  .ifnblank y2
-.import _window_y2
-        poke _window_y2,y2
-  .endif
-  .ifnblank c
-.import _frame_color
-        poke _frame_color,c
-  .endif
-.import _draw_frame_sr
         .if ::SAVE_REGS
           pha
           store X
           store Y
         .endif
+  .ifnblank x1
+	.import _window_x1
+        poke _window_x1,x1
+  .endif
+  .ifnblank y1
+	.import _window_y1
+        poke _window_y1,y1
+  .endif
+  .ifnblank x2
+	.import _window_x2
+        poke _window_x2,x2
+  .endif
+  .ifnblank y2
+	.import _window_y2
+        poke _window_y2,y2
+  .endif
+  .ifnblank c
+	.import _frame_color
+        poke _frame_color,c
+  .endif
+	.import _draw_frame_sr
         jsr _draw_frame_sr
         .if ::SAVE_REGS
           restore Y

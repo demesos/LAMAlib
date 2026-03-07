@@ -24,7 +24,6 @@ _printax_sr:
 	  iny
 	  ;sec	alreay set
 	  sbcax #20000
-	  jmp tenthousands_done
 	endif
 	cmpax #10000	
 	if ge
