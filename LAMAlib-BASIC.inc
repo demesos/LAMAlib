@@ -1,5 +1,9 @@
 ;; <h2>Interacting with BASIC</h2>
 
+.ifndef SAVE_REGS
+  ::SAVE_REGS .set 0
+.endif
+
 ;; setBasicVarnam "varnam"
 ;; This macro puts name and type of current variable into $45/46 (on C128 $47/48) in preparation for using ROM routines
 ;; The values of $45 and $46 are also put into registers A and X
@@ -48,6 +52,10 @@
 ;; On the C128, the bank will be set to 1 after return, so this code needs to be in common RAM or in bank 1.
 .macro getAddrOfBasicArryVar varnam,arrayidx
 .import _getArrayElementAddr_sr
+        .if ::SAVE_REGS
+          store Y
+        .endif
+
 	setBasicVarnam varnam
 	.if .not .xmatch({arrayidx},{AX})
 	  lda #>(arrayidx)
@@ -66,4 +74,7 @@ load_x=*+1
 load_x=*+1
 	ldx #$af		;ho value from y into X
 	.endscope
+        .if ::SAVE_REGS
+          restore Y	;restore Y, was clobbered in _getArrayElementAddr_sr
+        .endif
 .endmacro

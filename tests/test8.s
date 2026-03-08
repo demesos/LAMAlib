@@ -46,9 +46,12 @@ DELAYMS=17
 	bcs exit_failure
 
 	subax $404
-	cmpax #376
+	.if ::SAVE_REGS
+	  cmpax #383
+	.else
+	  cmpax #376
+	.endif
 	bne exit_failure
-
 	clc
 	rts
 

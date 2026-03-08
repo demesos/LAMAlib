@@ -1,5 +1,9 @@
 .ifdef __C128__
 
+.ifndef SAVE_REGS
+  ::SAVE_REGS .set 0
+.endif
+
 ;; <h2>Special Macros for C128 in C128 Mode</h2>
 
 ;; shadowIRQ off|on
@@ -16,6 +20,9 @@
 
 .macro shadowIRQ arg
 .scope
+        .if ::SAVE_REGS
+          pha
+        .endif
         .if .xmatch ({arg}, {off}) 
             ; deactivate BASIC part of IRQ
 	    lda #00
@@ -29,6 +36,9 @@
                 .error  "Unknown argument for shadowIRQ, must be 'off' or 'on'."
             .endif
         .endif
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endscope
 .endmacro
 
@@ -39,13 +49,19 @@
 ;; Bank must be 0 or 1
 ;; I/O must be enabled for this macro to work
 .macro set_VIC_RAMbank bank
+        .if ::SAVE_REGS
+          pha
+        .endif
 	lda $D506
 	.if bank=0
 	  and #%10111111	;clear bit 6
 	.else
-	  ora #%01111111	;enable bit 6
+	  ora #%01000000	;enable bit 6
 	.endif
 	sta $D506
+        .if ::SAVE_REGS
+          pla
+        .endif
 .endmacro
 
 .endif

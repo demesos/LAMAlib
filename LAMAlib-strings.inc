@@ -1,5 +1,7 @@
 ;; <h2>String Routines</h2>
 
+; SAVE_REGS not need for these functions, as X and AX are also return values
+
 ;; strlen8 address
 ;; strlen8 AX
 ;; Returns the length of the null-terminated string at address given by the argument or by AX

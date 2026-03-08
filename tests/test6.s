@@ -11,18 +11,23 @@
 	delay_ms 8		;8ms are 8/20*312 = 124.8 rasterlines
 	lda $d012
 	cmp #145		;lower value
-	bcc exit_failure
+	bcc exit_failure1
 	cmp #155
-	bcs exit_failure
+	bcs exit_failure1
 
 	wait_for_rasterline 4
 	ldax #10
 	delay_ms AX		;10ms are 10/20*312 = 156 rasterlines
 	lda $d012
 	cmp #155		;lower value
-	bcc exit_failure
+	bcc exit_failure1
 	cmp #165
-	bcs exit_failure
+	bcc no_exit_failure
+
+exit_failure1:
+	sec
+	rts
+no_exit_failure:
 
 	do
 	  wait_for_rasterline 25

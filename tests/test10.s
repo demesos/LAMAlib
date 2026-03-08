@@ -105,7 +105,7 @@ outside: sec
 	next
 	ldax sum
 	cmpax #45764
-	bne exit_failure
+	jne exit_failure
 
 	;test the matrix functions
 
