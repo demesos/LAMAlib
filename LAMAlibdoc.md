@@ -26,6 +26,7 @@
   - [VIC Register Batch Macros](#vic-register-batch-macros)
 - [Modules](#modules)
   - [bigcharout](#bigcharout)
+  - [Character Sprite Engine](#character-sprite-engine)
   - [copycharset](#copycharset)
   - [mousedriver](#mousedriver)
   - [PETSCII decode and display](#petscii-decode-and-display)
@@ -2580,7 +2581,7 @@ n can be: constant, A, X, or Y
 **Syntax:** `unsetGroundedSprite`
 
 Clear grounded sprite flag  
-Macros to enable optional multiplexer capabilities at runtiLAMAlib modules are reusable, configurable components that can be included in your programs. Each module is configured using `def_const` parameters and included within a scope.
+MaLAMAlib modules are reusable, configurable components that can be included in your programs. Each module is configured using `def_const` parameters and included within a scope.
 
 ## bigcharout
 
@@ -2607,6 +2608,69 @@ Macros to enable optional multiplexer capabilities at runtiLAMAlib modules are r
 
 m_init bigcharout
 m_run bigcharout
+```
+
+---
+
+## Character Sprite Engine
+
+**Version:** 1.0  
+**Author:** Wilfried Elmenreich / LAMAlib  
+
+Draws and undraws software character sprites with full 4-sided
+clipping. Uses self-modifying absolute indexed addressing (abs,y)
+throughout the inner loop for maximum performance with zero zero-page
+overhead for screen/color pointers. Background is saved before drawing
+so sprites can be erased cleanly.
+
+**Features:**
+- Full 4-sided clipping to configurable screen boundaries
+- Background save/restore for flicker-free movement (SAVE_BACKGROUND)
+- Transparency: char code 0 (PETSCII '@') is skipped
+- Self-modifying abs,y inner loop (faster than (zp),y; no ZP pointers)
+- Optional undraw path (ENABLE_UNDRAW)
+- Optional background saving (SAVE_BACKGROUND)
+- Configurable screen/color RAM base addresses [w] [h] [w*h] [char_data: w*h bytes] [color_data: w*h bytes] [chr_buf: w*h zero bytes] [col_buf: w*h zero bytes]
+
+**Configuration Parameters:**
+
+| Parameter | Default | Required | Description |
+|-----------|---------|----------|-------------|
+| `SCREEN_BASE` | `$0400` |  |  |
+| `COLRAM_BASE` | `$D800` |  |  |
+| `FRUGAL_ZP` | `0` |  | use no ZP bytes (costs 1 cycle/row) |
+| `SAVE_BACKGROUND` | `1` |  | 1 = save background before drawing (required for undraw) |
+| `ENABLE_UNDRAW` | `1` |  | 1 = include undraw/restore path |
+| `LARGE_SPRITES` | `0` |  | 0 = assume w*h < 128 (omit CLCs); 1 = safe for larger sprites |
+| `N_CHARSPRITES` | `4` |  | number of sprite register slots (sprite_container.s usage) |
+| `CLIPPING_MAX_X` | `39` |  | rightmost column (inclusive) |
+| `CLIPPING_MAX_Y` | `24` |  | bottom row (inclusive) |
+| `DEBUG` | `0` |  | border flash timing aid |
+
+**Usage:**
+
+```assembly
+.scope Character Sprite Engine
+  .include "modules/m_charsprite.s"
+.endscope
+
+```
+
+**API:**
+
+```
+; Draw a sprite:
+select_sprite cspr, sprite_addr, width, height
+ldx #xpos                      ; signed: negative = off left edge
+ldy #ypos                      ; signed: negative = off top edge
+jsr cspr::draw_sprite_at_X_Y
+; Erase a sprite (call before redrawing at new position):
+select_sprite_to_delete cspr, sprite_addr, width, height
+ldx #old_xpos
+ldy #old_ypos
+jsr cspr::undraw_sprite_at_X_Y
+; Via sprite register table (sprite_handler.s pattern):
+jsr cspr::_updatesprites       ; defined in sprite_handler.s
 ```
 
 ---
@@ -2686,7 +2750,7 @@ m_run mousedriver
 | `ENABLE_TRANSPARENT` | `1` |  | if 1 a selectable character (default 0) will be treated as being transparent |
 | `TRANSPARENT_CHARACTER` | `0` |  | index of the character treated as transparent |
 | `TRANSPARENT_MODIFIERS` | `0` |  | adds procedures for disable_transparent and set_transparent screencode |
-| `COMPACT_ZEROPAGE` | `0` |  | if 1 the module operates in a compact mode using only 2 zeropage addresses, resulting in 3% performance decrease |
+| `FRUGAL_ZP` | `0` |  | if 1 the module operates in a compact mode using only 2 zeropage addresses, resulting in 3% performance decrease |
 | `TARGET_COLORMAP` | `0` |  | if 0 the value of $d800 is used as default |
 | `TARGET_SCREEN` | `0` |  | if 0 the value in 648 is used as the high byte default value |
 | `DISPLAY_BY_NUM` | `0` |  | if 1 a function display_by_num is added, taking the image number to display as argument |
