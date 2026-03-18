@@ -36,7 +36,7 @@ def_const DECODE_FROM_D000,0	  ;if 1 the compressed PETSCII can lie anywhere in 
 def_const ENABLE_TRANSPARENT,1	  ;if 1 a selectable character (default 0) will be treated as being transparent
 def_const TRANSPARENT_CHARACTER,0 ;index of the character treated as transparent
 def_const TRANSPARENT_MODIFIERS,0 ;adds procedures for disable_transparent and set_transparent screencode
-def_const COMPACT_ZEROPAGE, 0     ;if 1 the module operates in a compact mode using only 2 zeropage addresses, resulting in 3% performance decrease
+def_const FRUGAL_ZP, 0            ;if 1 the module operates in a compact mode using only 2 zeropage addresses, resulting in 3% performance decrease
 def_const TARGET_COLORMAP,0	  ;if 0 the value of $d800 is used as default
 def_const TARGET_SCREEN,0	  ;if 0 the value in 648 is used as the high byte default value
 def_const DISPLAY_BY_NUM,0	  ;if 1 a function display_by_num is added, taking the image number to display as argument
@@ -63,7 +63,7 @@ def_const MEM_1_VALUE,$36         ;value in address $1 during decode for display
 
 .zeropage
 zp_srcptr: 	.res 2
-.if COMPACT_ZEROPAGE=0
+.if FRUGAL_ZP=0
 const_E0:	.res 1
 const_10:	.res 1
 .endif
@@ -220,13 +220,13 @@ decode_routine:
           dec $1  ;all RAM configuration
   .endif
 .endif
-.if COMPACT_ZEROPAGE
+.if FRUGAL_ZP
 const_E0=*+1
 .endif
         and #$E0
         ;sta mrk+1
         sta mrk2+1
-.if COMPACT_ZEROPAGE=0
+.if FRUGAL_ZP=0
         lda #$E0
         sta const_E0
         lda #$10
@@ -388,7 +388,7 @@ repeat_n_offset:
 	tay		
 	jmp skphi	;entry to loop1 without increasing y
 
-.if COMPACT_ZEROPAGE
+.if FRUGAL_ZP
 const_10:	.byte $10
 .endif
 
