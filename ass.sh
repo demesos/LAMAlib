@@ -1,7 +1,7 @@
-#!/bin/bash
+ï»¿#!/bin/bash
 
-# ass.sh – assemble ca65 sources into a PRG
-# Version: 0.35
+# ass.sh - assemble ca65 sources into a PRG
+# Version: 0.36
 # Runs exprass on each source that contains "let"
 # Adds BASIC stub unless code already provides one or a custom start address is given
 #
@@ -31,6 +31,7 @@ OUTFILE=""
 FILES=()
 MAINFILE=""
 STARTADDR=""
+CFGFILE=""
 FILECOUNT=0
 
 # ============================================
@@ -70,6 +71,7 @@ Options:
   -o <file>       Output filename (only valid with single file or -l mode)
   -v              Verbose mode
   -d <symbol> [value]  Define assembler symbol, optionally with value
+  -C <cfg>        Use alternate linker config (default: {target}-basicfriendly-asm.cfg)
                        Examples: -d DEBUG  or  -d LEVEL 5  or  -d RAZY=1
   -64, -c64       Target C64 (default)
   -128, -c128     Target C128
@@ -156,6 +158,14 @@ while true; do
       LIBNAME="LAMAlib20.lib"
       shift
       ;;
+    -C)
+      if [[ -z "$2" ]]; then
+        echo "ERROR: -C requires a config filename"
+        exit 1
+      fi
+      CFGFILE="$2"
+      shift 2
+      ;;
     -*)
       echo "ERROR: Unknown option: $1"
       echo
@@ -198,6 +208,11 @@ process_file() {
 }
 
 # --------------------------------------------------
+# Resolve linker config: use -C value or target default
+if [[ -z "$CFGFILE" ]]; then
+  CFGFILE="${TARGET}-basicfriendly-asm.cfg"
+fi
+
 # collect files and optional start address
 # --------------------------------------------------
 
@@ -259,25 +274,25 @@ assemble_single() {
   if [[ -z "$STARTADDR" ]]; then
     if grep -q makesys "$asmfile"; then
       [[ "$VERBOSE" == "1" ]] && \
-        echo "cl65 -t $TARGET $ASMDEF -g \"$asmfile\" -lib $LIBNAME -C ${TARGET}-basicfriendly-asm.cfg -Ln ${asmbase}_labels.txt -o \"$asmout\""
+        echo "cl65 -t $TARGET $ASMDEF -g \"$asmfile\" -lib $LIBNAME -C $CFGFILE -Ln ${asmbase}_labels.txt -o \"$asmout\""
       
       cl65 -t "$TARGET" $ASMDEF -g "$asmfile" \
-           -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" \
+           -lib "$LIBNAME" -C "$CFGFILE" \
            -Ln "${asmbase}_labels.txt" -o "$asmout"
     else
       [[ "$VERBOSE" == "1" ]] && \
-        echo "cl65 -t $TARGET $ASMDEF -g \"$asmfile\" -lib $LIBNAME -C ${TARGET}-basicfriendly-asm.cfg -Ln ${asmbase}_labels.txt -u __EXEHDR__ -o \"$asmout\""
+        echo "cl65 -t $TARGET $ASMDEF -g \"$asmfile\" -lib $LIBNAME -C $CFGFILE -Ln ${asmbase}_labels.txt -u __EXEHDR__ -o \"$asmout\""
       
       cl65 -t "$TARGET" $ASMDEF -g "$asmfile" \
-           -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" \
+           -lib "$LIBNAME" -C "$CFGFILE" \
            -Ln "${asmbase}_labels.txt" -u __EXEHDR__ -o "$asmout"
     fi
   else
     [[ "$VERBOSE" == "1" ]] && \
-      echo "cl65 -t $TARGET $ASMDEF -g \"$asmfile\" -lib $LIBNAME -C ${TARGET}-basicfriendly-asm.cfg -Ln ${asmbase}_labels.txt --start-addr $STARTADDR -o \"$asmout\""
+      echo "cl65 -t $TARGET $ASMDEF -g \"$asmfile\" -lib $LIBNAME -C $CFGFILE -Ln ${asmbase}_labels.txt --start-addr $STARTADDR -o \"$asmout\""
     
     cl65 -t "$TARGET" $ASMDEF -g "$asmfile" \
-         -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" \
+         -lib "$LIBNAME" -C "$CFGFILE" \
          -Ln "${asmbase}_labels.txt" --start-addr "$STARTADDR" -o "$asmout"
   fi
 }
@@ -311,27 +326,27 @@ if [[ -z "$STARTADDR" ]]; then
   
   if grep -q makesys "${FILES[@]}"; then
     [[ "$VERBOSE" == "1" ]] && \
-      echo "cl65 -t $TARGET $ASMDEF -g ${FILES[*]} -lib $LIBNAME -C ${TARGET}-basicfriendly-asm.cfg -Ln labels.txt -o \"$OUTFILE\""
+      echo "cl65 -t $TARGET $ASMDEF -g ${FILES[*]} -lib $LIBNAME -C $CFGFILE -Ln labels.txt -o \"$OUTFILE\""
     
     cl65 -t "$TARGET" $ASMDEF -g "${FILES[@]}" \
-         -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" \
+         -lib "$LIBNAME" -C "$CFGFILE" \
          -Ln "labels.txt" -o "$OUTFILE"
   else
     [[ "$VERBOSE" == "1" ]] && \
-      echo "cl65 -t $TARGET $ASMDEF -g ${FILES[*]} -lib $LIBNAME -C ${TARGET}-basicfriendly-asm.cfg -Ln labels.txt -u __EXEHDR__ -o \"$OUTFILE\""
+      echo "cl65 -t $TARGET $ASMDEF -g ${FILES[*]} -lib $LIBNAME -C $CFGFILE -Ln labels.txt -u __EXEHDR__ -o \"$OUTFILE\""
     
     cl65 -t "$TARGET" $ASMDEF -g "${FILES[@]}" \
-         -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" \
+         -lib "$LIBNAME" -C "$CFGFILE" \
          -Ln "labels.txt" -u __EXEHDR__ -o "$OUTFILE"
   fi
 else
   echo "Assembling and linking ${FILES[*]} to start address $STARTADDR for target $TARGET..."
   
   [[ "$VERBOSE" == "1" ]] && \
-    echo "cl65 -t $TARGET $ASMDEF -g ${FILES[*]} -lib $LIBNAME -C ${TARGET}-basicfriendly-asm.cfg -Ln labels.txt --start-addr $STARTADDR -o \"$OUTFILE\""
+    echo "cl65 -t $TARGET $ASMDEF -g ${FILES[*]} -lib $LIBNAME -C $CFGFILE -Ln labels.txt --start-addr $STARTADDR -o \"$OUTFILE\""
   
   cl65 -t "$TARGET" $ASMDEF -g "${FILES[@]}" \
-       -lib "$LIBNAME" -C "${TARGET}-basicfriendly-asm.cfg" \
+       -lib "$LIBNAME" -C "$CFGFILE" \
        -Ln "labels.txt" --start-addr "$STARTADDR" -o "$OUTFILE"
 fi
 

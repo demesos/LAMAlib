@@ -1,5 +1,5 @@
-:: ass.bat – assemble ca65 sources into a PRG
-:: Version: 0.35
+:: ass.bat - assemble ca65 sources into a PRG
+:: Version: 0.36
 :: Runs exprass on each source that contains "let"
 :: Adds BASIC stub unless code already provides one or a custom start address is given
 ::
@@ -32,6 +32,7 @@ set OUTFILE=
 set FILES=
 set MAINFILE=
 set STARTADDR=
+set CFGFILE=
 set FILECOUNT=0
 
 if "%1"=="" goto show_usage
@@ -122,6 +123,17 @@ goto not20
   goto check_options
 :not20
 
+if "%1"=="-C" (
+  if "%~2"=="" (
+    echo ERROR: -C requires a config filename
+    exit /B 1
+  )
+  set CFGFILE=%~2
+  shift
+  shift
+  goto check_options
+)
+
 :: Check for unknown option (starts with -)
 if not "%~1"=="" (
   if "%~1:~0,1%"=="-" (
@@ -182,6 +194,11 @@ if defined OUTFILE (
   )
 )
 
+:: Resolve linker config: use -C value or target default
+if not defined CFGFILE (
+  set CFGFILE=%TARGET%-basicfriendly-asm.cfg
+)
+
 :: Don't set OUTFILE here - let each mode handle it
 
 :: --------------------------------------------------
@@ -212,14 +229,14 @@ if "%STARTADDR%"=="" (
 
   >nul findstr /c:"makesys" %FILES% && (
     if "%VERBOSE%"=="1" (
-      echo cl65 -t %TARGET% %ASMDEF% -g %FILES% -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln labels.txt -o "%OUTFILE%"
+      echo cl65 -t %TARGET% %ASMDEF% -g %FILES% -lib %LIBNAME% -C %CFGFILE% -Ln labels.txt -o "%OUTFILE%"
     )
-    cl65 -t %TARGET% %ASMDEF% -g %FILES% -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln labels.txt -o "%OUTFILE%"
+    cl65 -t %TARGET% %ASMDEF% -g %FILES% -lib %LIBNAME% -C %CFGFILE% -Ln labels.txt -o "%OUTFILE%"
   ) || (
     if "%VERBOSE%"=="1" (
-      echo cl65 -t %TARGET% %ASMDEF% -g %FILES% -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln labels.txt -u __EXEHDR__ -o "%OUTFILE%"
+      echo cl65 -t %TARGET% %ASMDEF% -g %FILES% -lib %LIBNAME% -C %CFGFILE% -Ln labels.txt -u __EXEHDR__ -o "%OUTFILE%"
     )
-    cl65 -t %TARGET% %ASMDEF% -g %FILES% -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln labels.txt -u __EXEHDR__ -o "%OUTFILE%"
+    cl65 -t %TARGET% %ASMDEF% -g %FILES% -lib %LIBNAME% -C %CFGFILE% -Ln labels.txt -u __EXEHDR__ -o "%OUTFILE%"
   )
 
 ) else (
@@ -227,9 +244,9 @@ if "%STARTADDR%"=="" (
   echo Assembling and linking%FILES% to start address %STARTADDR% for target %TARGET%...
 
   if "%VERBOSE%"=="1" (
-    echo cl65 -t %TARGET% %ASMDEF% -g %FILES% -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln labels.txt --start-addr %STARTADDR% -o "%OUTFILE%"
+    echo cl65 -t %TARGET% %ASMDEF% -g %FILES% -lib %LIBNAME% -C %CFGFILE% -Ln labels.txt --start-addr %STARTADDR% -o "%OUTFILE%"
   )
-  cl65 -t %TARGET% %ASMDEF% -g %FILES% -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln labels.txt --start-addr %STARTADDR% -o "%OUTFILE%"
+  cl65 -t %TARGET% %ASMDEF% -g %FILES% -lib %LIBNAME% -C %CFGFILE% -Ln labels.txt --start-addr %STARTADDR% -o "%OUTFILE%"
 )
 
 echo done.
@@ -288,20 +305,20 @@ if "%VERBOSE%"=="1" (
 if "%STARTADDR%"=="" (
   >nul findstr /c:"makesys" "%ASMFILE%" && (
     if "%VERBOSE%"=="1" (
-      echo cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln %ASMBASE%_labels.txt -o "%ASMOUT%"
+      echo cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %CFGFILE% -Ln %ASMBASE%_labels.txt -o "%ASMOUT%"
     )
-    cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln %ASMBASE%_labels.txt -o "%ASMOUT%"
+    cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %CFGFILE% -Ln %ASMBASE%_labels.txt -o "%ASMOUT%"
   ) || (
     if "%VERBOSE%"=="1" (
-      echo cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln %ASMBASE%_labels.txt -u __EXEHDR__ -o "%ASMOUT%"
+      echo cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %CFGFILE% -Ln %ASMBASE%_labels.txt -u __EXEHDR__ -o "%ASMOUT%"
     )
-    cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln %ASMBASE%_labels.txt -u __EXEHDR__ -o "%ASMOUT%"
+    cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %CFGFILE% -Ln %ASMBASE%_labels.txt -u __EXEHDR__ -o "%ASMOUT%"
   )
 ) else (
   if "%VERBOSE%"=="1" (
-    echo cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln %ASMBASE%_labels.txt --start-addr %STARTADDR% -o "%ASMOUT%"
+    echo cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %CFGFILE% -Ln %ASMBASE%_labels.txt --start-addr %STARTADDR% -o "%ASMOUT%"
   )
-  cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %TARGET%-basicfriendly-asm.cfg -Ln %ASMBASE%_labels.txt --start-addr %STARTADDR% -o "%ASMOUT%"
+  cl65 -t %TARGET% %ASMDEF% -g "%ASMFILE%" -lib %LIBNAME% -C %CFGFILE% -Ln %ASMBASE%_labels.txt --start-addr %STARTADDR% -o "%ASMOUT%"
 )
 
 goto :eof
@@ -348,6 +365,7 @@ echo   -o ^<file^>       Output filename ^(only valid with single file or -l mod
 echo   -v              Verbose mode
 echo   -d ^<symbol^> [value]  Define assembler symbol, optionally with value
 echo                        Examples: -d DEBUG  or  -d LEVEL 5  or  -d RAZY=1
+echo   -C ^<cfg^>        Use alternate linker config ^(default: {target}-basicfriendly-asm.cfg^)
 echo   -64, -c64       Target C64 ^(default^)
 echo   -128, -c128     Target C128
 echo   -20, -vic20     Target VIC-20
