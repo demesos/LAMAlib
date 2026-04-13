@@ -2805,6 +2805,9 @@ rol
         .endif
 .endmacro
 
+.macro readWASDspace
+  read_keys_WASDspace
+.endmacro
 
 ;; read_keys_ACSEP
 ;; Reads keys @, :, ;, =, P
