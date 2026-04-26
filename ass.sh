@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 
 # ass.sh - assemble ca65 sources into a PRG
 # Version: 0.36
