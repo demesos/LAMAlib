@@ -11,7 +11,7 @@
 ;   bit 6: M
 ;   bit 7: X
 
-.include "LAMAlib-macros16.inc"
+.include "../LAMAlib-macros16.inc"
 
 .export _read_keys_CACFFPMX_vic20_sr
 

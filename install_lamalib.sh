@@ -7,8 +7,8 @@
 # cc65 needs to be installed on your system and cc65/bin must be in your path
 # If CC65_INSTALL_PATH is given, it overrides the path found by 'which cc65'.
 #
-# Version: 0.33
-# Date: 2025-12-08
+# Version: 0.34
+# Date: 2026-05-04
 # Author: Wil Elmenreich (wilfried at gmx dot at)
 # License: The Unlicense (public domain)
 
@@ -21,6 +21,8 @@ cyan='\033[0;36m'
 white='\033[1;37m'
 black='\033[0;30m'
 nocolor='\033[0m'
+
+errors=0
 
 if [ -n "$1" ]; then
   # Use the provided path
@@ -55,23 +57,33 @@ fi
 
 pushd lib-functions
 make
+errors=$((errors + $?))
 popd
 
 # find cc65 directory
 echo Installing library into $installdir
 
 install -m 644 LAMAlib*.inc "$installdir/asminc/"
+errors=$((errors + $?))
 mkdir -p "$installdir/asminc/modules"
 install -m 644 modules/* "$installdir/asminc/modules/"
+errors=$((errors + $?))
 install -m 644 LAMAlib*.lib "$installdir/lib/"
+errors=$((errors + $?))
 install -m 644 LAMAlib128.lib "$installdir/lib/"
+errors=$((errors + $?))
 install -m 644 LAMAlib20.lib "$installdir/lib/"
+errors=$((errors + $?))
 install -m 644 *friendly-asm.cfg "$installdir/cfg/"
+errors=$((errors + $?))
 install -m 755 ass.sh "$installbindir/ass"
+errors=$((errors + $?))
 install -m 755 asdent.py "$installbindir/asdent"
+errors=$((errors + $?))
 install -m 755 exprass.py "$installbindir/exprass"
+errors=$((errors + $?))
 
-if [ $? -ne 0 ]; then
+if [ $errors -ne 0 ]; then
   echo -e $red
   echo -e "*******************************************************************************"
   echo -e "* Could not install LAMAlib!                                                  *"
@@ -82,7 +94,6 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Updated success message
 echo -e $white
 echo -e "*******************************************************************************"
 echo -e "* Congratulations, LAMAlib has been installed!                                *"

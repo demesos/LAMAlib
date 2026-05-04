@@ -5,8 +5,8 @@
 :: Usage: install_lamalib
 :: cc65 tools need to be installed on your system and to be in your path
 ::
-:: Version: 0.33
-:: Date: 2025-12-08
+:: Version: 0.34
+:: Date: 2026-05-04
 :: Author: Wil Elmenreich (wilfried at gmx dot at)
 :: License: The Unlicense (public domain)
 
@@ -28,6 +28,8 @@ set "black=%ESCchar%[30m"
 set "nocolor=%ESCchar%[0m"
 set "bold=%ESCchar%[1m"
 
+set errors=0
+
 where cc65.exe >nul
 if errorlevel 1 (
   echo %red%cc65 installation not found. Please install cc65 and run this script again^^!%nocolor%
@@ -45,17 +47,24 @@ set count=1
 set "o_files="
 for %%f in (*.s) do (
     ca65 -t c64 %%f
+    if errorlevel 1 set /a errors+=1
     set /a count+=1
     set "o_files=!o_files! %%~nf.o"
 )
 
 ca65 -tc64 systemdependencies.as -o systemaddresses_c64.o
+if errorlevel 1 set /a errors+=1
 ca65 -tc128 systemdependencies.as -o systemaddresses_c128.o
+if errorlevel 1 set /a errors+=1
 ca65 -tvic20 systemdependencies.as -o systemaddresses_vc20.o
+if errorlevel 1 set /a errors+=1
 
 ar65 a LAMAlib.lib !o_files! systemaddresses_c64.o
+if errorlevel 1 set /a errors+=1
 ar65 a LAMAlib128.lib !o_files! systemaddresses_c128.o
+if errorlevel 1 set /a errors+=1
 ar65 a LAMAlib20.lib !o_files! systemaddresses_vc20.o
+if errorlevel 1 set /a errors+=1
 
 :: Clean up temp files created by ar65
 echo Cleaning up ar65 temporary files...
@@ -75,17 +84,37 @@ for /F %%I in ('where cc65.exe') do (
 )
 
 @copy LAMAlib*.inc "%CC65PATH%\asminc"
+if errorlevel 1 set /a errors+=1
 @xcopy /e /i /y "modules" "%CC65PATH%\asminc\modules\"
+if errorlevel 1 set /a errors+=1
 @copy LAMAlib.lib "%CC65PATH%\lib"
+if errorlevel 1 set /a errors+=1
 @copy LAMAlib128.lib "%CC65PATH%\lib"
+if errorlevel 1 set /a errors+=1
 @copy LAMAlib20.lib "%CC65PATH%\lib"
+if errorlevel 1 set /a errors+=1
 @copy *friendly-asm.cfg "%CC65PATH%\cfg"
+if errorlevel 1 set /a errors+=1
 @copy ass.bat "%CC65PATH%\bin"
+if errorlevel 1 set /a errors+=1
 @copy asdent.py "%CC65PATH%\bin"
+if errorlevel 1 set /a errors+=1
 @echo @python "%%~dp0asdent.py" %%* > "%CC65PATH%\bin\asdent.bat"
 @copy exprass.py "%CC65PATH%\bin"
+if errorlevel 1 set /a errors+=1
 @echo @python "%%~dp0exprass.py" %%* > "%CC65PATH%\bin\exprass.bat"
 
+if %errors% NEQ 0 (
+  echo %red%
+  echo *******************************************************************************
+  echo * Could not install LAMAlib^^!                                                  *
+  echo *                                                                             *
+  echo * Check the errors above - you may need to run as Administrator:              *
+  echo * Right-click install_lamalib.bat and choose "Run as administrator" %red%          *
+  echo *******************************************************************************%nocolor%
+  pause
+  exit /b 1
+)
 
 echo %white%
 echo *********************************************************************************************

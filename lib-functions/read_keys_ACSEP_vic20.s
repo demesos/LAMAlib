@@ -8,7 +8,7 @@
 ;   bit 3: = (right)
 ;   bit 4: P (fire)
 
-.include "LAMAlib-macros16.inc"
+.include "../LAMAlib-macros16.inc"
 
 .export _read_keys_ACSEP_vic20_sr
 
