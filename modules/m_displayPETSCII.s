@@ -50,16 +50,57 @@ def_const MEM_1_VALUE,$36         ;value in address $1 during decode for display
 ; __VIC20__ for VIC-20 target, default for C64/C128
 ;-----------------------------------------------------------------------
 .ifdef __VIC20__
-    PLATFORM_BORDER_REG     = $900F
-    PLATFORM_BG_REG         = $900F    ; Same register as border
+    def_const PLATFORM_BORDER_REG, $900F
+    def_const PLATFORM_BG_REG,     $900F    ; Same register as border
     PLATFORM_COMBINED_COLOR = 1        ; Border and BG in same register
     PLATFORM_NEED_IO_SWITCH = 0        ; VIC-20 has simpler memory map
 .else
-    PLATFORM_BORDER_REG     = $D020
-    PLATFORM_BG_REG         = $D021
+    def_const PLATFORM_BORDER_REG, $D020
+    def_const PLATFORM_BG_REG,     $D021
     PLATFORM_COMBINED_COLOR = 0        ; Separate registers
     PLATFORM_NEED_IO_SWITCH = 1        ; For DECODE_FROM_D000 mode
 .endif
+
+;-----------------------------------------------------------------------
+; Border/background retarget macros
+;
+; By default the first two header bytes of the compressed image are
+; written to PLATFORM_BORDER_REG / PLATFORM_BG_REG (combined into a
+; single register on VIC-20). To decode an "overlay" image that must
+; not disturb the current border/background colors - or to redirect
+; them into a shadow variable instead - patch the store target at
+; runtime with the macros below. This patches the operand bytes of the
+; existing "sta" instructions, so the default case (no retargeting) has
+; zero overhead, and a switch costs only a handful of bytes/cycles,
+; persisting until changed again.
+;
+; Assumes the module is included inside ".scope displayPETSCII", per
+; the "m_run displayPETSCII" convention described above.
+;
+; Examples:
+;   retarget_border PLATFORM_BORDER_REG          ; restore default
+;   retarget_border displayPETSCII::color_sink   ; discard: leave border untouched
+;   retarget_border myshadowbyte                 ; redirect to a shadow variable
+;
+; retarget_background works the same way for the background write, and
+; is a no-op on VIC-20 (border and background share PLATFORM_BORDER_REG
+; there, so retarget_border alone controls both).
+;-----------------------------------------------------------------------
+.macro retarget_border addr
+        lda #<(addr)
+        sta displayPETSCII::border_store+1
+        lda #>(addr)
+        sta displayPETSCII::border_store+2
+.endmacro
+
+.macro retarget_background addr
+.ifndef __VIC20__
+        lda #<(addr)
+        sta displayPETSCII::bg_store+1
+        lda #>(addr)
+        sta displayPETSCII::bg_store+2
+.endif
+.endmacro
 
 .zeropage
 zp_srcptr: 	.res 2
@@ -68,6 +109,10 @@ const_E0:	.res 1
 const_10:	.res 1
 .endif
 .code
+
+; scratch byte used as a discard target by retarget_border/retarget_background
+; (writes here have no visible effect - use to suppress border/background changes)
+color_sink: .byte 0
 
 .if TRANSPARENT_MODIFIERS
 
@@ -185,14 +230,10 @@ decode_routine:
   .endif
 .endif
 
-.ifdef __VIC20__
-        ; VIC-20: Combined border/background in $900F
+; first header byte: border color (on VIC-20 this combined byte also
+; sets the background, since both share PLATFORM_BORDER_REG)
+border_store:
         sta PLATFORM_BORDER_REG
-        ; Note: Background is already combined in this byte
-.else
-        ; C64: Separate border register
-        sta PLATFORM_BORDER_REG
-.endif
 
 .if DECODE_FROM_D000=1
   .ifndef __VIC20__
@@ -207,11 +248,10 @@ decode_routine:
   .endif
 .endif
 
-.ifdef __VIC20__
-        ; VIC-20: Second byte is just marker, no background color
-        ; (Background was already set in first byte)
-.else
-        ; C64: Second byte contains background color
+.ifndef __VIC20__
+        ; second header byte: background color (C64/C128 only - on VIC-20
+        ; the byte above already set both border and background)
+bg_store:
         sta PLATFORM_BG_REG
 .endif
 
@@ -316,7 +356,7 @@ loop2:  lda #00
 .if ENABLE_TRANSPARENT
 _transparent_petscii_char2:
         cmp #00
-        bcc skip_transparent2
+        beq skip_transparent2
 .endif
 
 scr2:   sta $400,x

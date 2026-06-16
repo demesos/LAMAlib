@@ -2702,7 +2702,8 @@ rol
 .endmacro
 
 ;; wait_key_or_button_released
-;; Waits until both all keys and joystick buttons are released.
+;; Waits until the "key or button pressed" condition from wait_key_or_button
+;; no longer holds, i.e. until both all keys and joystick buttons are released.
 ;; If both are already released, the command continues immediately.
 ;; Function works independently of IRQ routine or ROM.
 ;; Registers modified: A
