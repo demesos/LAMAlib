@@ -162,6 +162,11 @@ loop:
 ;; Registers modified: none (but flags may be messed up)
 .macro  delay_cycles arg
   .if (arg)=0
+        ; Every expansion ends here. The label keeps ca65's tail_call_opt
+        ; from merging a final jsr _delay_xxcycles with a following rts,
+        ; since every instruction counts toward the cycle budget.
+        .local delay_cycles_end
+delay_cycles_end:
         .exitmacro
   .endif
   .if (arg)=1

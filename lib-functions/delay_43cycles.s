@@ -7,5 +7,6 @@
 
 _delay_43cycles:
 	jsr _delay_31cycles
+@no_opt:		; cheap label: keeps ca65 tail_call_opt from turning jsr/rts into jmp
 	rts  ;do not remove the tailcall, it is used for exact timing!
 
