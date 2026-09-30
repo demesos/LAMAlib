@@ -1248,7 +1248,9 @@ targetsm2: lda $ffff
           ldy #00
           lda #<(arg2)
           sta (_zp_ptr1),y
+.if >(arg2) <> <(arg2)
           lda #>(arg2)
+.endif
           iny
           sta (_zp_ptr1),y
           .if ::SAVE_REGS
@@ -1266,7 +1268,13 @@ targetsm2: lda $ffff
             .endif
             lda #<(arg2)
             sta arg1
+.ifconst arg2
+.if >(arg2) <> <(arg2)
             lda #>(arg2)
+.endif
+.else
+            lda #>(arg2)
+.endif
             sta arg1+1
             .if ::SAVE_REGS
             pla
