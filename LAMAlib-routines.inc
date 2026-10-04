@@ -2355,6 +2355,7 @@ positive:
 ;; place the cursor at screen position line,column (counted in characters)
 ;; 0,0 is upper left corner, 24,39 the lower right corner
 ;; arguments can be constants or registers
+;; X will contain the cursor row and Y will contain the column afterwards, A will be clobbered
 .macro  set_cursor_pos   line,column
 .scope
 .if ( .not .xmatch ({line}, {X}) )
